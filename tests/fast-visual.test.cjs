@@ -79,3 +79,24 @@ test('signature follows live UI values and checkbox state, excluding virtual cod
  doc.querySelector('input[type="checkbox"]').checked=true;const c=visual.signature(message,doc);assert.notEqual(b,c);
  doc.querySelector('.cm-editor').textContent='line100';assert.equal(visual.signature(message,doc),c);
 });
+test('unmounted UI is targeted by stable API order, remounted and scroll position restored',async()=>{
+ const doc=docOf('<main></main>'),messages=Array.from({length:10},(_,i)=>({id:'m'+i,role:'assistant',md:'API '+i}));let position=9000,moves=0;
+ const mount=index=>{doc.querySelector('main').innerHTML=turn('m'+index,`<div data-archive-widget>界面 ${index}<input value="${index}"></div>`);};mount(9);
+ const scroll={position:()=>position,range:()=>9000,move:value=>{position=value;moves++;mount(Math.min(9,Math.floor(value/1000)));}};
+ const result=await visual.withScrollRestore(doc,async()=>{
+   const found=await visual.locateMessage(messages[1],{doc,messages,scroll,wait:async()=>{}});assert.equal(found.id,'m1');
+   return visual.enrich({...messages[1],needsUI:true,uiReasons:['live-state']},{doc,messages,scroll,wait:async()=>{},screenshot:false});
+ },{scroll});
+ assert.match(result.md,/界面 1/);assert.equal(position,9000);assert.ok(moves<=16);assert.match(doc.querySelector('main').textContent,/界面 9/);
+});
+test('targeted remount never substitutes a different branch id and stays bounded',async()=>{
+ const doc=docOf(turn('m1-alternative','wrong branch'));
+ const messages=[{id:'m0'},{id:'m1'},{id:'m2'}];let moves=0,position=2000;
+ const scroll={position:()=>position,range:()=>2000,move:value=>{position=value;moves++;doc.body.innerHTML=turn('m1-alternative','wrong branch');}};
+ const found=await visual.locateMessage(messages[1],{doc,messages,scroll,wait:async()=>{},maxAttempts:6});assert.equal(found,null);assert.ok(moves<=6);
+});
+test('stable block resolves the selected id again after its original DOM node unmounts',async()=>{
+ const doc=docOf(turn('selected','<div data-archive-widget><p>Current UI</p><input value="2"></div>'));const message={id:'selected'},original=visual.findMessage('selected',doc),path=core.nodePath(original,original.el.querySelector('[data-archive-widget]'));
+ let waits=0;const el=await visual.stableBlock(message,path,{doc,wait:async()=>{waits++;if(waits===1)doc.body.innerHTML=turn('selected','<div data-archive-widget><p>Current UI</p><input value="2"></div>');}});
+ assert.equal(el.isConnected,true);assert.notEqual(el,original.el.querySelector('[data-archive-widget]'));assert.equal(visual.boundaryOf(el,doc).id,'selected');
+});

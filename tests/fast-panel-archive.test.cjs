@@ -10,8 +10,9 @@ test('archive panel wires UI completion, ZIP assets and timing, reuses cache and
  w.eval(fs.readFileSync('extension/fast-text.js','utf8'));w.eval(fs.readFileSync('extension/fast-content.js','utf8'));const s=w.document.querySelector('[data-archive-owned]').shadowRoot;await idle(s);
  s.getElementById('preview').click();await idle(s);assert.match(s.getElementById('output').value,/API original[\s\S]*24 labels/);assert.equal(enrichCalls,1);
  s.getElementById('archive').click();await idle(s);assert.equal(enrichCalls,2);assert.deepEqual(enrichedModes,[false,true]);assert.ok(files.some(f=>f.name==='assets/answer.png'));
- const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.ok(manifest.timings.readMs>=0);assert.deepEqual(manifest.messages,['answer']);assert.equal(downloads[0].filename,'sample-swift-0.6.0.zip');
- s.getElementById('archive').click();await idle(s);assert.equal(enrichCalls,2);assert.equal(requests,2);
+ const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.ok(manifest.timings.readMs>=0);assert.deepEqual(manifest.messages,['answer']);assert.equal(downloads[0].filename,'sample-swift-0.6.1.zip');
+ assert.equal(downloads[0].saveAs,false);s.getElementById('saveAs').checked=true;
+ s.getElementById('archive').click();await idle(s);assert.equal(enrichCalls,2);assert.equal(requests,2);assert.equal(downloads[1].saveAs,true);
  s.getElementById('preview').click();await idle(s);assert.doesNotMatch(s.getElementById('output').value,/assets\//);
  signature='changed live selection';s.getElementById('preview').click();await idle(s);assert.equal(enrichCalls,3);assert.equal(requests,2);
  w.history.pushState({},'', '/c/other');s.getElementById('archive').click();await idle(s);assert.match(s.getElementById('status').textContent,/切换对话/);assert.equal(downloads.length,2);dom.window.close();

@@ -10,6 +10,66 @@
     if(matches.length>1)throw Error('消息标识对应多个可见回答，已停止以避免混入其他分支');
     return matches[0] || null;
   }
+  function scrollAdapter(doc){
+    const first=core().discover(doc)[0],scope=core().conversationScope(doc).scope;
+    const auto=automation(),el=auto.scrollerFor(first?.el || scope || doc.documentElement);
+    if(!el)throw Error('无法确定当前对话滚动区域');
+    return {position:()=>auto.position(el),range:()=>auto.range(el),move:value=>auto.move(el,value)};
+  }
+  function saveScrollPosition(doc=root.document,{scroll}={}){
+    const adapter=scroll || scrollAdapter(doc),saved=adapter.position();
+    return ()=>adapter.move(saved);
+  }
+  async function withScrollRestore(doc,task,options={}){
+    const restore=saveScrollPosition(doc,options);
+    try{return await task();}finally{restore();}
+  }
+  async function locateMessage(message,{doc=root.document,messages=[],signal,onProgress=noop,scroll,wait=ms=>automation().pause(ms),maxAttempts=14}={}){
+    check(signal);const mounted=findMessage(message.id,doc);if(mounted)return mounted;
+    const indexes=new Map(messages.map((m,i)=>[m.id,i])),target=indexes.get(message.id);
+    if(target===undefined || messages.length<2)return null;
+    const adapter=scroll || scrollAdapter(doc);
+    let low=0,high=adapter.range(),lastRange=high,next=high*target/(messages.length-1),last=-1,stalled=0;
+    for(let attempt=0;attempt<maxAttempts;attempt++){
+      check(signal);
+      const current=adapter.position(),visible=core().discover(doc).flatMap(m=>m.id.split(/\s+/).filter(id=>indexes.has(id)).map(id=>indexes.get(id)));
+      if(visible.length){
+        if(target<Math.min(...visible))high=Math.min(high,current);
+        else if(target>Math.max(...visible))low=Math.max(low,current);
+      }
+      if(attempt>0)next=(low+high)/2;
+      next=Math.max(0,Math.min(adapter.range(),next));
+      if(Math.abs(next-last)<2)stalled++;else stalled=0;
+      if(stalled>=2)break;
+      last=next;onProgress({messageId:message.id,phase:'locate-ui',attempt:attempt+1,total:maxAttempts});
+      adapter.move(next);await wait(240);check(signal);
+      const found=findMessage(message.id,doc);if(found)return found;
+      // Virtualized height estimates can change when cards mount. Expand the
+      // upper search bound only when its physical range actually changes.
+      const measuredRange=adapter.range();
+      if(measuredRange>lastRange)high+=measuredRange-lastRange;
+      high=Math.min(high,measuredRange);lastRange=measuredRange;
+    }
+    return null;
+  }
+  async function stableBlock(message,path,options){
+    const {doc=root.document,signal,wait=ms=>automation().pause(ms)}=options;
+    for(let attempt=0;attempt<4;attempt++){
+      check(signal);const dom=await locateMessage(message,options);if(!dom)throw Error('目标消息未重新挂载');
+      let el=core().resolvePath(dom,path);if(!el?.isConnected)throw Error('目标卡片路径已改变，请重新预览');
+      el.scrollIntoView?.({block:'start',behavior:'instant'});
+      await wait(120);check(signal);
+      const fresh=findMessage(message.id,doc),candidate=fresh && core().resolvePath(fresh,path);
+      if(!candidate?.isConnected)continue;
+      const before=candidate.getBoundingClientRect(),text=candidate.textContent;
+      await wait(100);check(signal);
+      const afterDom=findMessage(message.id,doc),after=afterDom && core().resolvePath(afterDom,path);
+      if(!after?.isConnected)continue;
+      const rect=after.getBoundingClientRect();
+      if(after.textContent===text && Math.abs(rect.width-before.width)<=1 && Math.abs(rect.height-before.height)<=1)return after;
+    }
+    throw Error('目标卡片重新挂载后仍在变化，请等待页面稳定');
+  }
   function boundaryOf(target,doc=target?.ownerDocument || root.document){
     return core().discover(doc).find(m=>m.el===target || m.el.contains(target)) || null;
   }
@@ -96,11 +156,12 @@
     const result=await automation().captureElement(target,{...options,hide:options.hide || noop,show:options.show || noop});
     return {...result,path:options.path || `assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-ui.png`,kind:'screenshot',messageId:message.id};
   }
-  async function enrich(message,{doc=root.document,signal,capture,hide=noop,show=noop,screenshot=true,onProgress=noop}={}){
-    const started=now(),assets=[],warnings=[],timings={textMs:0,captureMs:0,totalMs:0},parts=[];
+  async function enrich(message,{doc=root.document,signal,capture,hide=noop,show=noop,screenshot=true,onProgress=noop,messages=[],scroll,wait}={}){
+    const started=now(),assets=[],warnings=[],timings={locateMs:0,textMs:0,captureMs:0,totalMs:0},parts=[];
     check(signal);
-    const dom=findMessage(message.id,doc);
-    if(!dom){warnings.push(`${message.id}: 当前页面未加载该消息的交互界面，API 正文已保留；未进行全段滚动扫描`);return {md:message.md,assets,warnings,textSupplemented:false,captureComplete:false,timings:{...timings,totalMs:now()-started}};}
+    const dom=await locateMessage(message,{doc,messages,signal,onProgress,scroll,wait});
+    timings.locateMs=now()-started;
+    if(!dom){warnings.push(`${message.id}: 有限稳定 ID 定位后仍未加载交互界面，API 正文已保留；未进行全段滚动扫描`);return {md:message.md,assets,warnings,textSupplemented:false,captureComplete:false,timings:{...timings,totalMs:now()-started}};}
     const tableResult=message.needsTableUI?await repairTables(message.md,dom):{md:message.md,count:0};
     let body=tableResult.md;
     if(tableResult.count)body=body.replace(/\n?> 表格代码单元格已保留接口原字符并修复分列；页面显示的转义字符需要核对。/g,'');
@@ -115,7 +176,7 @@
       if(screenshot)warnings.push(`${message.id}: 交互内容未识别到独立卡片边界，请手动选择截图区域`);
     }
     for(let i=0;i<blocks.length;i++){
-      check(signal);const el=blocks[i];onProgress({messageId:message.id,block:i+1,total:blocks.length,phase:'ui-text'});
+      check(signal);let el=blocks[i];const path=core().nodePath(dom,el);onProgress({messageId:message.id,block:i+1,total:blocks.length,phase:'ui-text'});
       const t=now(),text=await uiText(el,message.id);timings.textMs+=now()-t;
       if(text)parts.push(`#### 交互界面 ${i+1} 当前文字\n\n${text}`);
       if(screenshot){
@@ -123,6 +184,9 @@
         try{
           if(typeof capture!=='function')throw Error('截图通道不可用');
           onProgress({messageId:message.id,block:i+1,total:blocks.length,phase:'screenshot'});
+          el=await stableBlock(message,path,{doc,messages,signal,onProgress,scroll,wait});
+          const currentText=await uiText(el,message.id);
+          if(text && currentText!==text){const index=parts.indexOf(`#### 交互界面 ${i+1} 当前文字\n\n${text}`);if(index>=0)parts[index]=`#### 交互界面 ${i+1} 当前文字\n\n${currentText}`;}
           const asset=await captureTarget(el,message,{doc,signal,capture,hide,show,path:`assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-ui-${i+1}.png`});
           assets.push(asset);parts.push(`![交互界面 ${i+1} 当前画面](${asset.path})`);
         }catch(e){if(e.name==='AbortError')throw e;warnings.push(`${message.id}: 交互界面 ${i+1} 截图未保存：${e.message}`);parts.push(`> 交互界面 ${i+1} 截图未保存：${e.message}`);}
@@ -143,6 +207,6 @@
     timings.totalMs=now()-started;
     return {md,assets,warnings,timings,textSupplemented,tableCorrected:tableResult.count>0,captureComplete:screenshot && warnings.length===0};
   }
-  const api={findMessage,boundaryOf,parentBoundary,uiBlocks,hasUI,signature,uiText,repairTables,captureTarget,enrich};
+  const api={findMessage,locateMessage,saveScrollPosition,withScrollRestore,stableBlock,boundaryOf,parentBoundary,uiBlocks,hasUI,signature,uiText,repairTables,captureTarget,enrich};
   root.ChatExportFastVisual=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
