@@ -1,0 +1,148 @@
+(function(root){
+  'use strict';
+  const core=()=>root.ChatExportCore || (typeof require==='function'?require('./core'):null);
+  const automation=()=>root.ChatExportAutomation || (typeof require==='function'?require('./automation'):null);
+  const now=()=>root.performance?.now() ?? Date.now();
+  const noop=()=>{};
+  function check(signal){if(signal?.aborted)throw new DOMException('用户已停止','AbortError');}
+  function findMessage(id,doc=root.document){
+    const matches=core().discover(doc).filter(m=>m.stable && m.id.split(/\s+/).includes(id));
+    if(matches.length>1)throw Error('消息标识对应多个可见回答，已停止以避免混入其他分支');
+    return matches[0] || null;
+  }
+  function boundaryOf(target,doc=target?.ownerDocument || root.document){
+    return core().discover(doc).find(m=>m.el===target || m.el.contains(target)) || null;
+  }
+  function parentBoundary(target,doc=target?.ownerDocument || root.document){
+    const m=boundaryOf(target,doc);
+    if(!m || target===m.el)return target;
+    return target.parentElement && m.el.contains(target.parentElement)?target.parentElement:m.el;
+  }
+  function active(n){
+    for(let p=n;p?.nodeType===1;p=p.parentElement){
+      if(p.hidden || p.getAttribute('aria-hidden')==='true' || p.hasAttribute('inert'))return false;
+      const style=p.ownerDocument.defaultView?.getComputedStyle(p);
+      if(style && (style.display==='none' || style.visibility==='hidden'))return false;
+    }
+    return true;
+  }
+  function uiBlocks(m){
+    // DIL may wrap the entire prose response, including ordinary long code. Only
+    // bounded visual cards are screenshot targets, never every response root.
+    const dil=[...m.el.querySelectorAll('[data-archive-widget],[data-dil-message-id] [data-d-component="box"][data-d-has-border],.DilResponseRoot [data-d-component="box"][data-d-has-border]')].filter(active);
+    const planned=core().planBlocks(m).map(b=>b.el).filter(active);
+    const all=[...new Set([...dil,...planned])];
+    return all.filter(n=>!all.some(p=>p!==n && p.contains(n)));
+  }
+  function needsInteractive(message,blocks=[]){return blocks.length>0 || !!message.needsUI && (!message.uiReasons?.length || message.uiReasons.some(reason=>!['model-dil','table-literal'].includes(reason)));}
+  function hasUI(message,doc=root.document){const m=findMessage(message.id,doc);return !!m && (message.needsTableUI && !!m.el.querySelector('table') || needsInteractive(message,uiBlocks(m)));}
+  function signature(message,doc=root.document){
+    const m=findMessage(message.id,doc);if(!m)return null;
+    const nodes=uiBlocks(m),result=[];
+    if(message.needsTableUI)nodes.push(...m.el.querySelectorAll('table'));
+    for(const el of nodes){
+      const clone=el.cloneNode(true);clone.querySelectorAll('pre,[data-markdown-copy="code-block"],.cm-editor,script,style,[aria-hidden="true"],[hidden],[role="tooltip"],.recharts-tooltip-wrapper,[data-archive-owned]').forEach(n=>n.remove());
+      const controls=[el,...el.querySelectorAll('input,textarea,select,[role="checkbox"],[role="radio"],[role="switch"],[role="slider"]')].filter(n=>active(n)).map(n=>[n.value ?? null,n.checked ?? null,n.getAttribute('aria-checked'),n.getAttribute('aria-valuenow'),n.getAttribute('aria-valuetext')]);
+      result.push([clone.textContent.replace(/\s+/g,' ').trim(),controls]);
+    }
+    return JSON.stringify(result);
+  }
+  const tablePattern=/^[ \t]*\|[^\n]*\|[ \t]*\n[ \t]*\|[ \t:|\-]+\|[ \t]*(?:\n[ \t]*\|[^\n]*\|[ \t]*)*/gm;
+  function headerKey(line){return line.trim().replace(/^\||\|$/g,'').split('|').map(v=>v.replace(/<[^>]*>/g,'').replace(/[\\`*_]/g,'').replace(/\s+/g,'').trim()).join('|');}
+  async function repairTables(md,dom){
+    const byHeader=new Map();
+    for(const table of dom.el.querySelectorAll('table')){
+      if(!active(table))continue;
+      const header=table.querySelector('tr');if(!header)continue;
+      const key=[...header.children].map(c=>c.textContent.replace(/\s+/g,'')).join('|');
+      if(byHeader.has(key)){byHeader.set(key,null);continue;}
+      byHeader.set(key,await core().convert({id:dom.id,roots:[table]},{warnings:[],asset:async()=>{throw Error('表格资产需要截图');}}));
+    }
+    let count=0;
+    // Protect source programs and equations; only actual prose tables are eligible.
+    const protectedParts=[];
+    const safe=md.replace(/(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$))|(\$\$[\s\S]*?\$\$)/gm,m=>`\u0000TABLE_PROTECTED_${protectedParts.push(m)-1}\u0000`);
+    const result=safe.replace(tablePattern,table=>{const replacement=byHeader.get(headerKey(table.split('\n')[0]));if(!replacement)return table;count++;return replacement;}).replace(/\u0000TABLE_PROTECTED_(\d+)\u0000/g,(_,i)=>protectedParts[Number(i)]);
+    return {md:result,count};
+  }
+  async function uiText(el,id){
+    // Read live properties before cloning: attribute defaults do not represent user changes.
+    const clone=el.cloneNode(true),holder=el.ownerDocument.createElement('div'),originals=[el,...el.querySelectorAll('*')],copies=[clone,...clone.querySelectorAll('*')];holder.append(clone);
+    originals.forEach((n,i)=>{
+      const c=copies[i];if(!c || !c.parentNode && c!==clone)return;
+      if(!active(n) || n.matches('script,style,noscript,[data-archive-owned],pre,[data-markdown-copy="code-block"],.cm-editor')){c.remove();return;}
+      if(n.matches('input,select,textarea,[role="checkbox"],[role="radio"],[role="switch"],[role="slider"],button')){
+        if(n.matches('input[type="hidden"]')){c.remove();return;}
+        const associated=n.closest('label') || n.labels?.[0] || (n.id && [...el.querySelectorAll('label[for]')].find(l=>l.htmlFor===n.id));
+        const label=associated?'':n.getAttribute('aria-label') || n.getAttribute('title') || '';
+        let value='';
+        if(n.matches('input[type="checkbox"],input[type="radio"],[role="checkbox"],[role="radio"],[role="switch"]'))value=(n.checked || n.getAttribute('aria-checked')==='true')?'[x]':'[ ]';
+        else if(n.matches('select'))value=[...n.selectedOptions].map(o=>o.textContent).join('、');
+        else value=n.value ?? n.getAttribute('aria-valuetext') ?? n.getAttribute('aria-valuenow') ?? n.textContent;
+        const span=c.ownerDocument.createElement('span');span.textContent=[value,label && !String(value).includes(label)?label:''].filter(Boolean).join(' ');c.replaceWith(span);
+      }
+      if(n.matches('svg')){const span=c.ownerDocument.createElement('span');span.textContent=[...n.querySelectorAll('text,title,desc')].map(t=>t.textContent).join(' ');c.replaceWith(span);}
+      if(n.matches('img,canvas,iframe,video,audio'))c.remove();
+    });
+    const warnings=[];
+    const text=await core().convert({id,roots:[holder]}, {warnings,asset:async()=>{throw Error('使用截图保存图像');}});
+    return text.replace(/Current selection unavailable\.?/gi,'').replace(/\uE200[^\uE201]*\uE201/g,'').trim();
+  }
+  async function captureTarget(target,message,options={}){
+    const doc=options.doc || target.ownerDocument;
+    const dom=boundaryOf(target,doc);
+    if(!dom || !dom.id.split(/\s+/).includes(message.id))throw Error('截图区域不属于所选消息');
+    check(options.signal);
+    const result=await automation().captureElement(target,{...options,hide:options.hide || noop,show:options.show || noop});
+    return {...result,path:options.path || `assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-ui.png`,kind:'screenshot',messageId:message.id};
+  }
+  async function enrich(message,{doc=root.document,signal,capture,hide=noop,show=noop,screenshot=true,onProgress=noop}={}){
+    const started=now(),assets=[],warnings=[],timings={textMs:0,captureMs:0,totalMs:0},parts=[];
+    check(signal);
+    const dom=findMessage(message.id,doc);
+    if(!dom){warnings.push(`${message.id}: 当前页面未加载该消息的交互界面，API 正文已保留；未进行全段滚动扫描`);return {md:message.md,assets,warnings,textSupplemented:false,captureComplete:false,timings:{...timings,totalMs:now()-started}};}
+    const tableResult=message.needsTableUI?await repairTables(message.md,dom):{md:message.md,count:0};
+    let body=tableResult.md;
+    if(tableResult.count)body=body.replace(/\n?> 表格代码单元格已保留接口原字符并修复分列；页面显示的转义字符需要核对。/g,'');
+    const blocks=uiBlocks(dom);
+    const interactiveNeeded=needsInteractive(message,blocks);
+    if(!blocks.length && interactiveNeeded){
+      const roots=[...dom.el.querySelectorAll('[data-dil-message-id],.DilResponseRoot')].filter(active);
+      for(const el of roots.filter(n=>!roots.some(p=>p!==n && p.contains(n)))){
+        const t=now(),text=await uiText(el,message.id);timings.textMs+=now()-t;
+        if(text)parts.push(`#### 交互界面当前文字\n\n${text}`);
+      }
+      if(screenshot)warnings.push(`${message.id}: 交互内容未识别到独立卡片边界，请手动选择截图区域`);
+    }
+    for(let i=0;i<blocks.length;i++){
+      check(signal);const el=blocks[i];onProgress({messageId:message.id,block:i+1,total:blocks.length,phase:'ui-text'});
+      const t=now(),text=await uiText(el,message.id);timings.textMs+=now()-t;
+      if(text)parts.push(`#### 交互界面 ${i+1} 当前文字\n\n${text}`);
+      if(screenshot){
+        const ct=now();
+        try{
+          if(typeof capture!=='function')throw Error('截图通道不可用');
+          onProgress({messageId:message.id,block:i+1,total:blocks.length,phase:'screenshot'});
+          const asset=await captureTarget(el,message,{doc,signal,capture,hide,show,path:`assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-ui-${i+1}.png`});
+          assets.push(asset);parts.push(`![交互界面 ${i+1} 当前画面](${asset.path})`);
+        }catch(e){if(e.name==='AbortError')throw e;warnings.push(`${message.id}: 交互界面 ${i+1} 截图未保存：${e.message}`);parts.push(`> 交互界面 ${i+1} 截图未保存：${e.message}`);}
+        finally{timings.captureMs+=now()-ct;}
+      }
+    }
+    // The API body is authoritative: virtual DOM code editors may have only 33 of 100+ lines.
+    const recovered=parts.some(p=>p.startsWith('####'));
+    if(recovered){
+      body=body.replace(tablePattern,t=>t.includes('〔实时状态未包含在接口文字中，需要从页面补充〕')?'':t);
+      body=body.replace(/〔实时状态未包含在接口文字中，需要从页面补充〕/g,'');
+      body=body.replace(/\n?> 此处的交互内容无法从结构化数据解析，需要从页面补充文字及截图。/g,'');
+      if(screenshot && warnings.length===0)body=body.replace(/\n?> 此处为交互(?:图表的结构化数据|内容的结构化文字)；当前画面需要从页面补充。/g,'').replace(/〔内部内容标记未展开，需要从页面核对：[^〕]*〕/g,'');
+    }
+    const md=[body,parts.length?'### 交互界面补充（导出时的状态）\n\n'+parts.join('\n\n'):''].filter(Boolean).join('\n\n');
+    const textSupplemented=(!interactiveNeeded || recovered) && (!message.needsTableUI || tableResult.count>0);
+    if(!textSupplemented)warnings.push(`${message.id}: 交互文字仍未取得，API 正文已保留，请加载该界面后重试`);
+    timings.totalMs=now()-started;
+    return {md,assets,warnings,timings,textSupplemented,tableCorrected:tableResult.count>0,captureComplete:screenshot && warnings.length===0};
+  }
+  const api={findMessage,boundaryOf,parentBoundary,uiBlocks,hasUI,signature,uiText,repairTables,captureTarget,enrich};
+  root.ChatExportFastVisual=api;if(typeof module!=='undefined')module.exports=api;
+})(globalThis);

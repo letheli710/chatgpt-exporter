@@ -1,4 +1,10 @@
-# Fast Speed Exporter 0.5.0
+# Fast Speed Exporter — Swift Archive 0.6.0
+
+0.6.0 已接入表格转义修复、内部图表标记转文字数据、Intelligent UI 当前文字补齐、自动跨屏截图和可逐层扩大到整条消息的手动选框。点击“下载文字与截图 ZIP”会在保留快速 API 正文的基础上捕获所选消息的界面卡片；纯文字预览和 Markdown 下载不支付截图耗时。ZIP 内含 conversation.md、assets 和 manifest.json，manifest 记录读取、补齐、导出准备耗时和缺失提示。
+
+当前真实浏览器验收尚未完成：本轮 Computer Use 在 Chrome 状态读取时因无法确认浏览器地址被策略停止，未刷新扩展或生成新的真实截图下载。离线真实输入检查已通过普通正文、R07 表格/代码和 R06 全24项文字；这不替代截图最终视觉验收。首次0.5真实读取耗时0.47秒仍是旧版数据，不能写成0.6实测。
+
+本轮更新后，在 Chrome 重载本项目本地扩展并重新打开同一对话即可使用。手动截图允许选框逐层扩大，跨屏内容采用旧版拼接通道；生成结果保存至项目 Output - test 1 目录可继续通过 scripts/validate-fast-export.cjs 核验。以下保留0.5阶段的范围与历史记录，其中0.6已增加文字补齐和截图归档。
 
 开发分支为 `Fast-Speed-Exporter`，对应用户指定的“Fast Speed Exporter”；Git 分支不能包含空格。本版本专门验证快速正文获取，默认点击扩展后直接读取完整会话并选择消息，预览和下载使用同一份内存数据，不滚动页面。Intelligent UI 的视觉与当前交互状态保存仍留在后续阶段。
 

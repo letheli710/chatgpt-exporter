@@ -5,7 +5,14 @@
   function textOf(message, warnings) {
     const content = message.content || {};
     const fallback = message.metadata?.model_dil_v2?.fallbackMarkdown;
-    if (typeof fallback === 'string' && fallback.trim()) return fallback;
+    if (content.content_type !== 'code' && typeof fallback === 'string' && fallback.trim()) {
+      // Restore original code whitespace only when every nonblank code line is
+      // identical. A different program in fallback is never guessed/replaced.
+      const raw=(content.parts || []).filter(p=>typeof p==='string').join('\n');
+      const blocks=[...raw.matchAll(/(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$))/gm)].map(m=>m[0]);
+      const sameLines=value=>value.split('\n').filter(line=>line.trim()).join('\n');
+      return fallback.replace(/(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$))/gm,block=>blocks.find(original=>sameLines(original)===sameLines(block)) || block);
+    }
     if (['user_editable_context','model_editable_context'].includes(content.content_type)) return '';
     const parts = content.parts || (typeof content.text === 'string' ? [content.text] : []);
     const text = parts.map(part => {
@@ -18,6 +25,62 @@
     if (content.content_type === 'code' && text) return `${fence(text)}${/^[\w+-]+$/.test(content.language || '') ? content.language : ''}\n${text}\n${fence(text)}`;
     return text;
   }
+  const cell = value => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\|/g,'&#124;').replace(/\r?\n/g,'<br>');
+  function normalizeText(text) {
+    const uiReasons = new Set(); let needsTableUI = false;
+    // Never rewrite literals, code examples, or equations while repairing prose.
+    const protectedPattern = /(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$))|(\\\[[\s\S]*?\\\])|(\$\$[\s\S]*?\$\$)|(\\\([\s\S]*?\\\))|(\$(?!\$)[^\n$]+\$)/gm;
+    const prose = part => {
+      const literals=[];
+      part=part.replace(/(`+)([^`\n]*)\1/g,match=>`\u0000INLINE${literals.push(match)-1}\u0000`);
+      part = part.replace(/\uE200genui\uE202([\s\S]*?)\uE201/g, (_, json) => {
+        uiReasons.add('structured-ui');
+        try {
+          const payload=JSON.parse(json), chart=payload.charts_widget_v2?.content;
+          if (chart && Array.isArray(chart.data) && Array.isArray(chart.series)) {
+            const columns=[{dataKey:chart.xKey,label:chart.xKey},...chart.series];
+            return `\n\n${chart.meta?.title || '交互图表'}\n\n${chart.meta?.description || ''}\n\n| ${columns.map(c=>cell(c.label||c.dataKey)).join(' | ')} |\n| ${columns.map(()=>'---').join(' | ')} |\n${chart.data.map(row=>`| ${columns.map(c=>cell(row[c.dataKey]) + cell(c.valueSuffix||'')).join(' | ')} |`).join('\n')}\n\n> 此处为交互图表的结构化数据；当前画面需要从页面补充。\n`;
+          }
+          const lines=[];
+          const walk=(value,path)=>{
+            if (typeof value==='string' || typeof value==='number' || typeof value==='boolean') lines.push(`${cell(path)}：${cell(value)}`);
+            else if(value && typeof value==='object') for(const [key,item] of Object.entries(value)) walk(item,path ? `${path}.${key}` : key);
+          };
+          walk(payload,'');
+          return `\n\n${lines.join('\n\n')}\n\n> 此处为交互内容的结构化文字；当前画面需要从页面补充。\n`;
+        } catch {
+          return '\n\n> 此处的交互内容无法从结构化数据解析，需要从页面补充文字及截图。\n';
+        }
+      });
+      part = part.replace(/Current (?:selection|value) unavailable\./g, () => {
+        uiReasons.add('live-state');return '〔实时状态未包含在接口文字中，需要从页面补充〕';
+      });
+      part=part.replace(/\uE200([^\uE201]*?)\uE201/g, (_, marker) => {
+        uiReasons.add('internal-marker');
+        return `〔内部内容标记未展开，需要从页面核对：${cell(marker.split('\uE202')[0])}〕`;
+      });
+      part=part.replace(/\u0000INLINE(\d+)\u0000/g,(_,index)=>literals[Number(index)]);
+      // Only repair actual table rows, leaving inline code elsewhere untouched.
+      const lines=part.split('\n');let repaired=false;
+      for(let i=0;i<lines.length;i++) {
+        if(!/^\s*\|/.test(lines[i]))continue;
+        lines[i]=lines[i].replace(/(`+)([^`\n]*\|[^`\n]*)\1/g,(_,ticks,literal)=>{
+          repaired=true;needsTableUI=true;uiReasons.add('table-literal');return `<code>${cell(literal)}</code>`;
+        });
+        if(repaired && (i===lines.length-1 || !/^\s*\|/.test(lines[i+1]))) {
+          lines[i]+='\n\n> 表格代码单元格已保留接口原字符并修复分列；页面显示的转义字符需要核对。';repaired=false;
+        }
+      }
+      part=lines.join('\n');
+      return part;
+    };
+    let md='',last=0;
+    for(const match of text.matchAll(protectedPattern)) {
+      md+=prose(text.slice(last,match.index))+match[0];last=match.index+match[0].length;
+    }
+    md+=prose(text.slice(last));
+    return {md,needsUI:uiReasons.size>0,needsTableUI,uiReasons:[...uiReasons]};
+  }
   function records(messages) {
     const warnings = [], result = [], seen = new Set();
     for (const message of messages) {
@@ -29,8 +92,13 @@
       if (message.recipient && message.recipient !== 'all') continue;
       if (!message.id || seen.has(message.id)) error('消息标识缺失或重复，无法确认正文完整性');
       seen.add(message.id);
-      const md = textOf(message, warnings);
-      if (md.trim()) result.push({id:message.id, role, md, summary:md.replace(/\s+/g,' ').slice(0,100)});
+      const normalized = normalizeText(textOf(message, warnings));
+      if (message.metadata?.model_dil_v2) {
+        normalized.needsUI = true;
+        if(!normalized.uiReasons.includes('model-dil'))normalized.uiReasons.push('model-dil');
+      }
+      const md = normalized.md;
+      if (md.trim()) result.push({id:message.id, role, ...normalized, summary:md.replace(/\s+/g,' ').slice(0,100)});
     }
     if (!result.length) error('会话没有可导出的正文');
     return {messages:result,warnings};
@@ -127,7 +195,7 @@
     const note=warnings.length ? `\n\n## 未包含的非文字内容\n\n${warnings.map(w=>`- ${w}`).join('\n')}\n` : '';
     return `# ${conversation.title.replace(/[\r\n]/g,' ')}\n\n来源：${url}\n\n${body}\n${note}`;
   }
-  const api = {textOf,records,parseTree,loadConversation,markdown};
+  const api = {textOf,normalizeText,records,parseTree,loadConversation,markdown};
   root.FastTextExporter = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

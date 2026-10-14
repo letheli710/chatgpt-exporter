@@ -1,6 +1,6 @@
 # ChatGPT Exporter
 
-`Fast-Speed-Exporter` 分支已提供 0.5.0 快速正文版本：从会话数据读取文字、选择消息并下载 Markdown，无需逐屏滚动。安装方式、验证结果与当前范围见 [快速正文版本说明](FAST-SPEED-EXPORTER.md)。以下为 0.4.x 视觉归档原型的历史说明。
+`Fast-Speed-Exporter` 分支已提供 0.6.0 Swift Archive：直接读取正文，补齐 Intelligent UI 当前文字，并通过自动或手动选框保存跨屏截图。安装方式、验证结果与实际验收限制见 [版本说明](FAST-SPEED-EXPORTER.md)。以下为 0.4.x 视觉归档原型的历史说明。
 
 本项目开发适配 ChatGPT 新界面的 Chrome 导出插件，重点保存对话中有价值的讨论及上下文。用户选择消息或内容片段后，导出 Markdown 与本地资产包；正文保留为可检索文字，普通图片与 SVG 优先保存原始资产，其他可视化和少见的自生成工具用截图保存当前画面。
 

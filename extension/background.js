@@ -1,7 +1,7 @@
 const allowed = url => /^https:\/\/(chatgpt\.com|chat\.openai\.com)\//.test(url || '');
 chrome.action.onClicked.addListener(async tab => {
   if (!allowed(tab.url)) return;
-  await chrome.scripting.executeScript({target: {tabId: tab.id}, files: ['fast-text.js', 'fast-content.js']});
+  await chrome.scripting.executeScript({target: {tabId: tab.id}, files: ['jszip.min.js', 'core.js', 'automation.js', 'fast-text.js', 'fast-visual.js', 'fast-content.js']});
 });
 let lastCapture = 0;
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
@@ -19,7 +19,8 @@ chrome.runtime.onMessage.addListener((message, sender, reply) => {
     }
     if (message.type === 'archive:download') {
       if (!message.url?.startsWith('blob:' + new URL(sender.url).origin + '/')) throw Error('无效的下载地址');
-      return {id: await chrome.downloads.download({url: message.url, filename: 'conversation-archive.zip', saveAs: true})};
+      const filename=typeof message.filename==='string' && !/[\\/<>:"|?*\x00-\x1f]/.test(message.filename) && /\.(zip|md)$/.test(message.filename) ? message.filename : 'conversation-archive.zip';
+      return {id: await chrome.downloads.download({url: message.url, filename, saveAs: true})};
     }
     throw Error('未知操作');
   })().then(result => reply(result), error => reply({error: error.message}));
