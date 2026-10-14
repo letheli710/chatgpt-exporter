@@ -41,7 +41,7 @@ function pngInfo(bytes) {
   return { width, height, bitDepth, colorType, decodedBytes: pixels.length };
 }
 
-async function validate(input) {
+async function validate(input, options = {}) {
   const started = performance.now(), checks = [], assets = [];
   const check = (name, passed, detail) => checks.push({ name, passed: Boolean(passed), detail });
   const inputPath = path.resolve(input);
@@ -128,13 +128,22 @@ async function validate(input) {
     if (i % 2 && requiredShots.has(round)) check('R'+String(round).padStart(2,'0')+' screenshot in correct assistant message', pngCount > 0, refs);
   }
   if (manifest) check('Manifest every asset referenced in Markdown', manifest.assets?.every(asset => markdown.includes('](' + asset.path + ')')), manifest.assets?.map(asset => asset.path));
+  if (manifest && options.sourceLedger) {
+    if (options.sourceLedger.sourceUrl !== sourceUrl) throw Error('Screenshot inventory uses wrong source conversation');
+    for (const message of options.sourceLedger.messages.filter(message => message.role === 'assistant' && message.uiRegions > 0)) {
+      const count = manifest.assets.filter(asset => asset.messageId === message.id && asset.kind === 'screenshot').length;
+      // This inventory check applies to this automatic one-screenshot-per-region
+      // run. A manually expanded whole-message image needs separate visual proof.
+      check(message.round + ' automatic screenshots cover all source UI regions', count >= message.uiRegions, { sourceRegions: message.uiRegions, screenshots: count, messageId: message.id });
+    }
+  }
   return { input: inputPath, sourceUrl, markdownPath, manifest, passed: checks.every(c => c.passed), elapsedMs: Math.round(performance.now()-started), checks, assets, limitation: 'PNG 解码与尺寸检查不能替代人工视觉核对；代码真值来自用户原始导出（原始主 Python 代码比页面复制少一条空行）。' };
 }
 
 if (require.main === module) {
-  const [input, output] = process.argv.slice(2);
+  const [input, output, sourceLedgerPath] = process.argv.slice(2);
   if (!input || !output) { console.error('Usage: node scripts/validate-fast-export.cjs <download.md|download.zip> <report.json|report.md>'); process.exitCode = 2; }
-  else validate(input).then(report => {
+  else validate(input, { sourceLedger: sourceLedgerPath ? JSON.parse(fs.readFileSync(sourceLedgerPath, 'utf8')) : null }).then(report => {
     fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
     const text = /\.md$/i.test(output) ? '# 真实下载独立验收\n\n' + `输入：${report.input}\n\n结果：${report.passed ? '通过' : '失败'}；验收耗时 ${report.elapsedMs} 毫秒。\n\n` + report.checks.map(c => `- ${c.passed ? '通过' : '失败'}：${c.name}。${c.detail === undefined ? '' : JSON.stringify(c.detail)}`).join('\n') + '\n\n' + report.limitation + '\n' : JSON.stringify(report, null, 2);
     fs.writeFileSync(output, text);

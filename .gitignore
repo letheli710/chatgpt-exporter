@@ -1,6 +1,7 @@
 node_modules/
 .ua/
 work/
+tmp/
 research/
 /fixtures/
 Output - test 1/

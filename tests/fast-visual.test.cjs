@@ -4,6 +4,8 @@ const {JSDOM}=require('jsdom');
 const visual=require('../extension/fast-visual');
 const fs=require('node:fs');
 const core=require('../extension/core');
+// Real conversation captures stay private under ignored research/. These local
+// regression checks intentionally require the owner's existing evidence files.
 const fixture=name=>{const data=JSON.parse(fs.readFileSync(`research/2026-10-12/${name}.json`,'utf8'));return new JSDOM(data.html,{url:data.url}).window.document;};
 const docOf=html=>new JSDOM(html,{url:'https://chatgpt.com/c/test'}).window.document;
 const turn=(id,html)=>`<article data-message-author-role="assistant" data-chatgpt-search-message-ids="${id}"><div class="markdown">${html}</div></article>`;
@@ -24,7 +26,7 @@ test('R06 checklist case recovers all 24 item descriptions and live checked stat
  doc.querySelector('input').checked=true;
  const result=await visual.enrich({id:'r06',md:'API 标题'}, {doc,screenshot:false});
  for(let i=1;i<=24;i++)assert.match(result.md,new RegExp('说明 '+i));
- assert.ok(result.md.includes('\\[x\\]'));assert.match(result.md,/API 标题/);assert.match(result.md,/完成进度/);
+ assert.ok(result.md.includes('☑ 已勾选'));assert.match(result.md,/API 标题/);assert.match(result.md,/完成进度/);
  assert.equal(visual.uiBlocks(visual.findMessage('r06',doc)).length,1);
  assert.ok(result.timings.totalMs>=0);
 });
@@ -99,4 +101,58 @@ test('stable block resolves the selected id again after its original DOM node un
  const doc=docOf(turn('selected','<div data-archive-widget><p>Current UI</p><input value="2"></div>'));const message={id:'selected'},original=visual.findMessage('selected',doc),path=core.nodePath(original,original.el.querySelector('[data-archive-widget]'));
  let waits=0;const el=await visual.stableBlock(message,path,{doc,wait:async()=>{waits++;if(waits===1)doc.body.innerHTML=turn('selected','<div data-archive-widget><p>Current UI</p><input value="2"></div>');}});
  assert.equal(el.isConnected,true);assert.notEqual(el,original.el.querySelector('[data-archive-widget]'));assert.equal(visual.boundaryOf(el,doc).id,'selected');
+});
+test('real API normalization with inline math still replaces the complete seven-row table once',async()=>{
+ const doc=fixture('LONG-R07'),dom=core.discover(doc).find(m=>m.role==='assistant'&&m.el.textContent.includes('R07-BEGIN'));
+ // Exact problematic table structure extracted from the user's v0.5 export.
+ const sample=['| 测试编号 | 测试内容 | 预期保留值 |','|--------|--------|--------|','| T01 | 竖线字符 | `Solar \\\\| Battery` |','| T02 | 反引号字符串 | `` `400W` `` |','| T03 | 数学符号 | \\(E=P\\times t\\) |','| T04 | Unicode字符 | η、Δ、≥、≤ |','| T05 | 正负能源值 | \\+1.12 / −0.16 |','| T06 | 文件名 | `solar_config.json` |'].join('\n');
+ const normalized=require('../extension/fast-text').normalizeText(sample);
+ const repaired=await visual.repairTables(normalized.md,dom),{marked}=require('marked');
+ const table=new JSDOM(marked.parse(repaired.md)).window.document.querySelector('table');assert.equal(table.querySelectorAll('tr').length,7);
+ for(const id of ['T01','T02','T03','T04','T05','T06'])assert.equal((repaired.md.match(new RegExp('\\| '+id+' \\|','g')) || []).length,1,id);
+ assert.doesNotMatch(repaired.md,/页面显示的转义字符需要核对/);
+});
+test('real checked UI controls use unambiguous text rather than LaTeX bracket delimiters',async()=>{
+ const doc=fixture('LONG-R06'),dom=core.discover(doc).find(m=>m.role==='assistant'&&m.el.textContent.includes('R06-BEGIN'));
+ const controls=[...dom.el.querySelectorAll('[role="checkbox"]')];controls[0].setAttribute('aria-checked','true');controls[1].setAttribute('aria-checked','true');
+ const text=await visual.uiText(visual.uiBlocks(dom)[0],dom.id);
+ assert.equal((text.match(/☑ 已勾选/g) || []).length,2);assert.equal((text.match(/☐ 未勾选/g) || []).length,22);
+ assert.doesNotMatch(text,/\\\[x\\\]/);
+});
+test('cold mounted UI settles asynchronous chart subtree before blocks are finalized',async()=>{
+ const doc=docOf(turn('async','<div class="DilResponseRoot"><div data-archive-widget>参数值<input value="2"></div><div id="late"></div></div>'));
+ let waits=0;const result=await visual.enrich({id:'async',md:'API 正文',needsUI:true,uiReasons:['structured-ui']},{doc,screenshot:false,wait:async()=>{waits++;if(waits===2)doc.querySelector('#late').innerHTML='<div role="img" aria-label="概率 chart"><div data-w-component="chart"><svg><text>概率分布 20%</text></svg></div></div>';}});
+ assert.ok(waits>=3);assert.match(result.md,/概率分布 20%/);assert.equal(visual.uiBlocks(visual.findMessage('async',doc)).length,2);assert.equal(result.uiReady,true);
+});
+test('viewport lazy chart shell is activated inside only selected message',async()=>{
+ const doc=docOf(turn('lazy','<div class="DilResponseRoot"><div role="img" aria-label="概率 chart"><div data-w-component="chart" aria-busy="true"></div></div></div>'));
+ let entered=0;doc.querySelector('[role="img"]').scrollIntoView=()=>{entered++;doc.querySelector('[data-w-component="chart"]').removeAttribute('aria-busy');doc.querySelector('[data-w-component="chart"]').innerHTML='<svg><text>已加载概率图</text></svg>';};
+ const result=await visual.enrich({id:'lazy',md:'body',needsUI:true,uiReasons:['structured-ui']},{doc,screenshot:false,wait:async()=>{}});
+ assert.equal(entered,1);assert.match(result.md,/已加载概率图/);assert.equal(result.uiReady,true);
+});
+test('permanently pending UI is bounded and cannot report complete screenshots',async()=>{
+ const doc=docOf(turn('pending','<div class="DilResponseRoot"><div role="img" aria-label="pending chart"><div data-w-component="chart" aria-busy="true"></div></div></div>'));let waits=0;
+ const result=await visual.enrich({id:'pending',md:'body',needsUI:true,uiReasons:['structured-ui']},{doc,screenshot:false,wait:async()=>{waits++;}});
+ assert.ok(waits<=10);assert.equal(result.uiReady,false);assert.equal(result.captureComplete,false);assert.ok(result.warnings.some(w=>w.includes('仍在加载')));
+});
+test('real R08 UI repairs only proven empty numeric rows and displays without inventing values',async()=>{
+ const doc=fixture('LONG-R08'),dom=core.discover(doc).find(m=>m.role==='assistant'&&m.el.textContent.includes('R08-BEGIN')),text=await visual.uiText(visual.uiBlocks(dom)[0],dom.id);
+ const ordinary='普通正文：展示屏实际计划为每天6小时。\n\n| 指标 | 旧方案 | 新方案 |\n| --- | --- | --- |\n| 每日负载 | 0.48 kWh | 0.60 kWh |';
+ const body='展示屏每日运行  小时\n\n每日计划总负载\n\nkWh/日\n\n照明 0.24 kWh 展示屏  kWh\n\n| 每日负载 | kWh | kWh |\n| --- | --- | --- |\n| 净余量 | \\+ kWh | \\+ kWh |\n| 续航 | 天 | 天 |\n\n'+ordinary;
+ const repaired=visual.repairedUIBody(body,text);assert.doesNotMatch(repaired,/运行\s+小时|展示屏\s+kWh|\| 每日负载 \| kWh \| kWh \||\| 净余量 \| \\?\+ kWh/);
+ assert.ok(repaired.endsWith(ordinary));assert.match(repaired,/每日计划总负载\n\n# [\d.]+\n\nkWh\/日/);
+ const {marked}=require('marked'),rendered=new JSDOM(marked.parse(repaired)).window.document;const comparison=[...rendered.querySelectorAll('table')].find(t=>t.rows[0].cells[0].textContent==='每日负载');
+ assert.equal(comparison.rows.length,3);for(const row of comparison.rows)for(const cell of [...row.cells].slice(1))assert.match(cell.textContent,/\d/);
+});
+test('real R06 UI restores empty progress templates; ambiguous unmatched templates stay explicit',async()=>{
+ const doc=fixture('LONG-R06'),dom=core.discover(doc).find(m=>m.role==='assistant'&&m.el.textContent.includes('R06-BEGIN')),text=await visual.uiText(visual.uiBlocks(dom)[0],dom.id);
+ const body='# %\n\n/  项完成\n\n尚有  项待验收 [恢复初始状态]\n\n普通说明不应该改变。';
+ const repaired=visual.repairedUIBody(body,text);assert.match(repaired,/8%/);assert.match(repaired,/2 \/ 24 项完成/);assert.match(repaired,/尚有 22 项待验收/);assert.ok(repaired.endsWith('普通说明不应该改变。'));
+ const ambiguous=visual.repairedUIBody('未知值 〔实时状态未包含在接口文字中，需要从页面补充〕 kg','不同值 5 kg');assert.match(ambiguous,/实时状态未包含/);
+});
+test('UI skeleton repair protects literal programs and exact row labels',()=>{
+ const table='| 项目1 | kg | kg |\n| --- | --- | --- |\n| 项目2 | kg | kg |';
+ const source='| 项目1 | 1 kg | 2 kg |\n| --- | --- | --- |\n| 项目2 | 3 kg | 4 kg |';
+ const program='```text\n'+table+'\n```';assert.equal(visual.repairedUIBody(program,source),program);
+ assert.equal(visual.repairedUIBody(table,source.replace('项目2','项目3')),table);
 });

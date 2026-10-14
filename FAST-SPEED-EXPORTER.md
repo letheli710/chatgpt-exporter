@@ -1,12 +1,14 @@
-# Fast Speed Exporter · Swift Archive 0.6.1
+# Fast Speed Exporter · Swift Archive 0.6.2
 
 开发分支为 `Fast-Speed-Exporter`，对应用户指定的“Fast Speed Exporter”（Git 分支不允许空格）。当前版本快速获取完整正文，并修复表格转义和内部图表标记，补齐 Intelligent UI 的文字、当前控件状态及截图。正文读取使用会话数据接口；页面滚动仅用于定位未挂载的界面和拍摄跨屏卡片，不用于逐屏拼接正文。
 
 ## 实际运行
 
-2026-10-14 已通过 Computer Use 刷新本地扩展，在同一篇“项目分析撰写”Chat 完成真实下载。0.6.1 读取18条正文耗时0.39秒；首次完整ZIP处理25.51秒，保存12张截图，没有缺失提示。读取时间与完整归档时间用途不同：归档还需要加载界面、检查状态、拍摄并拼接长卡片，不能承诺截图包瞬间生成。具体检查和各轮时间见 RUN-LOG.md。
+2026-10-14 已通过 Computer Use 刷新本地扩展，在同一篇“项目分析撰写”Chat 完成0.6.2真实下载。最终读取18条正文耗时0.68秒，完整ZIP处理23.38秒，保存13张截图。正文读取与完整归档用途不同：归档还需要加载界面、检查状态、拍摄并拼接长卡片，不能承诺截图包瞬间生成。
 
-真实结果保存在本地 `Output - test 1/项目分析撰写-swift-0.6.1.zip`，正文副本为同名 `.md`，独立验收记录为 `Swift-Archive-real-0.6.1-validation.json`。ZIP包含 `conversation.md`、`assets/` 和 `manifest.json`，记录来源、消息标识、图片归属、尺寸、拼接分片、处理耗时和缺失提示。用户正文和截图不推送到GitHub。
+本轮进一步将实际导出渲染为47页固定PDF和离线HTML，用本轮真实Chat的18条消息DOM、实际界面截图及完整79行Python界面代码做独立逐块/逐行对照。此前63项检查只证明部分文本和12个截图文件有效，漏掉了R02概率图与R07表尾重复，不能当作完整内容验收。0.6.2已修复漏加载图表、重复表尾、勾选状态被当成公式、无数字的动态UI残留，并增加按源界面区域数核对截图数量。Python仍存在一个空行差异（源第55行）；非空代码行一致，因此不声明逐字符完全一致。具体证据、阅读冗余与各轮时间见 RUN-LOG.md。
+
+真实结果为本地 `Output - test 1/项目分析撰写-swift-0.6.2.zip`，固定版本位于 `Swift-Archive-0.6.2-final-rendered`，独立可读报告为 `rendered-audit/渲染后逐块对比报告.md`。ZIP包含 `conversation.md`、`assets/` 和 `manifest.json`，记录来源、消息标识、图片归属、尺寸、拼接分片、处理耗时和缺失提示。用户正文、DOM、PDF和截图不推送到GitHub。
 
 ## 使用
 
@@ -22,4 +24,4 @@
 
 网站内部接口和页面结构可能改变。本版本不支持分享链接、临时聊天、跨聊天批量导出、PDF、音视频或Canvas文档补抓；不同账户和布局仍需实际验证。
 
-`npm test` 执行回归，`npm run package` 生成安装包。`node scripts/validate-fast-export.cjs "Output - test 1/项目分析撰写-swift-0.6.1.zip" "Output - test 1/Swift-Archive-real-0.6.1-validation.json"` 检查真实文件。完整回归需要本地真实DOM样本，公开仓库不包含这些私人材料。
+`npm test` 执行回归，`npm run package` 生成安装包。`validate-fast-export.cjs` 可接收源界面台账作为第三参数，核对截图区域数量；`build-source-block-ledger.cjs`、`attach-numbered-source-code.cjs` 与 `compare-rendered-blocks.cjs` 分别建立实际页面台账、附加完整连续行证据、比较已渲染HTML。固定渲染复现见 `scripts/render-export-README.md`。完整回归需要本地真实DOM样本；渲染测试另需文档中固定版本的KaTeX依赖，公开仓库不包含私人材料。

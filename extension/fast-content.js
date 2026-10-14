@@ -1,7 +1,10 @@
 (() => {
-  const version='0.6.1';
+  const version='0.6.2';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
+  // Reloading the extension resets its isolated world but can leave the old
+  // panel DOM behind. Remove it before creating the current panel.
+  document.querySelectorAll('[data-archive-owned="fast-text"]').forEach(n=>n.remove());
   const api=globalThis.FastTextExporter,visual=globalThis.ChatExportFastVisual,auto=globalThis.ChatExportAutomation;
   const host=document.createElement('div');host.dataset.archiveOwned='fast-text';host.dataset.version=version;
   globalThis.__fastTextPanel=host;document.documentElement.append(host);
@@ -33,7 +36,7 @@
       if(result&&signature!==cacheSignatures.get(original.id)){cache.delete(original.id);result=null;}
       if(requiresVisual&&(!result||(screenshot&&!result.captureComplete&&!shots.length))){
         $('status').textContent=`正在补齐：${original.summary}`;
-        result=await visual.enrich(original,{...captureOptions(),messages:state.messages,screenshot:screenshot&&!shots.length,onProgress:p=>$('status').textContent=p.phase==='locate-ui'?'正在定位并加载交互界面……':`正在${p.phase==='screenshot'?'截图':'补齐文字'}，内容块 ${p.block}/${p.total}……`});
+        result=await visual.enrich(original,{...captureOptions(),messages:state.messages,screenshot:screenshot&&!shots.length,onProgress:p=>$('status').textContent=p.phase==='locate-ui'?'正在定位并加载交互界面……':p.phase==='settle-ui'?'正在等待交互界面加载稳定……':`正在${p.phase==='screenshot'?'截图':'补齐文字'}，内容块 ${p.block}/${p.total}……`});
         assertCurrent();cache.set(original.id,result);cacheSignatures.set(original.id,visual.signature?.(original,document));
       }
       let md=result?.md||original.md;
@@ -47,7 +50,7 @@
     const md=api.markdown(data,selected,state.url);state.timings.prepareMs=performance.now()-started;
     return {md,assets,warnings:data.warnings,messages:selected};
   }
-  function filename(ext){return `${state.title.replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').slice(0,90)||'ChatGPT'}-swift-0.6.1.${ext}`;}
+  function filename(ext){return `${state.title.replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').slice(0,90)||'ChatGPT'}-swift-0.6.2.${ext}`;}
   async function run(mode){if(busyFlag)return;controller=new AbortController();busy(true);const started=performance.now();try{
     const result=await build(mode==='zip');$('output').value=result.md;$('output').hidden=false;
     if(mode!=='preview'){let blob;if(mode==='zip'){

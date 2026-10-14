@@ -91,8 +91,33 @@
     // bounded visual cards are screenshot targets, never every response root.
     const dil=[...m.el.querySelectorAll('[data-archive-widget],[data-dil-message-id] [data-d-component="box"][data-d-has-border],.DilResponseRoot [data-d-component="box"][data-d-has-border]')].filter(active);
     const planned=core().planBlocks(m).map(b=>b.el).filter(active);
-    const all=[...new Set([...dil,...planned])];
+    const charts=[...m.el.querySelectorAll('[data-w-component="chart"],[role="img"][aria-label*="chart"]')].filter(active).map(n=>n.closest('[role="img"]') || n);
+    const all=[...new Set([...dil,...planned,...charts])];
     return all.filter(n=>!all.some(p=>p!==n && p.contains(n)));
+  }
+  const pendingSelector='[aria-busy="true"],[data-state="loading"],[data-loading="true"]';
+  async function settleUI(message,{doc=root.document,signal,wait=ms=>automation().pause(ms),onProgress=noop,maxRounds=8,...options}={}){
+    let previous=null,stable=0;const visited=new Set();
+    for(let round=0;round<maxRounds;round++){
+      check(signal);const dom=await locateMessage(message,{doc,signal,wait,...options});
+      if(!dom)return {message:null,ready:false,reason:'目标交互消息未挂载'};
+      const chartSeeds=[...dom.el.querySelectorAll('[data-w-component="chart"],[role="img"][aria-label*="chart"],'+pendingSelector)].map(n=>n.closest('[role="img"]') || n);
+      let activated=false;
+      for(const el of [...new Set(chartSeeds)]){
+        const path=core().nodePath(dom,el);if(visited.has(path) || visited.size>=8)continue;
+        visited.add(path);el.scrollIntoView?.({block:'center',behavior:'instant'});activated=true;
+      }
+      // Observe only structural/text completion. SVG animation path coordinates
+      // and virtual code rows must not force a needless full-response scroll.
+      const copy=dom.el.cloneNode(true);copy.querySelectorAll('pre,[data-markdown-copy="code-block"],.cm-editor,[role="tooltip"],.recharts-tooltip-wrapper,[aria-hidden="true"],[hidden],[data-archive-owned]').forEach(n=>n.remove());
+      const key=JSON.stringify([copy.textContent,copy.querySelectorAll('*').length,copy.querySelectorAll('svg,canvas,img').length,[...dom.el.querySelectorAll('input,select,textarea')].map(n=>[n.value,n.checked])]);
+      const pending=!!dom.el.querySelector(pendingSelector) || chartSeeds.some(n=>!n.querySelector('svg,canvas,img') && !n.textContent.trim());
+      stable=key===previous && !activated && !pending?stable+1:0;previous=key;
+      onProgress({messageId:message.id,phase:'settle-ui',attempt:round+1,total:maxRounds});
+      if(stable>=2)return {message:dom,ready:true};
+      await wait(120);
+    }
+    return {message:findMessage(message.id,doc),ready:false,reason:'交互界面仍在加载或子树尚未稳定，当前归档可能缺少异步内容'};
   }
   function needsInteractive(message,blocks=[]){return blocks.length>0 || !!message.needsUI && (!message.uiReasons?.length || message.uiReasons.some(reason=>!['model-dil','table-literal'].includes(reason)));}
   function hasUI(message,doc=root.document){const m=findMessage(message.id,doc);return !!m && (message.needsTableUI && !!m.el.querySelector('table') || needsInteractive(message,uiBlocks(m)));}
@@ -121,9 +146,57 @@
     let count=0;
     // Protect source programs and equations; only actual prose tables are eligible.
     const protectedParts=[];
-    const safe=md.replace(/(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$))|(\$\$[\s\S]*?\$\$)/gm,m=>`\u0000TABLE_PROTECTED_${protectedParts.push(m)-1}\u0000`);
+    const fenced=md.replace(/^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\1[ \t]*(?=\n|$)/gm,m=>`\u0000TABLE_PROTECTED_${protectedParts.push(m)-1}\u0000`);
+    // normalizeText may insert this exact notice just before a protected inline
+    // formula. Remove that insertion before recognizing the whole source table.
+    const joined=fenced.replace(/\n{1,2}> 表格代码单元格已保留接口原字符并修复分列；页面显示的转义字符需要核对。/g,'');
+    const safe=joined.replace(/(\$\$[\s\S]*?\$\$)|(\\\([\s\S]*?\\\))|(\\\[[\s\S]*?\\\])/gm,m=>`\u0000TABLE_PROTECTED_${protectedParts.push(m)-1}\u0000`);
     const result=safe.replace(tablePattern,table=>{const replacement=byHeader.get(headerKey(table.split('\n')[0]));if(!replacement)return table;count++;return replacement;}).replace(/\u0000TABLE_PROTECTED_(\d+)\u0000/g,(_,i)=>protectedParts[Number(i)]);
-    return {md:result,count};
+    return {md:count?result:md,count};
+  }
+  const numericTokens=s=>String(s).match(/[+-]?\d[\d,]*(?:\.\d+)?/g) || [];
+  const uiTemplate=s=>String(s).replace(/〔实时状态未包含在接口文字中，需要从页面补充〕/g,'').replace(/<[^>]+>/g,'').replace(/^[ \t]*#{1,6}\s*/,'').replace(/[\\`*_]/g,'').replace(/[+-]?\d[\d,]*(?:\.\d+)?/g,'').replace(/[+−-]/g,'').replace(/\s+/g,'').trim();
+  function repairedUIBody(body,supplement){
+    const protectedParts=[];
+    body=body.replace(/(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$))|(\$\$[\s\S]*?\$\$)|(\\\([\s\S]*?\\\))|(\\\[[\s\S]*?\\\])/gm,m=>`\u0000UI_BODY_${protectedParts.push(m)-1}\u0000`);
+    const tables=[...supplement.matchAll(tablePattern)].map(m=>m[0]);
+    const rowLabel=s=>String(s).replace(/[\\`*_]/g,'').replace(/\s+/g,'').trim();
+    const rows=table=>table.split('\n').filter(line=>!/^\s*\|[\s:|\-]+\|\s*$/.test(line)).map(line=>line.trim().replace(/^\||\|$/g,'').split('|').map(cell=>cell.trim()));
+    body=body.replace(tablePattern,table=>{
+      const old=rows(table),values=old.flatMap(row=>row.slice(1));
+      if(!old.length || values.some(value=>numericTokens(value).length))return table;
+      const key=JSON.stringify([old[0].length,old.map(row=>rowLabel(row[0]))]);
+      const matches=tables.filter(candidate=>{
+        const actual=rows(candidate);if(JSON.stringify([actual[0]?.length,actual.map(row=>rowLabel(row[0]))])!==key)return false;
+        return old.every((row,r)=>row.length===actual[r].length && row.slice(1).every((value,c)=>numericTokens(actual[r][c+1]).length>0 && uiTemplate(value)===uiTemplate(actual[r][c+1])));
+      });
+      return matches.length===1?matches[0]:table;
+    });
+    const source=supplement.split(/\n{2,}/).filter(p=>p.trim()),templates=new Map();
+    for(const paragraph of source){
+      if(paragraph.startsWith('|') || !numericTokens(paragraph).length)continue;
+      const key=uiTemplate(paragraph);if(!key)continue;
+      if(templates.has(key) && templates.get(key)!==paragraph)templates.set(key,null);else if(!templates.has(key))templates.set(key,paragraph);
+    }
+    const paragraphs=body.split(/\n{2,}/);
+    for(let i=0;i<paragraphs.length;i++){
+      const paragraph=paragraphs[i];if(paragraph.includes('\u0000') || paragraph.trim().startsWith('|'))continue;
+      const key=uiTemplate(paragraph),withoutAction=uiTemplate(paragraph.replace(/\s*\[[^\]]+\]\s*$/,''));
+      const candidate=templates.get(key) || templates.get(withoutAction),oldValues=numericTokens(paragraph);
+      if(candidate && numericTokens(candidate).length>oldValues.length){
+        const actualValues=numericTokens(candidate);let at=0;
+        if(oldValues.every(value=>{while(at<actualValues.length && actualValues[at]!==value)at++;return at++<actualValues.length;}))paragraphs[i]=candidate;
+      }else if(!oldValues.length && (templates.has(key) || templates.has(withoutAction))){
+        paragraphs[i]='> 接口未含此处实时状态，见下方交互界面补充：'+paragraph.replace(/^\s*#{1,6}\s*/,'');
+      }
+      // A numeric display can be missing entirely between its unchanged title
+      // and unit. Restore only a uniquely matched source title/value/unit triple.
+      if(i+1<paragraphs.length){
+        const triples=source.slice(0,-2).map((p,j)=>[p,source[j+1],source[j+2]]).filter(([title,value,unit])=>uiTemplate(title)===uiTemplate(paragraphs[i]) && uiTemplate(unit)===uiTemplate(paragraphs[i+1]) && /^[+-]?\d[\d,.]*%?$/.test(value.replace(/^[ \t]*#{1,6}\s*/,'').replace(/[*_`\s]/g,'')));
+        if(triples.length===1)paragraphs[i]+='\n\n'+triples[0][1];
+      }
+    }
+    return paragraphs.join('\n\n').replace(/\u0000UI_BODY_(\d+)\u0000/g,(_,i)=>protectedParts[Number(i)]);
   }
   async function uiText(el,id){
     // Read live properties before cloning: attribute defaults do not represent user changes.
@@ -136,7 +209,7 @@
         const associated=n.closest('label') || n.labels?.[0] || (n.id && [...el.querySelectorAll('label[for]')].find(l=>l.htmlFor===n.id));
         const label=associated?'':n.getAttribute('aria-label') || n.getAttribute('title') || '';
         let value='';
-        if(n.matches('input[type="checkbox"],input[type="radio"],[role="checkbox"],[role="radio"],[role="switch"]'))value=(n.checked || n.getAttribute('aria-checked')==='true')?'[x]':'[ ]';
+        if(n.matches('input[type="checkbox"],input[type="radio"],[role="checkbox"],[role="radio"],[role="switch"]'))value=(n.checked || n.getAttribute('aria-checked')==='true')?'☑ 已勾选':'☐ 未勾选';
         else if(n.matches('select'))value=[...n.selectedOptions].map(o=>o.textContent).join('、');
         else value=n.value ?? n.getAttribute('aria-valuetext') ?? n.getAttribute('aria-valuenow') ?? n.textContent;
         const span=c.ownerDocument.createElement('span');span.textContent=[value,label && !String(value).includes(label)?label:''].filter(Boolean).join(' ');c.replaceWith(span);
@@ -157,14 +230,20 @@
     return {...result,path:options.path || `assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-ui.png`,kind:'screenshot',messageId:message.id};
   }
   async function enrich(message,{doc=root.document,signal,capture,hide=noop,show=noop,screenshot=true,onProgress=noop,messages=[],scroll,wait}={}){
-    const started=now(),assets=[],warnings=[],timings={locateMs:0,textMs:0,captureMs:0,totalMs:0},parts=[];
+    const started=now(),assets=[],warnings=[],timings={locateMs:0,settleMs:0,textMs:0,captureMs:0,totalMs:0},parts=[];
     check(signal);
-    const dom=await locateMessage(message,{doc,messages,signal,onProgress,scroll,wait});
+    let dom=await locateMessage(message,{doc,messages,signal,onProgress,scroll,wait});
     timings.locateMs=now()-started;
     if(!dom){warnings.push(`${message.id}: 有限稳定 ID 定位后仍未加载交互界面，API 正文已保留；未进行全段滚动扫描`);return {md:message.md,assets,warnings,textSupplemented:false,captureComplete:false,timings:{...timings,totalMs:now()-started}};}
+    let uiReady=true;
+    if(needsInteractive(message,uiBlocks(dom))){
+      const settleStart=now();
+      const settled=await settleUI(message,{doc,messages,signal,onProgress,scroll,wait});uiReady=settled.ready;dom=settled.message || dom;
+      timings.settleMs=now()-settleStart;
+      if(!uiReady)warnings.push(`${message.id}: ${settled.reason}`);
+    }
     const tableResult=message.needsTableUI?await repairTables(message.md,dom):{md:message.md,count:0};
     let body=tableResult.md;
-    if(tableResult.count)body=body.replace(/\n?> 表格代码单元格已保留接口原字符并修复分列；页面显示的转义字符需要核对。/g,'');
     const blocks=uiBlocks(dom);
     const interactiveNeeded=needsInteractive(message,blocks);
     if(!blocks.length && interactiveNeeded){
@@ -196,17 +275,17 @@
     // The API body is authoritative: virtual DOM code editors may have only 33 of 100+ lines.
     const recovered=parts.some(p=>p.startsWith('####'));
     if(recovered){
-      body=body.replace(tablePattern,t=>t.includes('〔实时状态未包含在接口文字中，需要从页面补充〕')?'':t);
-      body=body.replace(/〔实时状态未包含在接口文字中，需要从页面补充〕/g,'');
+      body=repairedUIBody(body,parts.filter(p=>p.startsWith('####')).join('\n\n'));
+      body=body.replace(/〔实时状态未包含在接口文字中，需要从页面补充〕/g,'〔接口未含此处实时状态，见下方交互界面补充〕');
       body=body.replace(/\n?> 此处的交互内容无法从结构化数据解析，需要从页面补充文字及截图。/g,'');
       if(screenshot && warnings.length===0)body=body.replace(/\n?> 此处为交互(?:图表的结构化数据|内容的结构化文字)；当前画面需要从页面补充。/g,'').replace(/〔内部内容标记未展开，需要从页面核对：[^〕]*〕/g,'');
     }
     const md=[body,parts.length?'### 交互界面补充（导出时的状态）\n\n'+parts.join('\n\n'):''].filter(Boolean).join('\n\n');
-    const textSupplemented=(!interactiveNeeded || recovered) && (!message.needsTableUI || tableResult.count>0);
+    const textSupplemented=uiReady && (!interactiveNeeded || recovered) && (!message.needsTableUI || tableResult.count>0);
     if(!textSupplemented)warnings.push(`${message.id}: 交互文字仍未取得，API 正文已保留，请加载该界面后重试`);
     timings.totalMs=now()-started;
-    return {md,assets,warnings,timings,textSupplemented,tableCorrected:tableResult.count>0,captureComplete:screenshot && warnings.length===0};
+    return {md,assets,warnings,timings,uiReady,textSupplemented,tableCorrected:tableResult.count>0,captureComplete:screenshot && warnings.length===0};
   }
-  const api={findMessage,locateMessage,saveScrollPosition,withScrollRestore,stableBlock,boundaryOf,parentBoundary,uiBlocks,hasUI,signature,uiText,repairTables,captureTarget,enrich};
+  const api={findMessage,locateMessage,saveScrollPosition,withScrollRestore,stableBlock,settleUI,boundaryOf,parentBoundary,uiBlocks,hasUI,signature,uiText,repairTables,repairedUIBody,captureTarget,enrich};
   root.ChatExportFastVisual=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
