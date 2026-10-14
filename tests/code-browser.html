@@ -1,0 +1,16 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>虚拟化代码采集验证</title>
+<style>body{font:16px/1.6 system-ui;margin:36px auto;max-width:960px;color:#183c40}#surface{border:1px solid #ccc}.cm-editor{height:260px}.cm-scroller{overflow:auto}.cm-content{font:14px/20px monospace}.cm-line{line-height:20px}button{padding:12px}textarea{width:100%;height:200px}pre{white-space:pre-wrap}</style>
+<h1>真实 CodeMirror 虚拟化验证</h1><p>测试数据重复使用审查报告中的 Python 原文，以确保编辑器产生未加载区域。没有调用 AI，也没有执行 Python。</p>
+<div id="surface" data-markdown-copy="code-block"></div><p><button id="run">验证代码收集</button></p><pre id="result">加载中</pre><textarea id="output" aria-label="采集后的代码" readonly></textarea>
+<script type="importmap">{"imports":{"@codemirror/state":"/cm-state.js","@marijn/find-cluster-break":"/cluster-break.js","style-mod":"/style-mod.js","w3c-keyname":"/w3c-keyname.js"}}</script>
+<script src="/automation.js"></script><script type="module">
+import {EditorState} from '@codemirror/state';import {EditorView} from '/cm-view.js';
+const original=await (await fetch('/fixture.py')).text();const source=Array(8).fill(original).join('\n');
+const view=new EditorView({state:EditorState.create({doc:source,extensions:[EditorView.editable.of(false)]}),parent:document.querySelector('#surface')});
+document.querySelector('#result').textContent='已就绪';
+document.querySelector('#run').onclick=async()=>{const button=document.querySelector('#run');button.disabled=true;const hadGap=!!view.dom.querySelector('.cm-gap'),before=view.scrollDOM.scrollTop;
+  const frames=[];const result=await ChatExportAutomation.collectCode(document.querySelector('#surface'),{progress:f=>frames.push(f)});
+  document.querySelector('#output').value=result.text;
+  document.querySelector('#result').textContent=JSON.stringify({hadGap,complete:result.complete,exact:result.text===source,lines:result.lineCount,restored:view.scrollDOM.scrollTop===before,reason:result.reason,frames:frames.slice(-6)},null,2);button.disabled=false;
+};
+</script></html>

@@ -1,0 +1,10 @@
+node_modules/
+.ua/
+work/
+research/
+/fixtures/
+Output - test 1/
+releases/
+.env
+.env.*
+*.log

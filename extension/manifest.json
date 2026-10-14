@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Conversation Archive · 本地原型",
+  "version": "0.4.2",
+  "description": "自动收集 ChatGPT 长对话，保留 Markdown 与图片，识别交互卡片并跨屏截图。",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads"
+  ],
+  "action": {
+    "default_title": "打开对话导出面板"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
