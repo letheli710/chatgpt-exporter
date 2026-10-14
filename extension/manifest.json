@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Conversation Archive · 本地原型",
-  "version": "0.4.2",
-  "description": "自动收集 ChatGPT 长对话，保留 Markdown 与图片，识别交互卡片并跨屏截图。",
+  "name": "Fast Speed Exporter · 文字导出",
+  "version": "0.5.0",
+  "description": "直接读取 ChatGPT 会话正文，选择消息并快速导出 Markdown。",
   "permissions": [
     "activeTab",
     "scripting",

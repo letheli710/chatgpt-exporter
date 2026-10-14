@@ -1,7 +1,7 @@
 const allowed = url => /^https:\/\/(chatgpt\.com|chat\.openai\.com)\//.test(url || '');
 chrome.action.onClicked.addListener(async tab => {
   if (!allowed(tab.url)) return;
-  await chrome.scripting.executeScript({target: {tabId: tab.id}, files: ['jszip.min.js', 'core.js', 'automation.js', 'content.js']});
+  await chrome.scripting.executeScript({target: {tabId: tab.id}, files: ['fast-text.js', 'fast-content.js']});
 });
 let lastCapture = 0;
 chrome.runtime.onMessage.addListener((message, sender, reply) => {
