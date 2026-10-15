@@ -31,3 +31,19 @@ test('complete-code comparison preserves leading and interior blank lines in ren
  assert.deepEqual(result.lineDiff.missingSourceLines,[{number:1,text:''},{number:3,text:''}]);
  assert.equal(result.lineDiff.extraRenderedLines.length,0);
 });
+test('image presence alone never certifies missing text and reviewed coverage is bound to exact artifacts',()=>{
+ const crypto=require('node:crypto');
+ const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
+ // A tiny PNG is solely a unit-test transport fixture, never real visual evidence.
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4WQAAAAASUVORK5CYII=','base64');
+ const source=message([{kind:'ui-text',blockIndex:0,text:'metric value',sha256:hash('metricvalue')}]);
+ const html=section('<img data-asset-path="assets/card.png" src="data:image/png;base64,'+png.toString('base64')+'">');
+ assert.equal(compare(source,html).results[0].blocks[0].status,'text-different-or-missing');
+ const proof={sourceUrl:source.sourceUrl,renderedHTMLSha256:hash(html),sourceLedgerSemanticSHA256:hash(JSON.stringify(source)),regions:[{messageId:'m1',regionIndex:1,reviewed:true,assetRef:'assets/card.png',assetSha256:hash(png),blockMappings:[{blockIndex:0,sourceHash:hash('metricvalue')}]}]};
+ assert.equal(compare(source,html,{imageCoverage:proof}).results[0].blocks[0].status,'verified-image-covered-text-intentionally-omitted');
+ assert.throws(()=>compare(source,html+' ',{imageCoverage:proof}),/different source or rendered artifact/);
+ assert.throws(()=>compare(source,html,{imageCoverage:{...proof,regions:[{...proof.regions[0],assetSha256:'bad'}]}}),/bytes changed/);
+ const formula=message([{kind:'formula',blockIndex:0,text:'metric value',sha256:hash('metricvalue')}]);
+ const formulaProof={...proof,sourceLedgerSemanticSHA256:hash(JSON.stringify(formula))};
+ assert.equal(compare(formula,html,{imageCoverage:formulaProof}).results[0].blocks[0].status,'missing-rendered-formula');
+});

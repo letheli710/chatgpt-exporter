@@ -97,7 +97,9 @@
         normalized.needsUI = true;
         if(!normalized.uiReasons.includes('model-dil'))normalized.uiReasons.push('model-dil');
       }
-      const md = normalized.md;
+      const needsAssets = (message.content?.parts || []).some(p=>p && typeof p==='object' && (p.content_type==='image_asset_pointer' || p.asset_pointer)) || /!\[[^\]]*\]\(/.test(normalized.md);
+      normalized.needsAssets = needsAssets;
+      const md = normalized.md || (needsAssets ? '> 此消息包含图像，ZIP 导出时从页面补充。' : '');
       if (md.trim()) result.push({id:message.id, role, ...normalized, summary:md.replace(/\s+/g,' ').slice(0,100)});
     }
     if (!result.length) error('会话没有可导出的正文');

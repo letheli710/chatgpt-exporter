@@ -23,12 +23,13 @@ function extractMessage(message) {
   }
   const ui = visual.uiBlocks(message), blocks = [];
   const withinUI = node => ui.some(card => card === node || card.contains(node));
+  const regionOf = node => { const index=ui.findIndex(card=>card===node||card.contains(node)); return index<0?null:index+1; };
   const add = (kind, text, extra = {}) => { if (text.trim()) blocks.push({kind,text,...extra}); };
   for (const root of message.roots) {
     for (const n of root.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,table,pre,[data-markdown-copy="code-block"]')) {
       if (n.closest('[aria-hidden="true"],[hidden],[data-archive-owned]')) continue;
       if (n.matches('table')) {
-        add(withinUI(n)?'ui-table':'table', logicalText(n), {rows:[...n.rows].map(row=>[...row.cells].map(logicalText))});
+        add(withinUI(n)?'ui-table':'table', logicalText(n), {rows:[...n.rows].map(row=>[...row.cells].map(logicalText)),uiRegionIndex:regionOf(n)});
       } else if (n.matches('pre,[data-markdown-copy="code-block"]')) {
         if (n.parentElement?.closest('[data-markdown-copy="code-block"]')) continue;
         const editor=n.querySelector('.cm-editor'), lines=[...n.querySelectorAll('.cm-line')];
@@ -38,14 +39,14 @@ function extractMessage(message) {
       } else {
         if (n.closest('table,pre,[data-markdown-copy="code-block"],.cm-editor,.katex')) continue;
         if (n.matches('li') && n.querySelector('p,li')) continue;
-        add(n.closest('.sr-only')?'accessible-alt':withinUI(n)?'ui-text':n.matches('h1,h2,h3,h4,h5,h6')?'heading':n.matches('li')?'list-item':'paragraph',logicalText(n));
+        add(n.closest('.sr-only')?'accessible-alt':withinUI(n)?'ui-text':n.matches('h1,h2,h3,h4,h5,h6')?'heading':n.matches('li')?'list-item':'paragraph',logicalText(n),{uiRegionIndex:regionOf(n)});
       }
     }
-    for (const n of root.querySelectorAll('annotation[encoding="application/x-tex"]')) add('formula',n.textContent,{display:!!n.closest('.katex-display'),withinUI:withinUI(n)});
+    for (const n of root.querySelectorAll('annotation[encoding="application/x-tex"]')) add('formula',n.textContent,{display:!!n.closest('.katex-display'),withinUI:withinUI(n),uiRegionIndex:regionOf(n)});
     for (const n of root.querySelectorAll('input,select,textarea,[role="checkbox"],[role="radio"],[role="slider"],[role="switch"]')) {
       if (!withinUI(n) || n.closest('[aria-hidden="true"],[hidden]')) continue;
       const label=[...root.querySelectorAll('label')].find(label=>label.htmlFor===n.id)?.textContent;
-      add('ui-control',n.getAttribute('aria-label') || n.labels?.[0]?.textContent || label || n.id || n.tagName,{value:n.value ?? n.getAttribute('aria-valuenow'),checked:n.checked ?? n.getAttribute('aria-checked')});
+      add('ui-control',n.getAttribute('aria-label') || n.labels?.[0]?.textContent || label || n.id || n.tagName,{value:n.value ?? n.getAttribute('aria-valuenow'),checked:n.checked ?? n.getAttribute('aria-checked'),uiRegionIndex:regionOf(n)});
     }
   }
   return blocks.map((block,i)=>({...block,blockIndex:i,normalized:normalize(block.text),sha256:digest(normalize(block.text))}));
@@ -62,7 +63,8 @@ function build(files) {
       if (!round) continue;
       const preferred = path.basename(file).includes('LONG-R'+round);
       if (messages.get(m.id)?.preferred && !preferred) continue;
-      messages.set(m.id,{id:m.id,role:m.role,round:'R'+round,source:absolute,preferred,blocks:extractMessage(m),uiRegions:visual.uiBlocks(m).length});
+      const regionNodes=visual.uiBlocks(m);
+      messages.set(m.id,{id:m.id,role:m.role,round:'R'+round,source:absolute,preferred,blocks:extractMessage(m),uiRegions:regionNodes.length,uiRegionInventory:regionNodes.map((node,index)=>({index:index+1,tag:node.tagName,text:logicalText(node),svgLabels:[...node.querySelectorAll('svg text')].map(n=>n.textContent),sourcePath:core.pathFor?.(m,node)||null}))});
     }
     dom.window.close();
   }

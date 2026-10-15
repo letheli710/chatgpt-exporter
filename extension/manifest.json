@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Fast Speed Exporter · Swift Archive",
-  "version": "0.6.2",
-  "version_name": "0.6.2 Swift Archive",
+  "version": "0.6.3",
+  "version_name": "0.6.3 Swift Archive",
   "description": "快速读取正文，补齐交互界面文字，自动或选框保存跨屏截图。",
   "permissions": [
     "activeTab",

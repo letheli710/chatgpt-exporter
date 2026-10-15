@@ -120,7 +120,32 @@
     return {message:findMessage(message.id,doc),ready:false,reason:'交互界面仍在加载或子树尚未稳定，当前归档可能缺少异步内容'};
   }
   function needsInteractive(message,blocks=[]){return blocks.length>0 || !!message.needsUI && (!message.uiReasons?.length || message.uiReasons.some(reason=>!['model-dil','table-literal'].includes(reason)));}
-  function hasUI(message,doc=root.document){const m=findMessage(message.id,doc);return !!m && (message.needsTableUI && !!m.el.querySelector('table') || needsInteractive(message,uiBlocks(m)));}
+  function imageNodes(m,blocks=uiBlocks(m)){
+    return [...new Set(m.roots.flatMap(r=>[...r.querySelectorAll('img,svg')]))].filter(n=>active(n) && !n.closest('button,pre,code,[data-archive-owned],[role="tooltip"]') && !blocks.some(b=>b===n || b.contains(n)) && (n.localName==='img' || !n.matches('[aria-hidden="true"]') && (n.hasAttribute('viewBox') || n.querySelector('text,title,desc'))));
+  }
+  function hasUI(message,doc=root.document){const m=findMessage(message.id,doc);return !!m && (imageNodes(m).length || message.needsTableUI && !!m.el.querySelector('table') || needsInteractive(message,uiBlocks(m)));}
+  async function originalAsset(el,message,{signal,fetch:fetcher=root.fetch,path}={}){
+    check(signal);let blob,extension;
+    if(el.localName==='svg'){blob=new Blob([core().serializeSVG(el)],{type:'image/svg+xml'});extension='svg';}
+    else{
+      const url=new URL(el.currentSrc || el.getAttribute('src') || '',el.ownerDocument.location.href);
+      if(!el.currentSrc && !el.getAttribute('src'))throw Error('图片没有可用地址');
+      if(!['http:','https:','data:','blob:'].includes(url.protocol))throw Error('不支持该图片地址');
+      const timeout=AbortSignal.timeout(12000),combined=signal?AbortSignal.any([signal,timeout]):timeout;
+      const response=await fetcher(url.href,{credentials:url.origin===el.ownerDocument.location.origin?'same-origin':'omit',signal:combined});
+      if(!response.ok)throw Error(`HTTP ${response.status}`);
+      blob=await response.blob();check(signal);
+      if(blob.size>30*1024*1024)throw Error('图片超过 30 MB');
+      extension=({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','image/avif':'avif','image/svg+xml':'svg'})[blob.type.split(';')[0]];
+      if(!extension)throw Error('响应不是支持的图片格式');
+      if(extension==='svg'){
+        const parsed=new el.ownerDocument.defaultView.DOMParser().parseFromString(await blob.text(),'image/svg+xml');
+        if(parsed.querySelector('parsererror') || parsed.documentElement.localName!=='svg')throw Error('SVG 解析失败');
+        blob=new Blob([core().serializeSVG(parsed.documentElement)],{type:'image/svg+xml'});
+      }
+    }
+    check(signal);return {blob,path:`${path}.${extension}`,kind:extension==='svg'?'svg':'original-image',messageId:message.id};
+  }
   function signature(message,doc=root.document){
     const m=findMessage(message.id,doc);if(!m)return null;
     const nodes=uiBlocks(m),result=[];
@@ -130,6 +155,7 @@
       const controls=[el,...el.querySelectorAll('input,textarea,select,[role="checkbox"],[role="radio"],[role="switch"],[role="slider"]')].filter(n=>active(n)).map(n=>[n.value ?? null,n.checked ?? null,n.getAttribute('aria-checked'),n.getAttribute('aria-valuenow'),n.getAttribute('aria-valuetext')]);
       result.push([clone.textContent.replace(/\s+/g,' ').trim(),controls]);
     }
+    result.push(imageNodes(m).map(n=>[n.currentSrc || n.getAttribute('src'),n.outerHTML]));
     return JSON.stringify(result);
   }
   const tablePattern=/^[ \t]*\|[^\n]*\|[ \t]*\n[ \t]*\|[ \t:|\-]+\|[ \t]*(?:\n[ \t]*\|[^\n]*\|[ \t]*)*/gm;
@@ -229,8 +255,15 @@
     const result=await automation().captureElement(target,{...options,hide:options.hide || noop,show:options.show || noop});
     return {...result,path:options.path || `assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-ui.png`,kind:'screenshot',messageId:message.id};
   }
-  async function enrich(message,{doc=root.document,signal,capture,hide=noop,show=noop,screenshot=true,onProgress=noop,messages=[],scroll,wait}={}){
-    const started=now(),assets=[],warnings=[],timings={locateMs:0,settleMs:0,textMs:0,captureMs:0,totalMs:0},parts=[];
+  function removeStaticFallback(body,text){
+    if(!text.trim())return body;
+    const protectedParts=[];
+    const safe=body.replace(/(^[ \t]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t]*\2[ \t]*(?=\n|$))|(\$\$[\s\S]*?\$\$)|(\\\([\s\S]*?\\\))|(\\\[[\s\S]*?\\\])/gm,m=>`\u0000STATIC_${protectedParts.push(m)-1}\u0000`);
+    const pattern=text.trim().split(/\s+/).map(s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('\\s+');
+    return safe.replace(new RegExp('(^|\\n\\s*\\n)'+pattern+'(?=\\n\\s*\\n|$)','g'),'$1').replace(/\n{3,}/g,'\n\n').replace(/\u0000STATIC_(\d+)\u0000/g,(_,i)=>protectedParts[Number(i)]);
+  }
+  async function enrich(message,{doc=root.document,signal,capture,hide=noop,show=noop,screenshot=true,onProgress=noop,messages=[],scroll,wait,fetch:fetcher=root.fetch}={}){
+    const started=now(),assets=[],warnings=[],timings={locateMs:0,settleMs:0,textMs:0,captureMs:0,totalMs:0},parts=[],textParts=[];
     check(signal);
     let dom=await locateMessage(message,{doc,messages,signal,onProgress,scroll,wait});
     timings.locateMs=now()-started;
@@ -250,14 +283,14 @@
       const roots=[...dom.el.querySelectorAll('[data-dil-message-id],.DilResponseRoot')].filter(active);
       for(const el of roots.filter(n=>!roots.some(p=>p!==n && p.contains(n)))){
         const t=now(),text=await uiText(el,message.id);timings.textMs+=now()-t;
-        if(text)parts.push(`#### 交互界面当前文字\n\n${text}`);
+        if(text){parts.push(`#### 交互界面当前文字\n\n${text}`);textParts.push(parts.at(-1));}
       }
       if(screenshot)warnings.push(`${message.id}: 交互内容未识别到独立卡片边界，请手动选择截图区域`);
     }
     for(let i=0;i<blocks.length;i++){
       check(signal);let el=blocks[i];const path=core().nodePath(dom,el);onProgress({messageId:message.id,block:i+1,total:blocks.length,phase:'ui-text'});
       const t=now(),text=await uiText(el,message.id);timings.textMs+=now()-t;
-      if(text)parts.push(`#### 交互界面 ${i+1} 当前文字\n\n${text}`);
+      if(text){parts.push(`#### 交互界面 ${i+1} 当前文字\n\n${text}`);textParts.push(parts.at(-1));}
       if(screenshot){
         const ct=now();
         try{
@@ -268,12 +301,34 @@
           if(text && currentText!==text){const index=parts.indexOf(`#### 交互界面 ${i+1} 当前文字\n\n${text}`);if(index>=0)parts[index]=`#### 交互界面 ${i+1} 当前文字\n\n${currentText}`;}
           const asset=await captureTarget(el,message,{doc,signal,capture,hide,show,path:`assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-ui-${i+1}.png`});
           assets.push(asset);parts.push(`![交互界面 ${i+1} 当前画面](${asset.path})`);
+          if(!el.matches('input,select,textarea,button,[role="application"]:not(svg)') && !el.querySelector('input,select,textarea,button,[role="slider"],[role="checkbox"],[role="radio"],[role="switch"],[role="application"]:not(svg)')){
+            body=removeStaticFallback(body,text);
+            const index=parts.indexOf(`#### 交互界面 ${i+1} 当前文字\n\n${currentText}`);
+            if(index>=0)parts.splice(index,1);
+          }
         }catch(e){if(e.name==='AbortError')throw e;warnings.push(`${message.id}: 交互界面 ${i+1} 截图未保存：${e.message}`);parts.push(`> 交互界面 ${i+1} 截图未保存：${e.message}`);}
         finally{timings.captureMs+=now()-ct;}
       }
     }
+    if(screenshot){
+      const fresh=findMessage(message.id,doc) || dom,images=imageNodes(fresh);
+      if(message.needsAssets && !images.length && !blocks.length)warnings.push(`${message.id}: 页面未找到图像，原始正文已保留，请加载图像后重试`);
+      for(let i=0;i<images.length;i++){
+        check(signal);const image=images[i],nodePath=core().nodePath(fresh,image),base=`assets/${String(message.id).replace(/[^a-zA-Z0-9_-]/g,'_')}-image-${i+1}`;
+        try{
+          let asset;
+          try{asset=await originalAsset(image,message,{signal,fetch:fetcher,path:base});}
+          catch(error){
+            check(signal);if(typeof capture!=='function')throw error;
+            const target=await stableBlock(message,nodePath,{doc,messages,signal,onProgress,scroll,wait});
+            asset=await captureTarget(target,message,{doc,signal,capture,hide,show,path:base+'.png'});
+          }
+          assets.push(asset);parts.push(`![${(image.getAttribute('alt') || '图像 '+(i+1)).replace(/[\[\]\r\n]/g,'')}](${asset.path})`);
+        }catch(error){check(signal);const warning=`${message.id}: 图像 ${i+1} 未保存：${error.message}`;warnings.push(warning);parts.push('> '+warning);}
+      }
+    }
     // The API body is authoritative: virtual DOM code editors may have only 33 of 100+ lines.
-    const recovered=parts.some(p=>p.startsWith('####'));
+    const recovered=parts.some(p=>p.startsWith('####')) || blocks.length>0 && assets.some(a=>a.kind==='screenshot');
     if(recovered){
       body=repairedUIBody(body,parts.filter(p=>p.startsWith('####')).join('\n\n'));
       body=body.replace(/〔实时状态未包含在接口文字中，需要从页面补充〕/g,'〔接口未含此处实时状态，见下方交互界面补充〕');
@@ -284,8 +339,9 @@
     const textSupplemented=uiReady && (!interactiveNeeded || recovered) && (!message.needsTableUI || tableResult.count>0);
     if(!textSupplemented)warnings.push(`${message.id}: 交互文字仍未取得，API 正文已保留，请加载该界面后重试`);
     timings.totalMs=now()-started;
-    return {md,assets,warnings,timings,uiReady,textSupplemented,tableCorrected:tableResult.count>0,captureComplete:screenshot && warnings.length===0};
+    const textMd=textParts.length?[repairedUIBody(tableResult.md,textParts.join('\n\n')),'### 交互界面补充（导出时的状态）\n\n'+textParts.join('\n\n')].join('\n\n'):tableResult.md;
+    return {md,textMd,assets,warnings,timings,uiReady,textSupplemented,tableCorrected:tableResult.count>0,captureComplete:screenshot && warnings.length===0};
   }
-  const api={findMessage,locateMessage,saveScrollPosition,withScrollRestore,stableBlock,settleUI,boundaryOf,parentBoundary,uiBlocks,hasUI,signature,uiText,repairTables,repairedUIBody,captureTarget,enrich};
+  const api={findMessage,locateMessage,saveScrollPosition,withScrollRestore,stableBlock,settleUI,boundaryOf,parentBoundary,uiBlocks,imageNodes,originalAsset,hasUI,signature,uiText,repairTables,repairedUIBody,captureTarget,enrich};
   root.ChatExportFastVisual=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
