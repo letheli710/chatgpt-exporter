@@ -10,7 +10,7 @@ test('archive panel wires UI completion, ZIP assets and timing, reuses cache and
  w.eval(fs.readFileSync('extension/fast-text.js','utf8'));w.eval(fs.readFileSync('extension/fast-content.js','utf8'));const s=w.document.querySelector('[data-archive-owned]').shadowRoot;await idle(s);s.getElementById('live').checked=true;
  s.getElementById('preview').click();await idle(s);assert.match(s.getElementById('output').value,/API original[\s\S]*24 labels/);assert.equal(enrichCalls,1);
  s.getElementById('archive').click();await idle(s);assert.equal(enrichCalls,2);assert.deepEqual(enrichedModes,[false,true]);assert.ok(files.some(f=>f.name==='assets/answer.png'));
- const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.ok(manifest.timings.readMs>=0);assert.deepEqual(manifest.messages,['answer']);assert.equal(downloads[0].filename,'sample-swift-0.7.0.zip');
+ const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.ok(manifest.timings.readMs>=0);assert.deepEqual(manifest.messages,['answer']);assert.equal(downloads[0].filename,'sample-swift-0.8.0.zip');
  assert.equal(downloads[0].saveAs,false);s.getElementById('saveAs').checked=true;
  s.getElementById('archive').click();await idle(s);assert.equal(enrichCalls,2);assert.equal(requests,2);assert.equal(downloads[1].saveAs,true);
  s.getElementById('preview').click();await idle(s);assert.doesNotMatch(s.getElementById('output').value,/assets\//);assert.match(s.getElementById('output').value,/24 labels and current values/);assert.equal(enrichCalls,2);

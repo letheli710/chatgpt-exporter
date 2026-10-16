@@ -52,7 +52,7 @@ test('default ZIP is data-first: no visual enrichment, original images, ui JSON,
   assert.equal(uiJson.dil.code,dil.code);assert.equal(uiJson.localAssets['https://cdn.example/p.png'],'assets/ui-b-1.png');
   const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.deepEqual(manifest.assets.map(a=>a.kind).sort(),['original-image','ui-data','ui-image']);
   s.getElementById('raw').click();await idle(s);await new Promise(r=>setTimeout(r,20));
-  assert.equal(downloads.at(-1).filename,'sample-swift-0.7.0.raw.json');
+  assert.equal(downloads.at(-1).filename,'sample-swift-0.8.0.raw.json');
   const raw=JSON.parse(await read(downloads.blob));assert.equal(raw.mapping.b.message.metadata.model_dil_v2.code,dil.code);assert.ok(!JSON.stringify(raw).includes('Bearer'));
   dom.window.close();
 });

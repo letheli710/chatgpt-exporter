@@ -61,6 +61,99 @@
     }
     return walk(tree).replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   }
+  // Top-level prose stays Markdown; every other top-level component (box,
+  // card, ...) becomes its own card segment that is drawn as an image.
+  const proseTypes = new Set(['text','title','divider','bold','italic','strike','code','link','math','__chatgptClientDefinedWidget']);
+  function segments(tree) {
+    const flat = [], out = [];
+    const add = node => {
+      if (node == null || node === false || node === true || node === '') return;
+      if (Array.isArray(node)) return node.forEach(add);
+      if (node.type === 'Fragment') return node.children.forEach(add);
+      flat.push(node);
+    };
+    add(tree);
+    for (const node of flat) {
+      const prose = typeof node !== 'object' || proseTypes.has(node.type);
+      if (prose && out.at(-1)?.kind === 'md') out.at(-1).tree.children.push(node);
+      else out.push(prose ? {kind:'md', tree:{type:'Fragment', props:{}, children:[node]}} : {kind:'card', tree:node});
+    }
+    return out;
+  }
+  // Approximates ChatGPT's look; it is not a pixel copy of their components.
+  const CARD_CSS = `.dil-root{display:block;width:700px;padding:10px;box-sizing:border-box;font:14px/1.55 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#0d0d0d;background:#fff}
+.dil-root *{box-sizing:border-box}.card{display:flex;flex-direction:column;gap:8px;border:1px solid #e3e3e3;border-radius:16px;padding:16px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.box{display:flex;flex-direction:column}.t{margin:0}.title{font-weight:600;font-size:16px;line-height:1.35}.title-lg{font-size:18px}.title-sm{font-size:14px}
+.cb{display:flex;align-items:center;gap:8px}.cb-box{flex:none;width:16px;height:16px;border:1.5px solid #8f8f8f;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#fff}.cb-box.on{background:#0d0d0d;border-color:#0d0d0d}
+.hr{border:0;border-top:1px solid #ececec;margin:4px 0;width:100%}code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:4px;padding:0 4px}
+.link{color:#2964aa;text-decoration:underline}.muted{color:#5d5d5d}.small{font-size:12px}.widget,.img{border:1px dashed #c9c9c9;border-radius:10px;padding:10px 12px;color:#5d5d5d;font-size:13px}`;
+  const cssLength = value => typeof value === 'number' ? `${value * 4}px` : /^[\d.]+(px|%|rem|em)?$/.test(String(value)) ? String(value) : null;
+  function boxStyle(p) {
+    const s = [];
+    for (const [prop, css] of [['maxWidth','max-width'],['width','width'],['minWidth','min-width']]) {const v = p[prop] != null && cssLength(p[prop]);if (v) s.push(`${css}:${v}`);}
+    if (typeof p.gap === 'number') s.push(`gap:${p.gap * 4}px`);
+    if (typeof p.padding === 'number') s.push(`padding:${p.padding * 4}px`);
+    else if (p.padding && typeof p.padding === 'object') s.push(`padding:${(p.padding.y ?? 0) * 4}px ${(p.padding.x ?? 0) * 4}px`);
+    return s.length ? ` style="${s.join(';')}"` : '';
+  }
+  // Well-formed XHTML, so it can be embedded in an SVG foreignObject.
+  function toHtml(tree) {
+    const inline = node => walk(node, true);
+    function walk(node, isInline = false) {
+      if (node == null || node === false || node === true) return '';
+      if (typeof node === 'string' || typeof node === 'number') return escapeHtml(node);
+      if (Array.isArray(node)) return node.map(n => walk(n, isInline)).join('');
+      const p = node.props || {}, kids = () => walk(node.children, isInline);
+      switch (node.type) {
+        case 'bold': return `<strong>${inline(node.children)}</strong>`;
+        case 'italic': return `<em>${inline(node.children)}</em>`;
+        case 'strike': return `<s>${inline(node.children)}</s>`;
+        case 'code': return `<code>${inline(node.children)}</code>`;
+        case 'link': return `<span class="link">${inline(node.children)}</span>`;
+        case 'math': return `<span>${escapeHtml(p.value ?? '')}${inline(node.children)}</span>`;
+        case 'title': return `<div class="title title-${escapeHtml(p.size || 'md')}">${inline(node.children)}</div>`;
+        case 'text': {
+          const cls = `${p.color === 'secondary' ? ' muted' : ''}${p.size === 'sm' ? ' small' : ''}`;
+          return isInline ? `<span class="${cls.trim()}">${inline(node.children)}</span>` : `<p class="t${cls}">${inline(node.children)}</p>`;
+        }
+        case 'checkbox': return `<div class="cb"><span class="cb-box${p.checked ? ' on' : ''}">${p.checked ? '✓' : ''}</span><span>${inline(node.children)}</span></div>`;
+        case 'divider': return '<hr class="hr"/>';
+        case 'card': return `<div class="card"${boxStyle(p)}>${walk(node.children)}</div>`;
+        case 'box': return `<div class="box"${boxStyle(p)}>${walk(node.children)}</div>`;
+        case 'image': return `<div class="img">图片${p.alt ? `：${escapeHtml(p.alt)}` : ''}</div>`;
+        case '__chatgptClientDefinedWidget': return '<div class="widget">嵌入应用（已另存为独立 HTML）</div>';
+        default: return isInline || inlineTypes.has(node.type) ? kids() : `<div>${walk(node.children)}</div>`;
+      }
+    }
+    return walk(tree);
+  }
+  // Browser only (sandbox page): lays the card out offscreen and rasterizes it
+  // through an SVG foreignObject. The ChatGPT page is never scrolled or captured.
+  async function snapshotPng(tree, doc, {scale = 2} = {}) {
+    const html = `<div class="dil-root">${toHtml(tree)}</div>`;
+    const host = doc.createElement('div');
+    host.style.cssText = 'position:absolute;left:0;top:0;width:720px';
+    host.innerHTML = `<style>${CARD_CSS}</style>${html}`;
+    doc.body.append(host);
+    try {
+      await doc.fonts?.ready;
+      // Lay out at ChatGPT's column width (so width="100%" stays wide), then
+      // crop the empty space right of narrower cards such as maxWidth="260px".
+      const rootNode = host.querySelector('.dil-root'), rect = rootNode.getBoundingClientRect();
+      const right = Math.max(0, ...[...rootNode.children].map(child => child.getBoundingClientRect().right - rect.left));
+      const width = Math.max(1, Math.min(Math.ceil(rect.width), Math.ceil(right) + 10)), height = Math.max(1, Math.ceil(rect.height));
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject x="0" y="0" width="${width}" height="${height}"><div xmlns="http://www.w3.org/1999/xhtml"><style>${CARD_CSS}</style>${html}</div></foreignObject></svg>`;
+      const image = new doc.defaultView.Image();
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      await image.decode();
+      const canvas = doc.createElement('canvas');
+      canvas.width = width * scale;canvas.height = height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);ctx.fillStyle = '#fff';ctx.fillRect(0, 0, width, height);ctx.drawImage(image, 0, 0);
+      const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(Error('卡片图像生成失败')), 'image/png'));
+      return {png:await blob.arrayBuffer(), width, height};
+    } finally {host.remove();}
+  }
   // AppBlocks are stored as content_references and linked from the program by
   // invocation id -> clientDefinedWidgets[id].refIndex.
   function appBlocks(dil, contentReferences) {
@@ -79,25 +172,30 @@
   // Content-script side: evaluates through the sandbox page over a private port.
   function sandboxClient(doc, src, {timeout = 4000} = {}) {
     const frame = doc.createElement('iframe');
-    frame.src = src;frame.hidden = true;frame.dataset.archiveOwned = 'dil-sandbox';
+    // Offscreen rather than hidden: cards need real layout to be measured.
+    frame.src = src;frame.dataset.archiveOwned = 'dil-sandbox';frame.setAttribute('aria-hidden', 'true');frame.tabIndex = -1;
+    frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:760px;height:600px;border:0;opacity:0;pointer-events:none';
     const ready = new Promise((resolve, reject) => {
       frame.addEventListener('load', resolve, {once:true});
       setTimeout(() => reject(Error('界面渲染沙箱未能加载')), timeout);
     });
     ready.catch(noop);
     doc.documentElement.append(frame);
-    const evaluateRemote = async dil => {
+    const request = async (type, dil) => {
       await ready;
       return new Promise((resolve, reject) => {
         const channel = new MessageChannel(), timer = setTimeout(() => {channel.port1.close();reject(Error('界面渲染超时'));}, timeout);
-        channel.port1.onmessage = event => {clearTimeout(timer);channel.port1.close();event.data?.error ? reject(Error(event.data.error)) : resolve(event.data?.tree);};
-        frame.contentWindow.postMessage({type:'dil:evaluate', dil:{code:dil.code, constants:dil.constants, appData:dil.appData}}, '*', [channel.port2]);
+        channel.port1.onmessage = event => {clearTimeout(timer);channel.port1.close();event.data?.error ? reject(Error(event.data.error)) : resolve(event.data);};
+        frame.contentWindow.postMessage({type, dil:{code:dil.code, constants:dil.constants, appData:dil.appData}}, '*', [channel.port2]);
       });
     };
+    const evaluateRemote = async dil => (await request('dil:evaluate', dil)).tree;
+    // Returns {segments:[{kind:'md',tree} | {kind:'card',tree,png,width,height}]}.
+    evaluateRemote.snapshot = dil => request('dil:snapshot', dil);
     evaluateRemote.close = () => frame.remove();
     return evaluateRemote;
   }
-  const api = {evaluate, toMarkdown, appBlocks, standaloneHtml, sandboxClient};
+  const api = {evaluate, toMarkdown, segments, toHtml, CARD_CSS, snapshotPng, appBlocks, standaloneHtml, sandboxClient};
   root.ChatExportDilRender = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

@@ -55,6 +55,6 @@ test('panel: default ZIP uses static render, exports AppBlock HTML and complete 
   const ui=JSON.parse(await read(files.find(f=>f.name===`ui/msg-${RESOURCE}.json`).data));
   assert.match(ui.source,/<AppBlock title="公开测试图"/);assert.equal(ui.contentReferences[0].data.app_block_id,'python-resource-test');
   assert.match(ui.staticMarkdown,/图片未挂载/);assert.equal(ui.renderError,null);assert.deepEqual(ui.appBlocks.map(b=>b.path),[html]);assert.match(ui.dil.code,/__dil\.jsx/);
-  assert.match(s.getElementById('status').textContent,/3 份界面数据、1 个嵌入应用、0 张截图/);
+  assert.match(s.getElementById('status').textContent,/3 份界面数据、0 张卡片图、1 个嵌入应用、0 张截图/);
   dom.window.close();
 });

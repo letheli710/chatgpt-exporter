@@ -1,5 +1,5 @@
 (() => {
-  const version='0.7.0';
+  const version='0.8.0';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -31,8 +31,22 @@
   // default state, recovering text that fallbackMarkdown omits ({#each}, values).
   async function renderStatic(messages){const targets=messages.filter(m=>m.dil?.code);if(!targets.length||!dilRender)return;
     $('status').textContent=`正在渲染 ${targets.length} 个交互界面……`;
-    const evaluate=globalThis.ChatExportDilEvaluate||dilRender.sandboxClient(document,chrome.runtime.getURL('sandbox.html'));
-    try{for(const m of targets){try{m.staticMd=dilRender.toMarkdown(await evaluate(m.dil),{widget:id=>`\u0000APPBLOCK:${id}\u0000`});}catch(e){m.renderError=e.message;}}}finally{evaluate.close?.();}}
+    const client=globalThis.ChatExportDilEvaluate?null:dilRender.sandboxClient(document,chrome.runtime.getURL('sandbox.html'));
+    const evaluate=globalThis.ChatExportDilEvaluate||client,snapshot=globalThis.ChatExportDilSnapshot||client?.snapshot,toMd=tree=>dilRender.toMarkdown(tree,{widget:id=>`\u0000APPBLOCK:${id}\u0000`});
+    try{for(const m of targets){
+      // Cards are drawn to PNG in the sandbox; if that fails, text alone is kept.
+      try{const result=await snapshot(m.dil);m.segments=result.segments.map(s=>({kind:s.kind,md:toMd(s.tree),png:s.png,width:s.width,height:s.height,error:s.error}));m.staticMd=m.segments.map(s=>s.md).filter(Boolean).join('\n\n');}
+      catch{try{m.staticMd=toMd(await evaluate(m.dil));}catch(e){m.renderError=e.message;}}
+    }}finally{client?.close();}}
+  const safeName=id=>String(id).replace(/[^\w-]/g,'_');
+  // Each card becomes an image, with its text folded underneath (searchable, not duplicated on screen).
+  function cardMarkdown(m,assets,warnings){let n=0;return m.segments.map(s=>{
+    if(s.kind!=='card'||!s.png){if(s.error)warnings.push(`${m.id}: 卡片图像生成失败（${s.error}），已保留文字`);return s.md;}
+    const path=`assets/card-${safeName(m.id)}-${++n}.png`;
+    assets.push({path,blob:new Blob([s.png],{type:'image/png'}),messageId:m.id,width:s.width,height:s.height,kind:'card-image'});
+    const text=s.md.trim()?`\n\n> [!note]- 卡片文字\n${s.md.split('\n').map(l=>l?`> ${l}`:'>').join('\n')}`:'';
+    return `![交互卡片](${path})${text}`;
+  }).filter(Boolean).join('\n\n');}
   const blocksOf=m=>dilRender&&m.dil?dilRender.appBlocks(m.dil,m.contentReferences):[];
   const widgetToken=/\u0000APPBLOCK:([^\u0000]*)\u0000/g;
   async function send(message){const response=await chrome.runtime.sendMessage(message);if(response?.error)throw Error(response.error);return response;}
@@ -48,10 +62,10 @@
         result=await visual.enrich(original,{...captureOptions(),messages:state.messages,screenshot:screenshot&&!shots.length,onProgress:p=>$('status').textContent=p.phase==='locate-ui'?'正在定位并加载交互界面……':p.phase==='settle-ui'?'正在等待交互界面加载稳定……':`正在${p.phase==='screenshot'?'截图':'补齐文字'}，内容块 ${p.block}/${p.total}……`});
         assertCurrent();cache.set(original.id,result);cacheSignatures.set(original.id,visual.signature?.(original,document));
       }
-      const base=!live&&original.staticMd?original.staticMd:original.md;
+      const base=!live&&original.staticMd?(zip&&original.segments?cardMarkdown(original,assets,warnings):original.staticMd):original.md;
       if(!live&&original.dil?.code&&!original.staticMd&&original.renderError)warnings.push(`${original.id}: 交互界面静态渲染失败（${original.renderError}），已使用官方降级文字`);
       let md=(!screenshot && result?.textMd) || result?.md || base;
-      if(!screenshot)md=md.replace(/!\[[^\]]*\]\(assets\/[^)]+\)/g,'');
+      if(!screenshot)md=md.replace(/!\[[^\]]*\]\(assets\/(?!card-)[^)]+\)/g,'');
       if(result){if(screenshot)assets.push(...result.assets);warnings.push(...result.warnings);if(result.textSupplemented&&(!screenshot||result.captureComplete||shots.length))completed.add(original.id);}
       if(screenshot)for(const shot of shots){md+=`\n\n![手动选择内容的当前画面](${shot.path})\n`;assets.push(shot);}
       messages.push({...original,md});
@@ -98,7 +112,7 @@
       zip.file('manifest.json',JSON.stringify(manifest,null,2));blob=await zip.generateAsync({type:'blob'});
     }else blob=new Blob([result.md],{type:'text/markdown;charset=utf-8'});
     assertCurrent();const url=URL.createObjectURL(blob);try{await send({type:'archive:download',url,filename:filename(mode==='zip'?'zip':'md'),saveAs:$('saveAs').checked});}finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}}
-    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>a.kind==='appblock').length} 个嵌入应用、${result.assets.filter(a=>!['original-image','ui-data','ui-image','appblock'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
+    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>a.kind==='card-image').length} 张卡片图、${result.assets.filter(a=>a.kind==='appblock').length} 个嵌入应用、${result.assets.filter(a=>!['original-image','ui-data','ui-image','appblock','card-image'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
   }catch(e){$('status').textContent=e.message;}finally{host.hidden=false;busy(false);}}
   $('reload').onclick=load;
   // Debug: the unmodified API response, to inspect model_dil_v2 and image fields.

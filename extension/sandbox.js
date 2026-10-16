@@ -7,9 +7,26 @@
     try {return {tree:root.ChatExportDilRender.evaluate(request.dil, execute)};}
     catch (e) {return {error:String(e?.message || e)};}
   }
-  root.ChatExportDilSandbox = {handle, execute};
-  root.addEventListener?.('message', event => {
-    if (event.data?.type !== 'dil:evaluate' || !event.ports?.[0]) return;
-    event.ports[0].postMessage(handle(event.data));
+  // Each top-level card is drawn offscreen into a PNG; prose stays as a tree.
+  async function snapshot(request, doc = root.document) {
+    try {
+      const render = root.ChatExportDilRender, tree = render.evaluate(request.dil, execute), segments = [];
+      for (const segment of render.segments(tree)) {
+        if (segment.kind !== 'card') {segments.push(segment);continue;}
+        try {segments.push({...segment, ...await render.snapshotPng(segment.tree, doc)});}
+        catch (e) {segments.push({...segment, error:String(e?.message || e)});}
+      }
+      return {segments};
+    } catch (e) {return {error:String(e?.message || e)};}
+  }
+  root.ChatExportDilSandbox = {handle, snapshot, execute};
+  root.addEventListener?.('message', async event => {
+    const port = event.ports?.[0];
+    if (!port) return;
+    if (event.data?.type === 'dil:evaluate') port.postMessage(handle(event.data));
+    else if (event.data?.type === 'dil:snapshot') {
+      const result = await snapshot(event.data);
+      port.postMessage(result, (result.segments || []).map(s => s.png).filter(Boolean));
+    }
   });
 })(globalThis);
