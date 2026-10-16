@@ -5,7 +5,7 @@
   // Reloading the extension resets its isolated world but can leave the old
   // panel DOM behind. Remove it before creating the current panel.
   document.querySelectorAll('[data-archive-owned="fast-text"]').forEach(n=>n.remove());
-  const api=globalThis.FastTextExporter,visual=globalThis.ChatExportFastVisual,auto=globalThis.ChatExportAutomation;
+  const dilRender=globalThis.ChatExportDilRender,api=globalThis.FastTextExporter,visual=globalThis.ChatExportFastVisual,auto=globalThis.ChatExportAutomation;
   const host=document.createElement('div');host.dataset.archiveOwned='fast-text';host.dataset.version=version;
   globalThis.__fastTextPanel=host;document.documentElement.append(host);
   const ui=host.attachShadow({mode:'open'});
@@ -23,9 +23,18 @@
     const data=await api.loadConversation({id:location.pathname.match(/\/c\/([^/]+)/)?.[1],leafId:leaf,fetch:window.fetch.bind(window),signal:controller.signal,onProgress:p=>$('status').textContent=`正在读取历史 ${p.messages} 条，${p.pages} 页……`});
     if(current!==generation||url!==route())throw Error('读取期间切换了对话，请重新读取');
     state={...data,url,leaf,timings:{readMs:performance.now()-start}};
+    await renderStatic(data.messages);state.timings.renderMs=performance.now()-start-state.timings.readMs;
     for(const m of data.messages){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.checked=true;box.dataset.messageId=m.id;label.append(box,` ${m.role==='user'?'我':'ChatGPT'} · ${m.summary}`);$('list').append(label);}
     $('status').textContent=`已读取 ${data.messages.length} 条正文，耗时 ${(state.timings.readMs/1000).toFixed(2)} 秒。预览可补齐交互文字，ZIP 可自动保存画面。`;
   }catch(e){if(current===generation)$('status').textContent=e.message;}finally{if(current===generation)busy(false);}}
+  // Executes each message's compiled UI program in the sandbox page at its
+  // default state, recovering text that fallbackMarkdown omits ({#each}, values).
+  async function renderStatic(messages){const targets=messages.filter(m=>m.dil?.code);if(!targets.length||!dilRender)return;
+    $('status').textContent=`正在渲染 ${targets.length} 个交互界面……`;
+    const evaluate=globalThis.ChatExportDilEvaluate||dilRender.sandboxClient(document,chrome.runtime.getURL('sandbox.html'));
+    try{for(const m of targets){try{m.staticMd=dilRender.toMarkdown(await evaluate(m.dil),{widget:id=>`\u0000APPBLOCK:${id}\u0000`});}catch(e){m.renderError=e.message;}}}finally{evaluate.close?.();}}
+  const blocksOf=m=>dilRender&&m.dil?dilRender.appBlocks(m.dil,m.contentReferences):[];
+  const widgetToken=/\u0000APPBLOCK:([^\u0000]*)\u0000/g;
   async function send(message){const response=await chrome.runtime.sendMessage(message);if(response?.error)throw Error(response.error);return response;}
   async function captureData(){assertCurrent();await auto.pause(Math.max(0,720-(Date.now()-lastCapture)));controller.signal.throwIfAborted();const response=await send({type:'archive:capture'});lastCapture=Date.now();return response.data;}
   const captureOptions=()=>({doc:document,signal:controller.signal,capture:captureData,hide:()=>host.hidden=true,show:()=>host.hidden=false});
@@ -39,7 +48,9 @@
         result=await visual.enrich(original,{...captureOptions(),messages:state.messages,screenshot:screenshot&&!shots.length,onProgress:p=>$('status').textContent=p.phase==='locate-ui'?'正在定位并加载交互界面……':p.phase==='settle-ui'?'正在等待交互界面加载稳定……':`正在${p.phase==='screenshot'?'截图':'补齐文字'}，内容块 ${p.block}/${p.total}……`});
         assertCurrent();cache.set(original.id,result);cacheSignatures.set(original.id,visual.signature?.(original,document));
       }
-      let md=(!screenshot && result?.textMd) || result?.md || original.md;
+      const base=!live&&original.staticMd?original.staticMd:original.md;
+      if(!live&&original.dil?.code&&!original.staticMd&&original.renderError)warnings.push(`${original.id}: 交互界面静态渲染失败（${original.renderError}），已使用官方降级文字`);
+      let md=(!screenshot && result?.textMd) || result?.md || base;
       if(!screenshot)md=md.replace(/!\[[^\]]*\]\(assets\/[^)]+\)/g,'');
       if(result){if(screenshot)assets.push(...result.assets);warnings.push(...result.warnings);if(result.textSupplemented&&(!screenshot||result.captureComplete||shots.length))completed.add(original.id);}
       if(screenshot)for(const shot of shots){md+=`\n\n![手动选择内容的当前画面](${shot.path})\n`;assets.push(shot);}
@@ -47,7 +58,7 @@
     }};
     if(visual?.withScrollRestore&&live)await visual.withScrollRestore(document,prepare);else await prepare();
     if(zip)await attachData(messages,assets,warnings);
-    else for(const m of messages)m.md=m.md.replace(/!\[[^\]]*\]\(asset:[\w-]+\)/g,'〔图片：下载 ZIP 可获取原图〕');
+    else for(const m of messages)m.md=m.md.replace(/!\[[^\]]*\]\(asset:[\w-]+\)/g,'〔图片：下载 ZIP 可获取原图〕').replace(widgetToken,(_,id)=>`〔嵌入应用：${blocksOf(m).find(b=>b.invocationId===id)?.title||id}（下载 ZIP 可获取独立 HTML）〕`);
     const data={...state,messages,warnings:[...new Set([...state.warnings.filter(w=>selected.some(id=>w.startsWith(`${id}:`))&&![...completed].some(id=>w.startsWith(`${id}:`))),...warnings])]};
     const md=api.markdown(data,selected,state.url);state.timings.prepareMs=performance.now()-started;
     return {md,assets,warnings:data.warnings,messages:selected};
@@ -68,8 +79,14 @@
     for(const {m,images} of uiData){
       const path=`ui/msg-${safe(m.id)}.json`,localAssets={};
       for(const image of images){if(image.blob){localAssets[image.url]=image.path;assets.push({path:image.path,blob:image.blob,messageId:m.id,kind:'ui-image'});}else warnings.push(`${m.id}: 界面图片未下载（${image.error}），已保留原地址`);}
-      assets.push({path,blob:new Blob([JSON.stringify({messageId:m.id,format:'model_dil_v2',localAssets,dil:m.dil},null,2)],{type:'application/json'}),messageId:m.id,kind:'ui-data'});
-      m.md+=`\n\n> [!chatgpt-ui] 交互界面原始数据：[${path}](${path})\n`;
+      const blocks=blocksOf(m).map(b=>({...b,path:`ui/appblock-${safe(m.id)}-${safe(b.id)}.html`})),linked=new Set();
+      for(const b of blocks)assets.push({path:b.path,blob:new Blob([dilRender.standaloneHtml(b)],{type:'text/html'}),messageId:m.id,kind:'appblock'});
+      m.md=m.md.replace(widgetToken,(_,id)=>{const b=blocks.find(x=>x.invocationId===id);if(!b)return `〔嵌入应用 ${id} 未找到〕`;linked.add(b.path);return `> [!chatgpt-appblock] ${b.title}：[${b.path}](${b.path})`;});
+      // AppBlocks hidden in the default state (e.g. behind a checkbox) are still listed.
+      const hidden=blocks.filter(b=>!linked.has(b.path)).map(b=>`\n> - 默认状态未显示的嵌入应用「${b.title}」：[${b.path}](${b.path})`).join('');
+      const record={messageId:m.id,format:'model_dil_v2',source:m.dilSource,staticMarkdown:m.staticMd??null,renderError:m.renderError??null,appBlocks:blocks.map(({id,invocationId,title,path})=>({id,invocationId,title,path})),localAssets,dil:m.dil,contentReferences:m.contentReferences};
+      assets.push({path,blob:new Blob([JSON.stringify(record,null,2)],{type:'application/json'}),messageId:m.id,kind:'ui-data'});
+      m.md+=`\n\n> [!chatgpt-ui] 交互界面原始数据：[${path}](${path})${hidden}\n`;
     }
   }
   function filename(ext){return `${state.title.replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').slice(0,90)||'ChatGPT'}-swift-${version}.${ext}`;}
@@ -81,7 +98,7 @@
       zip.file('manifest.json',JSON.stringify(manifest,null,2));blob=await zip.generateAsync({type:'blob'});
     }else blob=new Blob([result.md],{type:'text/markdown;charset=utf-8'});
     assertCurrent();const url=URL.createObjectURL(blob);try{await send({type:'archive:download',url,filename:filename(mode==='zip'?'zip':'md'),saveAs:$('saveAs').checked});}finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}}
-    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>!['original-image','ui-data','ui-image'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
+    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>a.kind==='appblock').length} 个嵌入应用、${result.assets.filter(a=>!['original-image','ui-data','ui-image','appblock'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
   }catch(e){$('status').textContent=e.message;}finally{host.hidden=false;busy(false);}}
   $('reload').onclick=load;
   // Debug: the unmodified API response, to inspect model_dil_v2 and image fields.

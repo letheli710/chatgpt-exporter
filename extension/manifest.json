@@ -14,5 +14,14 @@
   },
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "sandbox": {
+    "pages": ["sandbox.html"]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["sandbox.html"],
+      "matches": ["https://chatgpt.com/*", "https://chat.openai.com/*"]
+    }
+  ]
 }

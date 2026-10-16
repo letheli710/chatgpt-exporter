@@ -106,7 +106,13 @@
       const images = (message.content?.parts || []).filter(p=>fileIdOf(p?.asset_pointer)).map(p=>({fileId:fileIdOf(p.asset_pointer),width:p.width,height:p.height}));
       const needsAssets = (message.content?.parts || []).some(p=>p && typeof p==='object' && (p.content_type==='image_asset_pointer' || p.asset_pointer) && !fileIdOf(p.asset_pointer)) || /!\[[^\]]*\]\((?!asset:)/.test(normalized.md);
       normalized.needsAssets = needsAssets;normalized.images = images;
-      if (message.metadata?.model_dil_v2) normalized.dil = message.metadata.model_dil_v2;
+      if (message.metadata?.model_dil_v2) {
+        // Keep everything needed to re-render the UI: the model-authored DIL
+        // source, the compiled program, and embedded widgets (AppBlocks).
+        normalized.dil = message.metadata.model_dil_v2;
+        normalized.dilSource = (message.content?.parts || []).filter(p=>typeof p==='string').join('\n');
+        normalized.contentReferences = message.metadata.content_references || [];
+      }
       const md = normalized.md || (needsAssets ? '> 此消息包含图像，ZIP 导出时从页面补充。' : '');
       if (md.trim()) result.push({id:message.id, role, ...normalized, summary:md.replace(/\s+/g,' ').slice(0,100)});
     }
