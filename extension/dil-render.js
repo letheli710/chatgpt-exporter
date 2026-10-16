@@ -142,18 +142,32 @@
       // crop the empty space right of narrower cards such as maxWidth="260px".
       const rootNode = host.querySelector('.dil-root'), rect = rootNode.getBoundingClientRect();
       const right = Math.max(0, ...[...rootNode.children].map(child => child.getBoundingClientRect().right - rect.left));
-      const width = Math.max(1, Math.min(Math.ceil(rect.width), Math.ceil(right) + 10)), height = Math.max(1, Math.ceil(rect.height));
+      // A background tab may not lay the frame out at all; never emit a blank image.
+      if (!(rect.width > 0 && rect.height > 0)) throw Error('卡片排版失败（导出时请保持标签页在前台）');
+      const width = Math.min(Math.ceil(rect.width), Math.ceil(right) + 10), height = Math.ceil(rect.height);
       const laidOut = now();
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject x="0" y="0" width="${width}" height="${height}"><div xmlns="http://www.w3.org/1999/xhtml"><style>${CARD_CSS}</style>${html}</div></foreignObject></svg>`;
+      // onload rather than image.decode(): decode() waits for a rendering
+      // opportunity, which an embedded frame on a busy page may not get soon.
       const image = new doc.defaultView.Image();
-      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-      await image.decode();
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;image.onerror = () => reject(Error('卡片 SVG 无法加载'));
+        image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+      });
+      const decoded = now();
       const canvas = doc.createElement('canvas');
       canvas.width = width * scale;canvas.height = height * scale;
       const ctx = canvas.getContext('2d');
       ctx.scale(scale, scale);ctx.fillStyle = '#fff';ctx.fillRect(0, 0, width, height);ctx.drawImage(image, 0, 0);
-      const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(Error('卡片图像生成失败')), 'image/png'));
-      return {png:await blob.arrayBuffer(), width, height, layoutMs:Math.round(laidOut - started), rasterMs:Math.round(now() - laidOut)};
+      const drawn = now();
+      // Synchronous encode: canvas.toBlob() waits for browser idle time, which a
+      // busy page such as chatgpt.com rarely gives (seen: several seconds).
+      const base64 = canvas.toDataURL('image/png').split(',')[1] || '';
+      if (!base64) throw Error('卡片图像生成失败');
+      const binary = doc.defaultView.atob(base64), bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const png = bytes.buffer, done = now(), round = Math.round;
+      return {png, width, height, layoutMs:round(laidOut - started), rasterMs:round(done - laidOut), decodeMs:round(decoded - laidOut), drawMs:round(drawn - decoded), encodeMs:round(done - drawn)};
     } finally {host.remove();}
   }
   // AppBlocks are stored as content_references and linked from the program by
@@ -174,7 +188,8 @@
   // Content-script side: evaluates through the sandbox page over a private port.
   function sandboxClient(doc, src, {timeout = 8000} = {}) {
     const frame = doc.createElement('iframe'), created = performance.now(), stats = {loadMs:null};
-    // Offscreen rather than hidden: cards need real layout to be measured.
+    // Offscreen at full size rather than hidden or tiny: cards need real layout
+    // to be measured.
     frame.src = src;frame.dataset.archiveOwned = 'dil-sandbox';frame.setAttribute('aria-hidden', 'true');frame.tabIndex = -1;
     frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:760px;height:600px;border:0;opacity:0;pointer-events:none';
     const ready = new Promise((resolve, reject) => {

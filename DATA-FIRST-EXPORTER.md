@@ -47,3 +47,5 @@
 - 字体在每个 sandbox 里只等一次；所有消息同时发给 sandbox，同一消息里的多张卡片也并行转图。
 - `manifest.json` 的 `timings.render` 记录：`sandboxLoadMs`、`warmup.warmupMs`、`wallMs`，以及每条消息的 `evaluateMs`/`fontsMs`/`cardsMs`/`layoutMs`/`rasterMs`/`roundTripMs`。
 - 内置浏览器实测（与扩展相同的 iframe + MessageChannel 流程，模拟 0.5 秒读取）：读取完成后画卡片用了 86–525 ms，此前在真实页面上是 3.17 秒（尚未在真实页面复测）。瓶颈是 SVG 首次转图（约 1 秒，字体准备），排版和字体等待都接近 0。
+- 真实页面复测（v2）：渲染 6.76 秒，比串行的 3.17 秒更慢。其中排版 1–8 ms、字体 0 ms，几乎全部耗在两张卡片的转图上，而且两张几乎同时完成。本地复现后定位到 `canvas.toBlob()`：Chrome 把它安排在浏览器空闲时执行，繁忙页面上会被推迟。现改为同步的 `toDataURL` 编码，SVG 加载改用 `onload`，并分别记录 `decodeMs`/`drawMs`/`encodeMs`。
+- 排版得到 0 尺寸时（例如标签页在后台）直接报错并保留文字，不再生成 1×1 的空白图。iframe 不能缩成 1×1，否则 Chrome 不会给它排版。

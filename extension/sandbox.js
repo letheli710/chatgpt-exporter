@@ -33,7 +33,7 @@
         catch (e) {return {...segment, error:String(e?.message || e)};}
       }));
       const cards = segments.filter(s => s.kind === 'card');
-      return {segments, timings:{evaluateMs:ms(evaluated - started), fontsMs:ms(fontsDone - evaluated), cardsMs:ms(performance.now() - fontsDone), cards:cards.length, layoutMs:cards.reduce((t, s) => t + (s.layoutMs || 0), 0), rasterMs:cards.reduce((t, s) => t + (s.rasterMs || 0), 0), totalMs:ms(performance.now() - started)}};
+      return {segments, timings:{evaluateMs:ms(evaluated - started), fontsMs:ms(fontsDone - evaluated), cardsMs:ms(performance.now() - fontsDone), cards:cards.length, layoutMs:cards.reduce((t, s) => t + (s.layoutMs || 0), 0), rasterMs:cards.reduce((t, s) => t + (s.rasterMs || 0), 0), decodeMs:cards.reduce((t, s) => t + (s.decodeMs || 0), 0), drawMs:cards.reduce((t, s) => t + (s.drawMs || 0), 0), encodeMs:cards.reduce((t, s) => t + (s.encodeMs || 0), 0), totalMs:ms(performance.now() - started)}};
     } catch (e) {return {error:String(e?.message || e)};}
   }
   root.ChatExportDilSandbox = {handle, snapshot, warmup, execute};
