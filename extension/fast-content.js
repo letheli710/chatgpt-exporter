@@ -18,26 +18,35 @@
   function busy(value){busyFlag=value;for(const id of ['reload','all','none','preview','download','archive','pick','raw'])$(id).disabled=value;$('stop').disabled=!value;ui.querySelectorAll('#list input').forEach(n=>n.disabled=value);}
   function assertCurrent(){if(!state||state.url!==route())throw Error('已切换对话，请重新读取');if(streaming())throw Error('回复仍在生成，请完成后重新读取');const leaf=lastMessage();if(leaf&&state.leaf&&leaf!==state.leaf&&!state.messages.some(m=>m.id===leaf))throw Error('消息或分支已变化，请重新读取');controller?.signal.throwIfAborted();}
   function ids(){return [...ui.querySelectorAll('#list input:checked')].map(n=>n.dataset.messageId);}
-  async function load(){controller?.abort();controller=new AbortController();const current=++generation,url=route(),leaf=lastMessage();state=null;cache.clear();cacheSignatures.clear();manual.clear();busy(true);$('list').replaceChildren();$('output').hidden=true;$('status').textContent='正在读取完整正文……';const start=performance.now();try{
+  async function load(){controller?.abort();controller=new AbortController();const current=++generation,url=route(),leaf=lastMessage();state=null;cache.clear();cacheSignatures.clear();manual.clear();busy(true);$('list').replaceChildren();$('output').hidden=true;$('status').textContent='正在读取完整正文……';const start=performance.now(),sandbox=startSandbox();try{
     if(streaming())throw Error('回复仍在生成，请完成后重新读取');
     const data=await api.loadConversation({id:location.pathname.match(/\/c\/([^/]+)/)?.[1],leafId:leaf,fetch:window.fetch.bind(window),signal:controller.signal,onProgress:p=>$('status').textContent=`正在读取历史 ${p.messages} 条，${p.pages} 页……`});
     if(current!==generation||url!==route())throw Error('读取期间切换了对话，请重新读取');
     state={...data,url,leaf,timings:{readMs:performance.now()-start}};
-    await renderStatic(data.messages);state.timings.renderMs=performance.now()-start-state.timings.readMs;
+    state.timings.render=await renderStatic(data.messages,sandbox);state.timings.renderMs=performance.now()-start-state.timings.readMs;
     for(const m of data.messages){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.checked=true;box.dataset.messageId=m.id;label.append(box,` ${m.role==='user'?'我':'ChatGPT'} · ${m.summary}`);$('list').append(label);}
     $('status').textContent=`已读取 ${data.messages.length} 条正文，耗时 ${(state.timings.readMs/1000).toFixed(2)} 秒。预览可补齐交互文字，ZIP 可自动保存画面。`;
-  }catch(e){if(current===generation)$('status').textContent=e.message;}finally{if(current===generation)busy(false);}}
+  }catch(e){if(current===generation)$('status').textContent=e.message;}finally{sandbox?.client.close();if(current===generation)busy(false);}}
+  // Created before the conversation is read so the sandbox page, fonts and
+  // canvas are ready by the time the cards are drawn.
+  function startSandbox(){if(!dilRender||globalThis.ChatExportDilEvaluate)return null;try{
+    const client=dilRender.sandboxClient(document,chrome.runtime.getURL('sandbox.html'));
+    return {client,warm:client.warmup().catch(e=>({error:e.message}))};
+  }catch{return null;}}
   // Executes each message's compiled UI program in the sandbox page at its
   // default state, recovering text that fallbackMarkdown omits ({#each}, values).
-  async function renderStatic(messages){const targets=messages.filter(m=>m.dil?.code);if(!targets.length||!dilRender)return;
+  async function renderStatic(messages,sandbox){const started=performance.now(),targets=messages.filter(m=>m.dil?.code),round=v=>Math.round(v);
+    if(!targets.length||!dilRender)return {uiMessages:targets.length};
     $('status').textContent=`正在渲染 ${targets.length} 个交互界面……`;
-    const client=globalThis.ChatExportDilEvaluate?null:dilRender.sandboxClient(document,chrome.runtime.getURL('sandbox.html'));
-    const evaluate=globalThis.ChatExportDilEvaluate||client,snapshot=globalThis.ChatExportDilSnapshot||client?.snapshot,toMd=tree=>dilRender.toMarkdown(tree,{widget:id=>`\u0000APPBLOCK:${id}\u0000`});
-    try{for(const m of targets){
+    const client=sandbox?.client,evaluate=globalThis.ChatExportDilEvaluate||client,snapshot=globalThis.ChatExportDilSnapshot||client?.snapshot,toMd=tree=>dilRender.toMarkdown(tree,{widget:id=>`\u0000APPBLOCK:${id}\u0000`});
+    // All messages go to the sandbox at once; cards within a message are also drawn in parallel.
+    await Promise.all(targets.map(async m=>{const sent=performance.now();
       // Cards are drawn to PNG in the sandbox; if that fails, text alone is kept.
-      try{const result=await snapshot(m.dil);m.segments=result.segments.map(s=>({kind:s.kind,md:toMd(s.tree),png:s.png,width:s.width,height:s.height,error:s.error}));m.staticMd=m.segments.map(s=>s.md).filter(Boolean).join('\n\n');}
+      try{const result=await snapshot(m.dil);m.segments=result.segments.map(s=>({kind:s.kind,md:toMd(s.tree),png:s.png,width:s.width,height:s.height,error:s.error}));m.staticMd=m.segments.map(s=>s.md).filter(Boolean).join('\n\n');m.renderTimings={...result.timings,roundTripMs:round(performance.now()-sent)};}
       catch{try{m.staticMd=toMd(await evaluate(m.dil));}catch(e){m.renderError=e.message;}}
-    }}finally{client?.close();}}
+    }));
+    return {uiMessages:targets.length,wallMs:round(performance.now()-started),sandboxLoadMs:client?.stats.loadMs??null,warmup:sandbox?await sandbox.warm:null,
+      messages:targets.map(m=>({id:m.id,...(m.renderTimings||{}),...(m.renderError?{error:m.renderError}:{})}))};}
   const safeName=id=>String(id).replace(/[^\w-]/g,'_');
   // Each card becomes an image, with its text folded underneath (searchable, not duplicated on screen).
   function cardMarkdown(m,assets,warnings){let n=0;return m.segments.map(s=>{

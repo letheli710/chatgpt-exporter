@@ -129,19 +129,21 @@
   }
   // Browser only (sandbox page): lays the card out offscreen and rasterizes it
   // through an SVG foreignObject. The ChatGPT page is never scrolled or captured.
-  async function snapshotPng(tree, doc, {scale = 2} = {}) {
+  async function snapshotPng(tree, doc, {scale = 2, waitFonts = true} = {}) {
+    const now = () => doc.defaultView.performance.now(), started = now();
     const html = `<div class="dil-root">${toHtml(tree)}</div>`;
     const host = doc.createElement('div');
     host.style.cssText = 'position:absolute;left:0;top:0;width:720px';
     host.innerHTML = `<style>${CARD_CSS}</style>${html}`;
     doc.body.append(host);
     try {
-      await doc.fonts?.ready;
+      if (waitFonts) await doc.fonts?.ready;
       // Lay out at ChatGPT's column width (so width="100%" stays wide), then
       // crop the empty space right of narrower cards such as maxWidth="260px".
       const rootNode = host.querySelector('.dil-root'), rect = rootNode.getBoundingClientRect();
       const right = Math.max(0, ...[...rootNode.children].map(child => child.getBoundingClientRect().right - rect.left));
       const width = Math.max(1, Math.min(Math.ceil(rect.width), Math.ceil(right) + 10)), height = Math.max(1, Math.ceil(rect.height));
+      const laidOut = now();
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject x="0" y="0" width="${width}" height="${height}"><div xmlns="http://www.w3.org/1999/xhtml"><style>${CARD_CSS}</style>${html}</div></foreignObject></svg>`;
       const image = new doc.defaultView.Image();
       image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
@@ -151,7 +153,7 @@
       const ctx = canvas.getContext('2d');
       ctx.scale(scale, scale);ctx.fillStyle = '#fff';ctx.fillRect(0, 0, width, height);ctx.drawImage(image, 0, 0);
       const blob = await new Promise((resolve, reject) => canvas.toBlob(b => b ? resolve(b) : reject(Error('卡片图像生成失败')), 'image/png'));
-      return {png:await blob.arrayBuffer(), width, height};
+      return {png:await blob.arrayBuffer(), width, height, layoutMs:Math.round(laidOut - started), rasterMs:Math.round(now() - laidOut)};
     } finally {host.remove();}
   }
   // AppBlocks are stored as content_references and linked from the program by
@@ -170,13 +172,13 @@
     return `<!doctype html>\n<html lang="zh">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${escapeHtml(block.title)}</title>\n</head>\n<body>\n${block.content}\n</body>\n</html>\n`;
   }
   // Content-script side: evaluates through the sandbox page over a private port.
-  function sandboxClient(doc, src, {timeout = 4000} = {}) {
-    const frame = doc.createElement('iframe');
+  function sandboxClient(doc, src, {timeout = 8000} = {}) {
+    const frame = doc.createElement('iframe'), created = performance.now(), stats = {loadMs:null};
     // Offscreen rather than hidden: cards need real layout to be measured.
     frame.src = src;frame.dataset.archiveOwned = 'dil-sandbox';frame.setAttribute('aria-hidden', 'true');frame.tabIndex = -1;
     frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:760px;height:600px;border:0;opacity:0;pointer-events:none';
     const ready = new Promise((resolve, reject) => {
-      frame.addEventListener('load', resolve, {once:true});
+      frame.addEventListener('load', () => {stats.loadMs = Math.round(performance.now() - created);resolve();}, {once:true});
       setTimeout(() => reject(Error('界面渲染沙箱未能加载')), timeout);
     });
     ready.catch(noop);
@@ -186,12 +188,15 @@
       return new Promise((resolve, reject) => {
         const channel = new MessageChannel(), timer = setTimeout(() => {channel.port1.close();reject(Error('界面渲染超时'));}, timeout);
         channel.port1.onmessage = event => {clearTimeout(timer);channel.port1.close();event.data?.error ? reject(Error(event.data.error)) : resolve(event.data);};
-        frame.contentWindow.postMessage({type, dil:{code:dil.code, constants:dil.constants, appData:dil.appData}}, '*', [channel.port2]);
+        frame.contentWindow.postMessage({type, dil:dil && {code:dil.code, constants:dil.constants, appData:dil.appData}}, '*', [channel.port2]);
       });
     };
     const evaluateRemote = async dil => (await request('dil:evaluate', dil)).tree;
-    // Returns {segments:[{kind:'md',tree} | {kind:'card',tree,png,width,height}]}.
+    // Returns {segments:[{kind:'md',tree} | {kind:'card',tree,png,width,height}], timings}.
     evaluateRemote.snapshot = dil => request('dil:snapshot', dil);
+    // Loads fonts and draws a tiny card once, while the conversation is still being read.
+    evaluateRemote.warmup = () => request('dil:warmup', null);
+    evaluateRemote.stats = stats;
     evaluateRemote.close = () => frame.remove();
     return evaluateRemote;
   }

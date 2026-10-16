@@ -26,7 +26,7 @@ test('sandbox snapshot keeps text when a card cannot be rasterized',async()=>{
   const dom=new JSDOM('<body></body>');globalThis.ChatExportDilRender=render;delete require.cache[require.resolve('../extension/sandbox.js')];require('../extension/sandbox.js');
   const dil=text.parseTree(fixture).messages.find(m=>m.id===CHECK).dil;
   const result=await globalThis.ChatExportDilSandbox.snapshot({dil},dom.window.document);
-  assert.deepEqual(result.segments.map(s=>s.kind),['md','card','md']);assert.ok(result.segments[1].error);assert.equal(dom.window.document.body.children.length,0);
+  assert.deepEqual(result.segments.map(s=>s.kind),['md','card','md']);assert.ok(result.segments[1].error);assert.equal(result.timings.cards,1);assert.ok(result.timings.totalMs>=0);assert.equal(dom.window.document.body.children.length,0);
 });
 test('panel: ZIP embeds one PNG per card with folded text, prose stays outside',async()=>{
   const dom=new JSDOM(`<div data-message-id="${RESOURCE}">x</div>`,{url:'https://chatgpt.com/c/6ad0d397-212c-83e9-a872-c74862120015',runScripts:'outside-only'}),w=dom.window;
@@ -43,7 +43,7 @@ test('panel: ZIP embeds one PNG per card with folded text, prose stays outside',
   const md=files.find(f=>f.name==='conversation.md').data,card=`assets/card-${CHECK}-1.png`;
   assert.ok(md.includes(`复选开始\n\n![交互卡片](${card})\n\n> [!note]- 卡片文字\n> - [ ] 测试开关\n>\n> 当前值：**关**\n\n复选结束`),md);
   assert.match(md,/> 行30 — 这是用于验证滚动截图的测试内容。/);assert.ok(files.some(f=>f.name===card));assert.equal(files.filter(f=>f.name.startsWith('assets/card-')).length,3);
-  const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.equal(manifest.assets.find(a=>a.path===card).width,300);
+  const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.equal(manifest.assets.find(a=>a.path===card).width,300);assert.equal(manifest.timings.render.uiMessages,3);assert.deepEqual(manifest.timings.render.messages.map(m=>m.id),[CHECK,LONG,RESOURCE]);assert.ok(manifest.timings.render.wallMs>=0);
   assert.match(s.getElementById('status').textContent,/3 张卡片图、1 个嵌入应用、0 张截图/);
   dom.window.close();
 });

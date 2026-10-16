@@ -40,3 +40,10 @@
 - 实测（内置浏览器 + 真实夹具）：三张卡片分别为 280×106、700×1418、440×107。首张约 1 秒（字体加载，一次性），之后每张几毫秒到几十毫秒。
 
 测试：新增 `tests/card-snapshot.test.cjs`（4 项）。完整套件 115 项：80 项通过、33 项失败（缺本地私有夹具，与基线相同）、2 项跳过。尚未在真实 ChatGPT 页面里重新导出验证。
+
+### 速度优化
+
+- 面板开始读取会话时就创建 sandbox，并发送一次预热（等字体、画一张小卡片），和读取会话同时进行。
+- 字体在每个 sandbox 里只等一次；所有消息同时发给 sandbox，同一消息里的多张卡片也并行转图。
+- `manifest.json` 的 `timings.render` 记录：`sandboxLoadMs`、`warmup.warmupMs`、`wallMs`，以及每条消息的 `evaluateMs`/`fontsMs`/`cardsMs`/`layoutMs`/`rasterMs`/`roundTripMs`。
+- 内置浏览器实测（与扩展相同的 iframe + MessageChannel 流程，模拟 0.5 秒读取）：读取完成后画卡片用了 86–525 ms，此前在真实页面上是 3.17 秒（尚未在真实页面复测）。瓶颈是 SVG 首次转图（约 1 秒，字体准备），排版和字体等待都接近 0。
