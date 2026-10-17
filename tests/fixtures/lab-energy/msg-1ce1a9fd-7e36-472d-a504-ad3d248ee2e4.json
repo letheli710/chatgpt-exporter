@@ -1,0 +1,25 @@
+{
+  "messageId": "1ce1a9fd-7e36-472d-a504-ad3d248ee2e4",
+  "format": "model_dil_v2",
+  "source": "我会以每罐 150 mg 咖啡因为基准，用固定随机种子 42 模拟 7 天每天喝 1–2 罐的情况，再实际运行 Python，生成折线图和可下载的 CSV。",
+  "staticMarkdown": "我会以每罐 150 mg 咖啡因为基准，用固定随机种子 42 模拟 7 天每天喝 1–2 罐的情况，再实际运行 Python，生成折线图和可下载的 CSV。",
+  "renderError": null,
+  "appBlocks": [],
+  "localAssets": {},
+  "dil": {
+    "code": "DIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});return __dil.jsx(\"text\",null,__dilConstants[\"0\"]);},{\"key\":\"body:0\"}));",
+    "constants": {
+      "0": "我会以每罐 150 mg 咖啡因为基准，用固定随机种子 42 模拟 7 天每天喝 1–2 罐的情况，再实际运行 Python，生成折线图和可下载的 CSV。"
+    },
+    "fallbackMarkdown": "我会以每罐 150 mg 咖啡因为基准，用固定随机种子 42 模拟 7 天每天喝 1–2 罐的情况，再实际运行 Python，生成折线图和可下载的 CSV。",
+    "fallbackMarkdownVersion": 1,
+    "appData": {
+      "opGenui": {
+        "componentResults": {},
+        "interactionSurface": "mainline",
+        "modelDataBindings": {}
+      }
+    }
+  },
+  "contentReferences": []
+}

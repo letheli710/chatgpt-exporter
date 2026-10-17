@@ -1,0 +1,614 @@
+{
+  "title": "创建复选卡片",
+  "create_time": 1792070551.494633,
+  "update_time": 1792124216.013013,
+  "moderation_results": [],
+  "plugin_ids": null,
+  "conversation_id": "6ad0d397-212c-83e9-a872-c74862120015",
+  "conversation_template_id": null,
+  "gizmo_id": null,
+  "gizmo_type": null,
+  "is_archived": false,
+  "is_starred": null,
+  "safe_urls": [
+    "https://www.experian.com/help/assistance-for-survivors-of-human-trafficking.html",
+    "t.name",
+    "https://www.openai.com",
+    "https://www.python.org/static/community_logos/python-logo.png"
+  ],
+  "blocked_urls": [],
+  "default_model_slug": "gpt-6-thinking",
+  "atlas_mode_enabled": null,
+  "conversation_origin": null,
+  "is_read_only": null,
+  "voice": null,
+  "async_status": null,
+  "disabled_tool_ids": [],
+  "is_temporary_chat": false,
+  "is_do_not_remember": false,
+  "memory_scope": "global_enabled",
+  "context_scopes": null,
+  "sugar_item_id": null,
+  "sugar_item_visible": false,
+  "pinned_time": null,
+  "is_study_mode": false,
+  "owner": null,
+  "sectioned_conversation": null,
+  "mapping": {
+    "client-created-root": {
+      "id": "client-created-root",
+      "message": null,
+      "parent": null,
+      "children": [
+        "3b20dd7b-ba1a-4759-bfde-8733caf8e478"
+      ]
+    },
+    "3b20dd7b-ba1a-4759-bfde-8733caf8e478": {
+      "id": "3b20dd7b-ba1a-4759-bfde-8733caf8e478",
+      "message": {
+        "id": "3b20dd7b-ba1a-4759-bfde-8733caf8e478",
+        "author": {
+          "role": "user",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792070556.192,
+        "update_time": 1792070563.172179,
+        "content": {
+          "content_type": "text",
+          "parts": [
+            "这是独立的无隐私原生 UI 实验，请极简回答：正文“复选开始”，一张小卡片，只有一个默认未勾选的 checkbox“测试开关”和显示“开/关”的当前值，最后正文“复选结束”。请使用 ChatGPT 原生交互式 Intelligent UI，不输出源码、不访问外部服务。"
+          ]
+        },
+        "status": "finished_successfully",
+        "end_turn": null,
+        "weight": 1,
+        "metadata": {
+          "request_id": "19a2c887-ecd1-4e9c-9006-1c2ff44b560a",
+          "message_source": null,
+          "turn_exchange_id": "ae3f857e-968f-4550-b83b-fe332ebacb6d",
+          "working_turn_id": "ae3f857e-968f-4550-b83b-fe332ebacb6d",
+          "can_save": false
+        },
+        "recipient": "all",
+        "channel": null
+      },
+      "parent": "client-created-root",
+      "children": [
+        "2c98924a-a79c-4fd9-94c8-a05257bd4220"
+      ]
+    },
+    "2c98924a-a79c-4fd9-94c8-a05257bd4220": {
+      "id": "2c98924a-a79c-4fd9-94c8-a05257bd4220",
+      "message": {
+        "id": "2c98924a-a79c-4fd9-94c8-a05257bd4220",
+        "author": {
+          "role": "assistant",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792070557.916933,
+        "update_time": 1792070557.916933,
+        "content": {
+          "content_type": "reasoning_recap",
+          "content": "Worked for a couple of seconds"
+        },
+        "status": "finished_successfully",
+        "end_turn": false,
+        "weight": 1,
+        "metadata": {
+          "reasoning_status": "reasoning_ended",
+          "finished_duration_sec": 1,
+          "reasoning_start_time": 1792070556.5979342,
+          "reasoning_end_time": 1792070557.9134133,
+          "reasoning_recap_type": "hide_all",
+          "cot_version": "v5",
+          "conversation_followup_suggestions_eligible": false,
+          "request_id": "19a2c887-ecd1-4e9c-9006-1c2ff44b560a",
+          "message_type": "next",
+          "turn_exchange_id": "ae3f857e-968f-4550-b83b-fe332ebacb6d",
+          "working_turn_id": "ae3f857e-968f-4550-b83b-fe332ebacb6d",
+          "resolved_model_slug": "gpt-6-thinking",
+          "model_slug": "gpt-6-thinking",
+          "default_model_slug": "gpt-6-thinking",
+          "thinking_effort": "extended",
+          "can_save": false,
+          "parent_id": "e9a97936-9f76-44ff-8773-1b0e83d8110c",
+          "hide_inline_actions": true,
+          "model_switcher_deny": []
+        },
+        "recipient": "all",
+        "channel": null
+      },
+      "parent": "3b20dd7b-ba1a-4759-bfde-8733caf8e478",
+      "children": [
+        "ab11004d-b6a8-47a5-a43e-f02ea863fb74"
+      ]
+    },
+    "ab11004d-b6a8-47a5-a43e-f02ea863fb74": {
+      "id": "ab11004d-b6a8-47a5-a43e-f02ea863fb74",
+      "message": {
+        "id": "ab11004d-b6a8-47a5-a43e-f02ea863fb74",
+        "author": {
+          "role": "assistant",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792070558.139742,
+        "update_time": 1792070563.133049,
+        "content": {
+          "content_type": "text",
+          "parts": [
+            "复选开始\n\n{@body const [checked,setChecked] = DIL.useState(false)}\n<box maxWidth=\"260px\">\n  <card size=\"sm\" gap={2}>\n    <checkbox checked={checked} onChange={setChecked} lineThrough={false}>测试开关</checkbox>\n    <text>当前值：**{checked ? \"开\" : \"关\"}**</text>\n  </card>\n</box>\n\n复选结束"
+          ]
+        },
+        "status": "finished_successfully",
+        "end_turn": true,
+        "weight": 1,
+        "metadata": {
+          "finish_details": {
+            "type": "stop",
+            "stop_tokens": [
+              200002
+            ]
+          },
+          "is_complete": true,
+          "citations": [],
+          "content_references": [],
+          "model_dil_v2": {
+            "code": "function __dilSafe(evaluate,failureValue){try{return evaluate()}catch{return failureValue}}\n\nDIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});const [checked,setChecked] = DIL.useState(false,{key:\"checked\"})\nreturn __dil.jsx(__dil.Fragment,null,__dil.jsx(\"text\",null,__dilConstants[\"0\"]),__dil.jsx(\"box\",{\"maxWidth\":\"260px\"},__dil.jsx(\"card\",{\"size\":\"sm\",\"gap\":2},__dilSafe(()=>(__dil.jsx(\"checkbox\",{\"checked\":checked,\"onChange\":setChecked,\"lineThrough\":false},__dilConstants[\"1\"])),null),__dil.jsx(\"text\",null,__dil.jsx(\"text\",null,__dilConstants[\"2\"],__dilSafe(()=>(__dil.jsx(\"bold\",null,checked ? \"开\" : \"关\")),null))))),__dil.jsx(\"text\",null,__dilConstants[\"3\"]));},{\"key\":\"body:1\"}));",
+            "constants": {
+              "0": "复选开始",
+              "1": "测试开关",
+              "2": "当前值：",
+              "3": "复选结束"
+            },
+            "fallbackMarkdown": "复选开始\n\n- [ ] 测试开关 \\(Current selection unavailable.)\n\n当前值：\n\n复选结束",
+            "fallbackMarkdownVersion": 1,
+            "appData": {
+              "opGenui": {
+                "componentResults": {},
+                "interactionSurface": "mainline",
+                "modelDataBindings": {}
+              }
+            }
+          },
+          "view_state": {},
+          "resolved_model_slug": "gpt-6-thinking",
+          "search_result_groups": [],
+          "cot_version": "v5",
+          "conversation_followup_suggestions_eligible": true,
+          "request_id": "19a2c887-ecd1-4e9c-9006-1c2ff44b560a",
+          "message_type": "next",
+          "turn_exchange_id": "ae3f857e-968f-4550-b83b-fe332ebacb6d",
+          "working_turn_id": "ae3f857e-968f-4550-b83b-fe332ebacb6d",
+          "model_slug": "gpt-6-thinking",
+          "default_model_slug": "gpt-6-thinking",
+          "thinking_effort": "extended",
+          "can_save": true,
+          "parent_id": "2c98924a-a79c-4fd9-94c8-a05257bd4220",
+          "model_switcher_deny": []
+        },
+        "recipient": "all",
+        "channel": "final"
+      },
+      "parent": "2c98924a-a79c-4fd9-94c8-a05257bd4220",
+      "children": [
+        "01027e63-c3cf-4770-98c3-e29d99db75a1"
+      ]
+    },
+    "01027e63-c3cf-4770-98c3-e29d99db75a1": {
+      "id": "01027e63-c3cf-4770-98c3-e29d99db75a1",
+      "message": {
+        "id": "01027e63-c3cf-4770-98c3-e29d99db75a1",
+        "author": {
+          "role": "user",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792121906.113,
+        "update_time": 1792121911.899936,
+        "content": {
+          "content_type": "text",
+          "parts": [
+            "继续这个无隐私 GPT Exporter 实验：请用原生 Intelligent UI 输出一张长卡片，标题“长卡片完整性实验”，里面按顺序显示 30 行静态虚构项目“行01”到“行30”，每行加一句“这是用于验证滚动截图的测试内容。”，卡片末尾显示“长卡片终点 END30”，再放一个默认未选的“仅本地测试开关”checkbox；卡片外前后分别写“长卡开始”和“长卡结束”。请让整卡自然向下展开，不用内部滚动。不访问外部服务，不创建 Canvas 或网站，不输出源码。"
+          ]
+        },
+        "status": "finished_successfully",
+        "end_turn": null,
+        "weight": 1,
+        "metadata": {
+          "request_id": "ff60ac74-1134-4cee-9ba4-3b7738168d3b",
+          "message_source": null,
+          "turn_exchange_id": "8b8821b6-ba30-4e27-b63e-784f4d7906bf",
+          "working_turn_id": "8b8821b6-ba30-4e27-b63e-784f4d7906bf",
+          "can_save": false
+        },
+        "recipient": "all",
+        "channel": null
+      },
+      "parent": "ab11004d-b6a8-47a5-a43e-f02ea863fb74",
+      "children": [
+        "53f2a8db-e408-48e9-b050-f6af6fe736da"
+      ]
+    },
+    "53f2a8db-e408-48e9-b050-f6af6fe736da": {
+      "id": "53f2a8db-e408-48e9-b050-f6af6fe736da",
+      "message": {
+        "id": "53f2a8db-e408-48e9-b050-f6af6fe736da",
+        "author": {
+          "role": "assistant",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792121907.67531,
+        "update_time": 1792121907.67531,
+        "content": {
+          "content_type": "reasoning_recap",
+          "content": "Worked for a second"
+        },
+        "status": "finished_successfully",
+        "end_turn": false,
+        "weight": 1,
+        "metadata": {
+          "reasoning_status": "reasoning_ended",
+          "finished_duration_sec": 0,
+          "reasoning_start_time": 1792121906.7872725,
+          "reasoning_end_time": 1792121907.6712255,
+          "reasoning_recap_type": "hide_all",
+          "cot_version": "v5",
+          "conversation_followup_suggestions_eligible": false,
+          "request_id": "ff60ac74-1134-4cee-9ba4-3b7738168d3b",
+          "message_type": "next",
+          "turn_exchange_id": "8b8821b6-ba30-4e27-b63e-784f4d7906bf",
+          "working_turn_id": "8b8821b6-ba30-4e27-b63e-784f4d7906bf",
+          "resolved_model_slug": "gpt-6-thinking",
+          "model_slug": "gpt-6-thinking",
+          "default_model_slug": "gpt-6-thinking",
+          "thinking_effort": "extended",
+          "can_save": false,
+          "parent_id": "7fd57514-8b4a-426e-83b0-dccfbf1c89c7",
+          "hide_inline_actions": true,
+          "model_switcher_deny": []
+        },
+        "recipient": "all",
+        "channel": null
+      },
+      "parent": "01027e63-c3cf-4770-98c3-e29d99db75a1",
+      "children": [
+        "dc5b5b3e-e454-4de8-becf-a42ee48827e6"
+      ]
+    },
+    "dc5b5b3e-e454-4de8-becf-a42ee48827e6": {
+      "id": "dc5b5b3e-e454-4de8-becf-a42ee48827e6",
+      "message": {
+        "id": "dc5b5b3e-e454-4de8-becf-a42ee48827e6",
+        "author": {
+          "role": "assistant",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792121907.85281,
+        "update_time": 1792121911.857325,
+        "content": {
+          "content_type": "text",
+          "parts": [
+            "长卡开始\n\n{@body const [localCheck,setLocalCheck] = DIL.useState(false)}\n<box width=\"100%\">\n  <card gap={3}>\n    <title size=\"lg\">长卡片完整性实验</title>\n    {#each Array.from({length:30},(_,i)=>`行${String(i+1).padStart(2,\"0\")}`) as line}\n      <box key={line} padding={{y:1}}>\n        <text>{line} — 这是用于验证滚动截图的测试内容。</text>\n      </box>\n    {/each}\n    <divider color=\"subtle\"/>\n    **长卡片终点 END30**\n    <checkbox checked={localCheck} onChange={setLocalCheck} lineThrough={false}>仅本地测试开关</checkbox>\n  </card>\n</box>\n\n长卡结束"
+          ]
+        },
+        "status": "finished_successfully",
+        "end_turn": true,
+        "weight": 1,
+        "metadata": {
+          "finish_details": {
+            "type": "stop",
+            "stop_tokens": [
+              200002
+            ]
+          },
+          "is_complete": true,
+          "citations": [],
+          "content_references": [],
+          "model_dil_v2": {
+            "code": "function __dilSafe(evaluate,failureValue){try{return evaluate()}catch{return failureValue}}\n\nDIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});const [localCheck,setLocalCheck] = DIL.useState(false,{key:\"localCheck\"})\nreturn __dil.jsx(__dil.Fragment,null,__dil.jsx(\"text\",null,__dilConstants[\"0\"]),__dil.jsx(\"box\",{\"width\":\"100%\"},__dil.jsx(\"card\",{\"gap\":3},__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"1\"]),__dilSafe(()=>((Array.from({length:30},(_,i)=>`行${String(i+1).padStart(2,\"0\")}`)).map((line)=>__dilSafe(()=>(__dilSafe(()=>(__dil.jsx(\"box\",{\"key\":line,\"padding\":__dilConstants[\"2\"]},__dil.jsx(\"text\",null,__dilSafe(()=>(line),null),__dilConstants[\"3\"]))),null)),null))),[]),__dil.jsx(\"divider\",{\"color\":\"subtle\"}),__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"4\"])),__dilSafe(()=>(__dil.jsx(\"checkbox\",{\"checked\":localCheck,\"onChange\":setLocalCheck,\"lineThrough\":false},__dilConstants[\"5\"])),null))),__dil.jsx(\"text\",null,__dilConstants[\"6\"]));},{\"key\":\"body:1\"}));",
+            "constants": {
+              "0": "长卡开始",
+              "1": "长卡片完整性实验",
+              "2": {
+                "y": 1
+              },
+              "3": " — 这是用于验证滚动截图的测试内容。",
+              "4": "长卡片终点 END30",
+              "5": "仅本地测试开关",
+              "6": "长卡结束"
+            },
+            "fallbackMarkdown": "长卡开始\n\n## 长卡片完整性实验\n\n---\n\n**长卡片终点 END30**\n\n- [ ] 仅本地测试开关 \\(Current selection unavailable.)\n\n长卡结束",
+            "fallbackMarkdownVersion": 1,
+            "appData": {
+              "opGenui": {
+                "componentResults": {},
+                "interactionSurface": "mainline",
+                "modelDataBindings": {}
+              }
+            }
+          },
+          "view_state": {},
+          "resolved_model_slug": "gpt-6-thinking",
+          "search_result_groups": [],
+          "cot_version": "v5",
+          "conversation_followup_suggestions_eligible": true,
+          "request_id": "ff60ac74-1134-4cee-9ba4-3b7738168d3b",
+          "message_type": "next",
+          "turn_exchange_id": "8b8821b6-ba30-4e27-b63e-784f4d7906bf",
+          "working_turn_id": "8b8821b6-ba30-4e27-b63e-784f4d7906bf",
+          "model_slug": "gpt-6-thinking",
+          "default_model_slug": "gpt-6-thinking",
+          "thinking_effort": "extended",
+          "can_save": true,
+          "parent_id": "53f2a8db-e408-48e9-b050-f6af6fe736da",
+          "model_switcher_deny": []
+        },
+        "recipient": "all",
+        "channel": "final"
+      },
+      "parent": "53f2a8db-e408-48e9-b050-f6af6fe736da",
+      "children": [
+        "260348a5-0607-4ccc-b42c-53482bc0809d"
+      ]
+    },
+    "260348a5-0607-4ccc-b42c-53482bc0809d": {
+      "id": "260348a5-0607-4ccc-b42c-53482bc0809d",
+      "message": {
+        "id": "260348a5-0607-4ccc-b42c-53482bc0809d",
+        "author": {
+          "role": "user",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792124153.251,
+        "update_time": 1792124216.036298,
+        "content": {
+          "content_type": "text",
+          "parts": [
+            "继续这个无隐私导出实验：请用原生 Intelligent UI 输出正文“资源开始”，一张资源卡，其中有默认关闭的 checkbox“显示公开测试图”。勾选后才挂载并加载这张公开图片 https://www.python.org/static/community_logos/python-logo.png ，在卡内显示图片和加载中/已加载/加载失败状态；关闭时卸载图片。图片URL请原样使用，不加跟踪参数，不发送会话或用户信息，只访问这一公开图片，不访问其他外部服务，不创建 Canvas 或网站，不输出源码。卡片后写“资源结束”。"
+          ]
+        },
+        "status": "finished_successfully",
+        "end_turn": null,
+        "weight": 1,
+        "metadata": {
+          "request_id": "e87a913a-49a4-4044-b0fd-517bc483225b",
+          "message_source": null,
+          "turn_exchange_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "working_turn_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "can_save": false
+        },
+        "recipient": "all",
+        "channel": null
+      },
+      "parent": "dc5b5b3e-e454-4de8-becf-a42ee48827e6",
+      "children": [
+        "3eaaa270-d601-462e-8f73-ab4dcb02e9d0"
+      ]
+    },
+    "3eaaa270-d601-462e-8f73-ab4dcb02e9d0": {
+      "id": "3eaaa270-d601-462e-8f73-ab4dcb02e9d0",
+      "message": {
+        "id": "3eaaa270-d601-462e-8f73-ab4dcb02e9d0",
+        "author": {
+          "role": "assistant",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792124160.983875,
+        "update_time": 1792124179.701392,
+        "content": {
+          "content_type": "thoughts",
+          "thoughts": [
+            {
+              "summary": "Rendering interactive content",
+              "content": "I’m deciding how to show an image that loads only after a checkbox is selected, while keeping the interface interactive rather than exposing implementation code. I’ll use a native checkbox and conditional rendering, with the exact image URL unchanged.",
+              "chunks": [],
+              "finished": true
+            },
+            {
+              "summary": "Rendered interactive content",
+              "content": "",
+              "chunks": [],
+              "finished": true
+            }
+          ],
+          "source_analysis_msg_id": "39eee3e8-3851-4caa-9510-49858e55366a"
+        },
+        "status": "finished_successfully",
+        "end_turn": false,
+        "weight": 1,
+        "metadata": {
+          "reasoning_status": "is_reasoning",
+          "tool_icons": [],
+          "citations": [],
+          "content_references": [],
+          "resolved_model_slug": "gpt-6-thinking",
+          "hide_inline_actions": true,
+          "disable_turn_actions": true,
+          "chime_version": 1,
+          "cot_version": "v5",
+          "request_id": "e87a913a-49a4-4044-b0fd-517bc483225b",
+          "message_type": "next",
+          "turn_exchange_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "working_turn_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "model_slug": "gpt-6-thinking",
+          "default_model_slug": "gpt-6-thinking",
+          "thinking_effort": "extended",
+          "parent_id": "39eee3e8-3851-4caa-9510-49858e55366a",
+          "summary_type": "raw_cot",
+          "classifier_response": "default",
+          "reasoning_start_time": 1792124153.9315448,
+          "skip_reasoning_title": "Skip",
+          "conversation_followup_suggestions_eligible": false,
+          "can_save": false,
+          "model_switcher_deny": []
+        },
+        "recipient": "all",
+        "channel": null
+      },
+      "parent": "260348a5-0607-4ccc-b42c-53482bc0809d",
+      "children": [
+        "d9f1c0f2-7d44-43ea-8d6a-e05be5d8d681"
+      ]
+    },
+    "d9f1c0f2-7d44-43ea-8d6a-e05be5d8d681": {
+      "id": "d9f1c0f2-7d44-43ea-8d6a-e05be5d8d681",
+      "message": {
+        "id": "d9f1c0f2-7d44-43ea-8d6a-e05be5d8d681",
+        "author": {
+          "role": "assistant",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792124209.987144,
+        "update_time": 1792124209.987144,
+        "content": {
+          "content_type": "reasoning_recap",
+          "content": "Worked for 56s"
+        },
+        "status": "finished_successfully",
+        "end_turn": false,
+        "weight": 1,
+        "metadata": {
+          "reasoning_status": "reasoning_ended",
+          "finished_duration_sec": 56,
+          "reasoning_start_time": 1792124153.9315448,
+          "reasoning_end_time": 1792124209.9580538,
+          "reasoning_recap_type": "hide_all",
+          "cot_version": "v5",
+          "conversation_followup_suggestions_eligible": false,
+          "request_id": "e87a913a-49a4-4044-b0fd-517bc483225b",
+          "message_type": "next",
+          "turn_exchange_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "working_turn_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "resolved_model_slug": "gpt-6-thinking",
+          "model_slug": "gpt-6-thinking",
+          "default_model_slug": "gpt-6-thinking",
+          "thinking_effort": "extended",
+          "can_save": false,
+          "parent_id": "01cd9eff-fd42-43f4-86b6-3b393c0f187c",
+          "hide_inline_actions": true,
+          "model_switcher_deny": []
+        },
+        "recipient": "all",
+        "channel": null
+      },
+      "parent": "3eaaa270-d601-462e-8f73-ab4dcb02e9d0",
+      "children": [
+        "0a5e2ea3-32e8-4c78-a764-9aa0e9c66a11"
+      ]
+    },
+    "0a5e2ea3-32e8-4c78-a764-9aa0e9c66a11": {
+      "id": "0a5e2ea3-32e8-4c78-a764-9aa0e9c66a11",
+      "message": {
+        "id": "0a5e2ea3-32e8-4c78-a764-9aa0e9c66a11",
+        "author": {
+          "role": "assistant",
+          "name": null,
+          "metadata": {}
+        },
+        "create_time": 1792124210.049786,
+        "update_time": 1792124216.036859,
+        "content": {
+          "content_type": "text",
+          "parts": [
+            "资源开始\n\n{@body const [showImage,setShowImage] = DIL.useState(false)}\n<box maxWidth=\"420px\">\n  <card gap={3}>\n    <checkbox checked={showImage} onChange={setShowImage} lineThrough={false}>显示公开测试图</checkbox>\n    {#if showImage}\n      <AppBlock title=\"公开测试图\" language=\"html\" variant=\"inline\" app_block_id=\"python-resource-test\">\n        <div id=\"resource-test\" style=\"font-family:inherit\">\n          <div id=\"resource-status\" role=\"status\" aria-live=\"polite\" style=\"font-size:13px;margin-bottom:10px\">加载中</div>\n          <div id=\"resource-image\"></div>\n        </div>\n        <script>\n          (() => {\n            const root = document.getElementById('resource-test');\n            const status = root.querySelector('#resource-status');\n            const image = document.createElement('img');\n            image.alt = 'Python 官方公开测试图';\n            image.referrerPolicy = 'no-referrer';\n            image.style.cssText = 'display:block;width:100%;height:auto;object-fit:contain';\n            image.addEventListener('load', () => { status.textContent = '已加载'; });\n            image.addEventListener('error', () => { status.textContent = '加载失败'; });\n            root.querySelector('#resource-image').appendChild(image);\n            image.src = 'https://www.python.org/static/community_logos/python-logo.png';\n          })();\n        </script>\n      </AppBlock>\n    {:else}\n      <text color=\"secondary\" size=\"sm\">图片未挂载</text>\n    {/if}\n  </card>\n</box>\n\n资源结束"
+          ]
+        },
+        "status": "finished_successfully",
+        "end_turn": true,
+        "weight": 1,
+        "metadata": {
+          "finish_details": {
+            "type": "stop",
+            "stop_tokens": [
+              200002
+            ]
+          },
+          "is_complete": true,
+          "citations": [],
+          "content_references": [
+            {
+              "type": "client_defined_widget",
+              "category": "app_block",
+              "data": {
+                "app_block_id": "python-resource-test",
+                "language": "html",
+                "entrypoint": "index.html",
+                "bundle_version": 1,
+                "title": "公开测试图",
+                "variant": "inline",
+                "content": "\n        <div id=\"resource-test\" style=\"font-family:inherit\">\n          <div id=\"resource-status\" role=\"status\" aria-live=\"polite\" style=\"font-size:13px;margin-bottom:10px\">加载中</div>\n          <div id=\"resource-image\"></div>\n        </div>\n        <script>\n          (() => {\n            const root = document.getElementById('resource-test');\n            const status = root.querySelector('#resource-status');\n            const image = document.createElement('img');\n            image.alt = 'Python 官方公开测试图';\n            image.referrerPolicy = 'no-referrer';\n            image.style.cssText = 'display:block;width:100%;height:auto;object-fit:contain';\n            image.addEventListener('load', () => { status.textContent = '已加载'; });\n            image.addEventListener('error', () => { status.textContent = '加载失败'; });\n            root.querySelector('#resource-image').appendChild(image);\n            image.src = 'https://www.python.org/static/community_logos/python-logo.png';\n          })();\n        </script>\n      ",
+                "style_mode": "default",
+                "library_artifact_subtype": "app",
+                "icon_svg": "<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n  <path d=\"M6.8378 4.62774C4.57577 6.21163 4.02603 9.32936 5.60992 11.5914C5.94614 12.0716 6.34995 12.4731 6.79877 12.7937C7.24821 13.1146 7.35234 13.7392 7.03136 14.1886C6.71038 14.6381 6.08583 14.7422 5.6364 14.4212C5.00538 13.9705 4.43986 13.4073 3.97161 12.7385C1.75417 9.5717 2.52381 5.20688 5.69064 2.98944C8.85748 0.771994 13.2223 1.54163 15.4397 4.70847C15.908 5.37719 16.2439 6.10126 16.4515 6.84836C16.5995 7.38047 16.288 7.93173 15.7559 8.07964C15.2238 8.22755 14.6725 7.91609 14.5246 7.38398C14.3769 6.85259 14.1377 6.33579 13.8014 5.85562C12.2176 3.59359 9.09982 3.04385 6.8378 4.62774ZM9.41437 8.31707C9.72728 8.09521 10.1395 8.0719 10.4755 8.25707L20.7185 13.9029C21.0209 14.0696 21.2159 14.3804 21.2344 14.7252C21.2528 15.0699 21.0922 15.3998 20.8094 15.5979L19.0598 16.8229L20.1982 18.4774C20.5094 18.9298 20.3977 19.5485 19.9479 19.8634L16.6668 22.1609C16.2144 22.4776 15.5908 22.3677 15.2741 21.9153L14.1269 20.277L12.4931 21.421C12.212 21.6178 11.8496 21.6567 11.5331 21.5241C11.2166 21.3915 10.9902 21.1059 10.9334 20.7675L9.00657 9.29852C8.94302 8.92023 9.10145 8.53893 9.41437 8.31707ZM11.3216 11.0072L12.6433 18.8742L13.7989 18.0651C14.2513 17.7483 14.8748 17.8583 15.1916 18.3107L16.3388 19.949L17.9883 18.794L16.85 17.1395C16.5387 16.6871 16.6505 16.0684 17.1002 15.7535L18.3478 14.8799L11.3216 11.0072Z\" fill=\"currentColor\" />\n</svg>",
+                "widget_type": "app_block"
+              },
+              "matched_text": "",
+              "start_idx": 0,
+              "end_idx": 0,
+              "safe_urls": [],
+              "refs": [],
+              "alt": null,
+              "prompt_text": null
+            }
+          ],
+          "model_dil_v2": {
+            "code": "function __dilSafe(evaluate,failureValue){try{return evaluate()}catch{return failureValue}}\n\nDIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});const [showImage,setShowImage] = DIL.useState(false,{key:\"showImage\"})\nreturn __dil.jsx(__dil.Fragment,null,__dil.jsx(\"text\",null,__dilConstants[\"0\"]),__dil.jsx(\"box\",{\"maxWidth\":\"420px\"},__dil.jsx(\"card\",{\"gap\":3},__dilSafe(()=>(__dil.jsx(\"checkbox\",{\"checked\":showImage,\"onChange\":setShowImage,\"lineThrough\":false},__dilConstants[\"1\"])),null),(__dilSafe(()=>(showImage),false))?(__dilConstants[\"3\"]==null?__dil.jsx(\"__chatgptClientDefinedWidget\",{\"key\":\"cdw:0\",\"invocationId\":__dilConstants[\"2\"]}):__dilConstants[\"3\"].type===\"math\"?__dil.jsx(\"math\",{\"key\":\"cdw:0\",\"value\":__dilConstants[\"3\"].value}):__dilConstants[\"3\"].type===\"text\"?__dil.jsx(\"text\",{\"key\":\"cdw:0\"},__dilConstants[\"3\"].value):null):__dil.jsx(\"text\",{\"color\":\"secondary\",\"size\":\"sm\"},__dilConstants[\"4\"]))),__dil.jsx(\"text\",null,__dilConstants[\"5\"]));},{\"key\":\"body:1\"}));",
+            "constants": {
+              "0": "资源开始",
+              "1": "显示公开测试图",
+              "2": "4d8758fb-7904-59ac-a835-385a3a9ddab7",
+              "3": null,
+              "4": "图片未挂载",
+              "5": "资源结束"
+            },
+            "fallbackMarkdown": "资源开始\n\n- [ ] 显示公开测试图 \\(Current selection unavailable.)\n\n资源结束",
+            "fallbackMarkdownVersion": 1,
+            "clientDefinedWidgets": {
+              "4d8758fb-7904-59ac-a835-385a3a9ddab7": {
+                "status": "resolved",
+                "refIndex": 0,
+                "isStreaming": false
+              }
+            },
+            "appData": {
+              "opGenui": {
+                "componentResults": {},
+                "interactionSurface": "mainline",
+                "modelDataBindings": {}
+              }
+            }
+          },
+          "view_state": {},
+          "resolved_model_slug": "gpt-6-thinking",
+          "search_result_groups": [],
+          "cot_version": "v5",
+          "conversation_followup_suggestions_eligible": true,
+          "request_id": "e87a913a-49a4-4044-b0fd-517bc483225b",
+          "message_type": "next",
+          "turn_exchange_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "working_turn_id": "06880030-f072-4a75-92c3-ac74508dead6",
+          "model_slug": "gpt-6-thinking",
+          "default_model_slug": "gpt-6-thinking",
+          "thinking_effort": "extended",
+          "can_save": true,
+          "parent_id": "d9f1c0f2-7d44-43ea-8d6a-e05be5d8d681",
+          "model_switcher_deny": []
+        },
+        "recipient": "all",
+        "channel": "final"
+      },
+      "parent": "d9f1c0f2-7d44-43ea-8d6a-e05be5d8d681",
+      "children": []
+    }
+  },
+  "current_node": "0a5e2ea3-32e8-4c78-a764-9aa0e9c66a11",
+  "context_truncation_continuation": null
+}

@@ -1,6 +1,9 @@
 (function(root) {
   'use strict';
   const error = message => { throw Error(message); };
+  // Uploaded and generated images point at the files service, e.g.
+  // file-service://file-abc or sediment://file_abc.
+  const fileIdOf = pointer => typeof pointer === 'string' ? pointer.match(/^(?:file-service|sediment):\/\/([\w-]+)$/)?.[1] || null : null;
   const fence = text => '`'.repeat(Math.max(3, ...Array.from(text.matchAll(/`+/g), m => m[0].length + 1)));
   function textOf(message, warnings) {
     const content = message.content || {};
@@ -18,6 +21,8 @@
     const text = parts.map(part => {
       if (typeof part === 'string') return part;
       if (typeof part?.text === 'string') return part.text;
+      const fileId = fileIdOf(part?.asset_pointer);
+      if (fileId) return `![图片](asset:${fileId})`;
       warnings.push(`${message.id}: 未导出非文字内容（${part?.content_type || 'unknown'}）`);
       return '';
     }).filter(Boolean).join('\n');
@@ -81,11 +86,28 @@
     md+=prose(text.slice(last));
     return {md,needsUI:uiReasons.size>0,needsTableUI,uiReasons:[...uiReasons]};
   }
+  function toolImages(message) {
+    const title = message.metadata?.image_gen_title, plots = message.metadata?.ada_visualizations;
+    const parts = (message.content?.parts || []).filter(p => fileIdOf(p?.asset_pointer)).map(p => ({fileId:fileIdOf(p.asset_pointer), width:p.width, height:p.height, alt:title ? `生成图片：${title}` : '生成图片'}));
+    const outputs = (message.metadata?.aggregate_result?.messages || []).filter(m => m?.message_type === 'image' && fileIdOf(m.image_url)).map((m, i) => ({fileId:fileIdOf(m.image_url), width:m.width, height:m.height, alt:`代码运行图表${plots?.[i]?.title ? `：${plots[i].title}` : ''}`}));
+    return [...parts, ...outputs].map(i => ({...i, alt:i.alt.replace(/[[\]\r\n]/g, ' ')}));
+  }
   function records(messages) {
     const warnings = [], result = [], seen = new Set();
     for (const message of messages) {
       if (!message) continue;
       const role = message.author?.role;
+      // Tool output is plumbing, except the images it shows in the conversation:
+      // generated images and code-interpreter plots.
+      if (role === 'tool') {
+        if (message.metadata?.is_visually_hidden_from_conversation || !message.id || seen.has(message.id)) continue;
+        const images = toolImages(message);
+        if (!images.length) continue;
+        seen.add(message.id);
+        const md = images.map(i => `![${i.alt}](asset:${i.fileId})`).join('\n\n');
+        result.push({id:message.id, role:'assistant', md, needsUI:false, needsTableUI:false, uiReasons:[], needsAssets:false, images, summary:images.map(i => i.alt).join('、').slice(0,100)});
+        continue;
+      }
       if (!['user','assistant'].includes(role) || message.metadata?.is_visually_hidden_from_conversation) continue;
       // Analysis/tool plumbing is not the displayed answer.
       if (message.channel && !['final','commentary'].includes(message.channel)) continue;
@@ -97,7 +119,18 @@
         normalized.needsUI = true;
         if(!normalized.uiReasons.includes('model-dil'))normalized.uiReasons.push('model-dil');
       }
-      const md = normalized.md;
+      // Files-service images are downloaded by id; only other images need the page.
+      const images = (message.content?.parts || []).filter(p=>fileIdOf(p?.asset_pointer)).map(p=>({fileId:fileIdOf(p.asset_pointer),width:p.width,height:p.height}));
+      const needsAssets = (message.content?.parts || []).some(p=>p && typeof p==='object' && (p.content_type==='image_asset_pointer' || p.asset_pointer) && !fileIdOf(p.asset_pointer)) || /!\[[^\]]*\]\((?!asset:)/.test(normalized.md);
+      normalized.needsAssets = needsAssets;normalized.images = images;
+      if (message.metadata?.model_dil_v2) {
+        // Keep everything needed to re-render the UI: the model-authored DIL
+        // source, the compiled program, and embedded widgets (AppBlocks).
+        normalized.dil = message.metadata.model_dil_v2;
+        normalized.dilSource = (message.content?.parts || []).filter(p=>typeof p==='string').join('\n');
+        normalized.contentReferences = message.metadata.content_references || [];
+      }
+      const md = normalized.md || (needsAssets ? '> 此消息包含图像，ZIP 导出时从页面补充。' : '');
       if (md.trim()) result.push({id:message.id, role, ...normalized, summary:md.replace(/\s+/g,' ').slice(0,100)});
     }
     if (!result.length) error('会话没有可导出的正文');
@@ -155,18 +188,19 @@
     if (legacy.ok) {
       data = await legacy.json();
       if (data.conversation_id && data.conversation_id !== id) error('接口返回了不同对话，已停止');
-      if (data.mapping) return {...parseTree(data,leafId),pages,source:'conversation-tree'};
+      if (data.mapping) return {...parseTree(data,leafId),pages,source:'conversation-tree',raw:data};
       error('会话接口返回未知格式');
     }
     if (legacy.status !== 404) error(`会话读取失败（HTTP ${legacy.status}），请稍后重试`);
-    let cursor = null, collected = [], title = '', seenCursors = new Set();
+    let cursor = null, collected = [], title = '', seenCursors = new Set(), rawPages = [];
     do {
       const suffix = cursor ? `&before=${encodeURIComponent(cursor)}` : '';
       const response = await get(`/backend-api/conversations/${encodeURIComponent(id)}?include_has_versions=true&num_turns=100${suffix}`,headers);
       if (!response.ok) error(`历史消息读取失败（HTTP ${response.status}），未生成不完整导出`);
       data = await response.json();
       if (data.conversation_id && data.conversation_id !== id) error('接口返回了不同对话，已停止');
-      if (data.mapping && !cursor) return {...parseTree(data,leafId),pages,source:'conversation-tree'};
+      if (data.mapping && !cursor) return {...parseTree(data,leafId),pages,source:'conversation-tree',raw:data};
+      rawPages.unshift(data);
       if (!Array.isArray(data.messages) || !data.page_info) error('分页接口格式未知，无法确认历史完整性');
       title ||= data.title || 'ChatGPT';
       collected = [...data.messages.map(item => item.message || item),...collected];
@@ -185,7 +219,115 @@
       } else {byId.set(message.id,message);unique.push(message);}
     }
     if(unique.every(m=>Number.isFinite(m.create_time))) unique.sort((a,b)=>a.create_time-b.create_time);
-    return {...records(unique),title,pages,source:'paginated-conversation'};
+    return {...records(unique),title,pages,source:'paginated-conversation',raw:{pages:rawPages}};
+  }
+  const extensionOf = type => ({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','image/svg+xml':'svg'})[String(type || '').split(';')[0].trim()] || 'bin';
+  // Some file URLs answer without a content type (e.g. code-interpreter plots).
+  async function sniffImage(blob) {
+    try {
+      const b = new Uint8Array(await blob.slice(0, 12).arrayBuffer()), ascii = (from, to) => String.fromCharCode(...b.slice(from, to));
+      if (b[0] === 0x89 && ascii(1, 4) === 'PNG') return 'png';
+      if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'jpg';
+      if (ascii(0, 4) === 'GIF8') return 'gif';
+      if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'webp';
+    } catch {}
+    return 'bin';
+  }
+  async function pool(items, limit, worker) {
+    const results = new Array(items.length);let next = 0;
+    await Promise.all(Array.from({length:Math.min(limit,items.length)}, async () => {
+      while (next < items.length) {const index = next++;results[index] = await worker(items[index], index);}
+    }));
+    return results;
+  }
+  // Downloads original images through the files API, in parallel and without
+  // touching the page. Failures are returned per item so the caller can fall back.
+  async function downloadFiles({ids, conversationId, fetch:request, signal, concurrency = 6, onProgress}) {
+    const unique = [...new Set(ids)];
+    if (!unique.length) return [];
+    const sessionResponse = await request('/api/auth/session',{credentials:'same-origin',signal});
+    if (!sessionResponse.ok) error(`登录状态读取失败（HTTP ${sessionResponse.status}）`);
+    const token = (await sessionResponse.json()).accessToken;
+    if (!token) error('未取得登录状态，请先登录 ChatGPT');
+    const headers = {Authorization:`Bearer ${token}`};
+    let done = 0;
+    return pool(unique, concurrency, async fileId => {
+      try {
+        signal?.throwIfAborted();
+        const query = conversationId ? `?conversation_id=${encodeURIComponent(conversationId)}&inline=false` : '';
+        let meta = await request(`/backend-api/files/download/${encodeURIComponent(fileId)}${query}`,{credentials:'same-origin',headers,signal});
+        if (meta.status === 404) meta = await request(`/backend-api/files/${encodeURIComponent(fileId)}/download`,{credentials:'same-origin',headers,signal});
+        if (!meta.ok) throw Error(`HTTP ${meta.status}`);
+        const url = (await meta.json()).download_url;
+        if (typeof url !== 'string' || !url) throw Error('接口未返回下载地址');
+        const sameOrigin = url.startsWith('/') || url.startsWith(root.location?.origin + '/');
+        const file = await request(url,{credentials:sameOrigin ? 'include' : 'omit',signal});
+        if (!file.ok) throw Error(`下载 HTTP ${file.status}`);
+        const blob = await file.blob();
+        let ext = extensionOf(blob.type || file.headers?.get?.('content-type'));
+        if (ext === 'bin') ext = await sniffImage(blob);
+        return {fileId, blob, path:`assets/${fileId}.${ext}`};
+      } catch (e) {
+        if (e?.name === 'AbortError') throw e;
+        return {fileId, error:e.message};
+      } finally {onProgress?.({done:++done,total:unique.length});}
+    });
+  }
+  // Image URLs the server resolved into Intelligent UI data (AsyncImage etc.).
+  function dilImageUrls(dil) {
+    const urls = new Set();
+    const walk = (value, key) => {
+      if (typeof value === 'string') {if (/^https:\/\//.test(value) && /image|img|src|thumb|photo|logo|icon|url/i.test(key || ''))urls.add(value);}
+      else if (Array.isArray(value)) value.forEach(item => walk(item, key));
+      else if (value && typeof value === 'object') for (const [k, item] of Object.entries(value)) walk(item, k);
+    };
+    // Link and citation results point at web pages, not images.
+    const results = dil?.appData?.opGenui?.componentResults || {};
+    const appData = dil?.appData?.opGenui ? {...dil.appData, opGenui:{...dil.appData.opGenui, modelDataBindings:undefined, modelDataBindingSafeUrls:undefined, componentResults:Object.fromEntries(Object.entries(results).filter(([, r]) => !['Link','Cite'].includes(r?.componentName)))}} : dil?.appData;
+    walk(appData, '');walk(dil?.constants, '');
+    return [...urls];
+  }
+  // Files the code interpreter wrote (sandbox:/mnt/data/...), linked from a message.
+  async function downloadSandboxFiles({items, conversationId, fetch:request, signal, concurrency = 4}) {
+    if (!items.length) return [];
+    const sessionResponse = await request('/api/auth/session',{credentials:'same-origin',signal});
+    if (!sessionResponse.ok) error(`登录状态读取失败（HTTP ${sessionResponse.status}）`);
+    const token = (await sessionResponse.json()).accessToken;
+    if (!token) error('未取得登录状态，请先登录 ChatGPT');
+    const headers = {Authorization:`Bearer ${token}`}, names = new Set();
+    return pool(items, concurrency, async ({messageId, path}) => {
+      try {
+        signal?.throwIfAborted();
+        const meta = await request(`/backend-api/conversation/${encodeURIComponent(conversationId)}/interpreter/download?message_id=${encodeURIComponent(messageId)}&sandbox_path=${encodeURIComponent(path)}`,{credentials:'same-origin',headers,signal});
+        if (!meta.ok) throw Error(`HTTP ${meta.status}`);
+        const url = (await meta.json()).download_url;
+        if (typeof url !== 'string' || !url) throw Error('接口未返回下载地址');
+        const sameOrigin = url.startsWith('/') || url.startsWith(root.location?.origin + '/');
+        const file = await request(url,{credentials:sameOrigin ? 'include' : 'omit',signal});
+        if (!file.ok) throw Error(`下载 HTTP ${file.status}`);
+        let name = (path.split('/').pop() || 'file').replace(/[^\w.\-一-鿿]/g, '_'), n = 1;
+        while (names.has(name)) name = name.replace(/(\.[^.]*)?$/, m => `-${++n}${m}`);
+        names.add(name);
+        return {messageId, path, blob:await file.blob(), localPath:`files/${name}`};
+      } catch (e) {
+        if (e?.name === 'AbortError') throw e;
+        return {messageId, path, error:e.message};
+      }
+    });
+  }
+  async function downloadUrls({urls, fetch:request, signal, concurrency = 6, prefix = 'assets/ui-'}) {
+    return pool(urls, concurrency, async (url, index) => {
+      try {
+        signal?.throwIfAborted();
+        const file = await request(url,{credentials:'omit',signal});
+        if (!file.ok) throw Error(`HTTP ${file.status}`);
+        const blob = await file.blob();
+        return {url, blob, path:`${prefix}${index + 1}.${extensionOf(blob.type || file.headers?.get?.('content-type'))}`};
+      } catch (e) {
+        if (e?.name === 'AbortError') throw e;
+        return {url, error:e.message};
+      }
+    });
   }
   function markdown(conversation, ids, url) {
     const selected = new Set(ids);
@@ -195,7 +337,7 @@
     const note=warnings.length ? `\n\n## 未包含的非文字内容\n\n${warnings.map(w=>`- ${w}`).join('\n')}\n` : '';
     return `# ${conversation.title.replace(/[\r\n]/g,' ')}\n\n来源：${url}\n\n${body}\n${note}`;
   }
-  const api = {textOf,normalizeText,records,parseTree,loadConversation,markdown};
+  const api = {fileIdOf,textOf,normalizeText,toolImages,records,parseTree,loadConversation,downloadFiles,downloadSandboxFiles,dilImageUrls,downloadUrls,markdown};
   root.FastTextExporter = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

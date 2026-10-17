@@ -156,3 +156,25 @@ test('UI skeleton repair protects literal programs and exact row labels',()=>{
  const program='```text\n'+table+'\n```';assert.equal(visual.repairedUIBody(program,source),program);
  assert.equal(visual.repairedUIBody(table,source.replace('项目2','项目3')),table);
 });
+test('real R02 successful static screenshots replace complete fallback fragments once and keep explanations/code',async()=>{
+ const doc=fixture('LONG-R02'),dom=core.discover(doc).find(m=>m.role==='assistant'&&m.el.textContent.includes('R02-BEGIN')),blocks=visual.uiBlocks(dom);
+ const text=await Promise.all(blocks.map(el=>visual.uiText(el,dom.id)));assert.equal(blocks.length,4);
+ const outside='即每日预计发电量的30%用于规定负载。\n\n这里的1,120 Wh并不必然全部进入电池。\n\n\\(\\sigma=448,\\;E=1344\\)';
+ const literal='```text\n'+text[0]+'\n```';
+ const body=outside+'\n\n'+text.slice(0,3).join('\n\n')+'\n\n'+text[3].replace('负载 480 Wh · 30%\n\n净余量','负载 480 Wh · 30% 净余量')+'\n\n'+literal;
+ const original=global.ChatExportAutomation;global.ChatExportAutomation={...require('../extension/automation'),captureElement:async()=>({blob:new Blob(['test']),width:600,height:100})};
+ try{
+  const result=await visual.enrich({id:dom.id,md:body,needsUI:true,uiReasons:['model-dil']},{doc,capture:async()=>'',screenshot:true,wait:async()=>{}});
+  assert.ok(result.md.startsWith(outside));assert.ok(result.md.includes(literal));assert.equal(result.assets.length,4);
+  assert.equal((result.md.match(/!\[/g) || []).length,4);assert.equal((result.md.match(/典型日能量分配/g) || []).length,0);
+  assert.equal((result.md.match(/期望发电量/g) || []).length,1); // only literal protected source
+  assert.doesNotMatch(result.md,/0 Wh 550 Wh 1\.1K Wh/);assert.equal(result.textSupplemented,true);
+ }finally{global.ChatExportAutomation=original;}
+});
+test('R02 Markdown and failed screenshots retain the readable metric/ratio/axis fallback',async()=>{
+ const doc=fixture('LONG-R02'),dom=core.discover(doc).find(m=>m.role==='assistant'&&m.el.textContent.includes('R02-BEGIN'));
+ for(const screenshot of [false,true]){
+  const result=await visual.enrich({id:dom.id,md:'正文公式 \\(E=1344\\)',needsUI:true,uiReasons:['model-dil']},{doc,screenshot,wait:async()=>{}});
+  assert.match(result.md,/期望发电量/);assert.match(result.md,/典型日能量分配/);assert.match(result.md,/0 Wh 550 Wh/);assert.equal(result.assets.length,0);
+ }
+});
