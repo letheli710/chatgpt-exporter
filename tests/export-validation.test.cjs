@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const { validate, pngInfo } = require('../scripts/validate-fast-export.cjs');
 
 test('acceptance checker detects the real 0.5 omissions while preserving successful text evidence', async () => {
-  const report = await validate(path.join(__dirname, '../Output - test 1/V0.5-1-项目分析撰写.md'));
+  const report = await validate(path.join(__dirname, '../archive/Output - test 1/V0.5-1-项目分析撰写.md'));
   const results = new Map(report.checks.map(check => [check.name, check.passed]));
   assert.equal(report.passed, false);
   assert.equal(results.get('18 alternating messages'), true);
@@ -19,7 +19,7 @@ test('acceptance checker detects the real 0.5 omissions while preserving success
 
 test('PNG verification inflates actual archived screenshot pixel data', async () => {
   const JSZip = require('../extension/jszip.min.js');
-  const zip = await JSZip.loadAsync(fs.readFileSync(path.join(__dirname, '../Output - test 1/conversation-archive-v8.zip')));
+  const zip = await JSZip.loadAsync(fs.readFileSync(path.join(__dirname, '../archive/Output - test 1/0.4.1/conversation-archive-v8.zip')));
   const bytes = await zip.file('assets/asset-000009.png').async('nodebuffer');
   const info = pngInfo(bytes);
   assert.ok(info.width > 100 && info.height > 100 && info.decodedBytes > 1000);

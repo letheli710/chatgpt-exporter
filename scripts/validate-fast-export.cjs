@@ -82,7 +82,7 @@ async function validate(input, options = {}) {
   check('LONG-MIXED-END', blocks[17]?.body.includes('LONG-MIXED-END'));
   check('No internal PUA markers', !/[\uE000-\uF8FF]|\uDB80[\uDC00-\uDFFF]|\uDBFF[\uDC00-\uDFFF]/u.test(markdown));
   check('No unavailable placeholder', !/Current selection unavailable/i.test(markdown));
-  const baseline = messages(fs.readFileSync(path.join(root, 'Output - test 1/V0.5-1-项目分析撰写.md'), 'utf8'));
+  const baseline = messages(fs.readFileSync(path.join(root, 'archive/Output - test 1/V0.5-1-项目分析撰写.md'), 'utf8'));
   const code = body => [...body.matchAll(/^(`{3,}|~{3,})[^\n]*\n([\s\S]*?)^\1\s*$/gm)].map(m => m[2].trim());
   const expectedCode = code(baseline[13].body), actualCode = code(blocks[13]?.body || '');
   check('R07 four complete code blocks', expectedCode.length === 4 && expectedCode.every(c => actualCode.some(a => a.replace(/\n\s*\n/g, '\n') === c.replace(/\n\s*\n/g, '\n'))), { expected: expectedCode.map(c => c.length), actual: actualCode.map(c => c.length) });

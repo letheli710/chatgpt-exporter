@@ -1,7 +1,7 @@
 // Repair this user-supplied archive using independently observed message IDs, never text similarity.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {JSDOM}=require('jsdom'),core=require('../extension/core');
-const source='Output - test 1/conversation-archive-v2',destination='Output - test 1/conversation-archive-v2-repaired';
+const source='archive/Output - test 1/早期归档版本/v2/conversation-archive-v2',destination='archive/Output - test 1/早期归档版本/v2/conversation-archive-v2-repaired';
 const manifest=JSON.parse(fs.readFileSync(path.join(source,'manifest.json')));
 const known=new Map();
 for(const file of ['M02-t1.json','V2-ACTIVE-CONVERSATION.json']){

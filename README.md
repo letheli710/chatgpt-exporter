@@ -1,10 +1,12 @@
 # ChatGPT Exporter
 
-`Fast-Speed-Exporter` 分支已提供 0.6.2 Swift Archive：直接读取正文，补齐 Intelligent UI 当前文字，并通过自动或手动选框保存跨屏截图。安装方式、验证结果与实际验收限制见 [版本说明](FAST-SPEED-EXPORTER.md)。以下为 0.4.x 视觉归档原型的历史说明。
+当前版本为 0.8.13（数据优先导出）：正文、原图、代码解释器文件和 Intelligent UI 数据直接从会话接口读取，界面卡片和 AppBlock 在沙箱中画成 PNG，正文保持为 Markdown。在 Chrome 中“加载已解压的扩展程序”选择 `extension/` 即可使用；待办见 [TODO](TODO.md)。
+
+各阶段的设计与验收记录在 [docs/history](docs/history/)：[数据优先导出 0.7](docs/history/DATA-FIRST-EXPORTER.md)、[Swift Archive 0.6](docs/history/FAST-SPEED-EXPORTER.md)、[融合实现](docs/history/MERGED-EXPORTER.md)、[运行记录](docs/history/RUN-LOG.md)。以下为 0.4.x 视觉归档原型的历史说明。
 
 本项目开发适配 ChatGPT 新界面的 Chrome 导出插件，重点保存对话中有价值的讨论及上下文。用户选择消息或内容片段后，导出 Markdown 与本地资产包；正文保留为可检索文字，普通图片与 SVG 优先保存原始资产，其他可视化和少见的自生成工具用截图保存当前画面。
 
-当前为可本地加载的 Manifest V3 原型 0.4.0，位于 `extension/`。在消息多选、Markdown 与图片/SVG 打包基础上，新增独立交互卡片自动识别、跨屏截图拼接和从顶部到底部的长对话滚动收集，缓存消息可在 DOM 卸载后继续导出。安装与限制见[本地试用说明](INSTALL.md)，执行范围以[项目计划](PLAN.md)为准。0.1 手动截图已获用户实测；0.2 新流程已通过离线回归和模拟截图源的浏览器布局验证，仍需更新扩展后进行真实 ChatGPT 验收。
+当前为可本地加载的 Manifest V3 原型 0.4.0，位于 `extension/`。在消息多选、Markdown 与图片/SVG 打包基础上，新增独立交互卡片自动识别、跨屏截图拼接和从顶部到底部的长对话滚动收集，缓存消息可在 DOM 卸载后继续导出。安装与限制见[本地试用说明](INSTALL.md)，执行范围以[项目计划](docs/history/PLAN.md)为准。0.1 手动截图已获用户实测；0.2 新流程已通过离线回归和模拟截图源的浏览器布局验证，仍需更新扩展后进行真实 ChatGPT 验收。
 
 实现上优先复用有明确许可证的开源 Exporter，保留可用的正文转换和打包能力，将新增开发集中在内容块选区、图片与 SVG 保存以及截图混排。选型需经过源码检查和现有样本验证，不直接假定用户已安装的同名扩展就是某个开源项目。
 

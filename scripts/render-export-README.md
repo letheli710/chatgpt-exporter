@@ -6,7 +6,7 @@ Install the optional math dependency from the official npm registry, with lifecy
 
 ```powershell
 npm install --prefix tmp/markdown-renderer --no-audit --no-fund --ignore-scripts katex@0.16.22
-node scripts/render-export.cjs 'Output - test 1/项目分析撰写-swift-0.6.1.zip' 'Output - test 1/Swift-Archive-0.6.1-rendered'
+node scripts/render-export.cjs 'archive/Output - test 1/0.6.1/项目分析撰写-swift-0.6.1.zip' 'archive/Output - test 1/0.6.1/Swift-Archive-0.6.1-rendered'
 node --test tests/render-export.test.cjs
 ```
 

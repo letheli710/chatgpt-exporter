@@ -2,7 +2,7 @@ const {test,readPrivate,needPrivate}=require('./private-fixtures.cjs');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const api=require('../extension/fast-text');
-const SAMPLE='Output - test 1/V0.5-1-项目分析撰写.md',sampleText=readPrivate(SAMPLE,'utf8'),privateSample=()=>needPrivate(sampleText,SAMPLE);
+const SAMPLE='archive/Output - test 1/V0.5-1-项目分析撰写.md',sampleText=readPrivate(SAMPLE,'utf8'),privateSample=()=>needPrivate(sampleText,SAMPLE);
 const record=text=>api.records([{id:'sample',author:{role:'assistant'},content:{content_type:'text',parts:[text]}}]).messages[0];
 test('actual T01 inline pipe stays in one cell without losing backslashes',()=>{
  const line=privateSample().split('\n').find(s=>s.startsWith('| T01 |'));

@@ -1,5 +1,5 @@
 // Some regression tests read real conversation captures that stay private and
-// untracked (research/2026-10-12/, "Output - test 1/"). Where those files are
+// untracked (research/2026-10-12/, "archive/Output - test 1/"). Where those files are
 // absent (fresh clones, other worktrees) the test is reported as skipped with the
 // missing path, so real failures are not buried among missing-fixture errors.
 const base = require('node:test');

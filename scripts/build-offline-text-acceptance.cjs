@@ -9,7 +9,7 @@ const root = path.resolve(__dirname, '..');
 const sourceUrl = 'https://chatgpt.com/c/6acd9282-acbc-83e9-bbb4-51aace07323c';
 (async () => {
   const started = performance.now(), rounds = [], records = [];
-  const blocks = messages(fs.readFileSync(path.join(root, 'Output - test 1/V0.5-1-项目分析撰写.md'), 'utf8'));
+  const blocks = messages(fs.readFileSync(path.join(root, 'archive/Output - test 1/V0.5-1-项目分析撰写.md'), 'utf8'));
   for (let i = 0; i < blocks.length; i++) {
     const round = 'R' + String(Math.ceil((i+1)/2)).padStart(2,'0');
     const text = blocks[i].body.replace(/\n---\s*$/, '').trim();
@@ -26,7 +26,7 @@ const sourceUrl = 'https://chatgpt.com/c/6acd9282-acbc-83e9-bbb4-51aace07323c';
       dom.window.close();
     } else records.push({ id: 'fixture-user-' + round, role: 'user', md: normalized.md });
   }
-  const output = path.join(root, 'Output - test 1/Swift-Archive-offline-text.md');
+  const output = path.join(root, 'archive/Output - test 1/0.6.0/离线验收/Swift-Archive-offline-text.md');
   const markdown = fast.markdown({ title: '项目分析撰写（离线真实输入文字验收；未截图）', messages: records, warnings: [] }, records.map(m => m.id), sourceUrl);
   fs.writeFileSync(output, markdown);
   const report = await validate(output);
