@@ -49,3 +49,12 @@
 - 内置浏览器实测（与扩展相同的 iframe + MessageChannel 流程，模拟 0.5 秒读取）：读取完成后画卡片用了 86–525 ms，此前在真实页面上是 3.17 秒（尚未在真实页面复测）。瓶颈是 SVG 首次转图（约 1 秒，字体准备），排版和字体等待都接近 0。
 - 真实页面复测（v2）：渲染 6.76 秒，比串行的 3.17 秒更慢。其中排版 1–8 ms、字体 0 ms，几乎全部耗在两张卡片的转图上，而且两张几乎同时完成。本地复现后定位到 `canvas.toBlob()`：Chrome 把它安排在浏览器空闲时执行，繁忙页面上会被推迟。现改为同步的 `toDataURL` 编码，SVG 加载改用 `onload`，并分别记录 `decodeMs`/`drawMs`/`encodeMs`。
 - 排版得到 0 尺寸时（例如标签页在后台）直接报错并保留文字，不再生成 1×1 的空白图。iframe 不能缩成 1×1，否则 Chrome 不会给它排版。
+
+### 组件覆盖（真实长对话 mainlab）
+
+- 真实对话 v3（18 条消息、9 条 UI 消息）：读取 1.29 秒，卡片 0.61 秒，合计约 1.9 秒，没有警告。
+- 整条消息都会被编译成 DIL，Markdown 本身也会变成组件。所以顶层的 `table`/`list`/`blockquote`/`math`/`caption` 现在输出为真正的 Markdown（GFM 表格并保留对齐方式、`$$` 块级公式、嵌套列表、按 size 映射的标题层级），只有 box/card/grid/图表等界面才画成图片。卡片数量从 30 张降到 9 张。
+- 新增组件：table/table-row/table-cell、row、grid/grid-item、list/list-item、blockquote、caption、badge、icon（常见图标用符号近似）、button、slider、segmented-control、select、radio-group/radio、原生 SVG（path/rect/g/text/marker/defs 等，属性名转换为 SVG 写法）、chart（柱状图/折线图）、pie-chart；box 支持 border/radius/background/align/justify/clip/flex/height/wrap。样式按 chatgpt.com 实测数值（字号、颜色、圆角、间距）近似。
+- 卡片内部的 Markdown：`title` 输出为加粗而非标题；控件输出为可读文字（“滑块：400（100–1000）”“选项：**柱状图** / 折线图”“下拉选择：第7天”）；图表输出为数据表；SVG 输出其中的文字标签。
+- 测试夹具：`tests/fixtures/mainlab/`（公开分享的实验对话导出的 ui JSON），测试文件为 `tests/components.test.cjs`。
+- 尚未覆盖：卡片里的公式仍显示 LaTeX 源码（顶层公式已经是 `$$`）；不认识的图标显示为“•”。

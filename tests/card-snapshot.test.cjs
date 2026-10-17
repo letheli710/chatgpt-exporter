@@ -19,7 +19,7 @@ test('real fixture: card HTML is well-formed XHTML with layout props and every r
   for(const html of [check,long,res])assert.equal(parse(html).getElementsByTagName('parsererror').length,0,html);
   assert.match(check,/max-width:260px/);assert.match(check,/<span class="cb-box"><\/span><span>测试开关<\/span>/);assert.match(check,/当前值：<\/span><strong>关<\/strong>|当前值：<strong>关<\/strong>/);
   assert.equal(long.match(/行\d\d — 这是用于验证滚动截图的测试内容。/g).length,30);assert.match(long,/<hr class="hr"\/>/);assert.match(long,/padding:4px 0px/);
-  assert.match(res,/图片未挂载/);assert.match(res,/muted small/);
+  assert.match(res,/图片未挂载/);assert.match(res,/<p class="t fs-sm c-secondary">图片未挂载<\/p>/);
   assert.doesNotMatch(render.toHtml({type:'text',props:{},children:['<script>&']}),/<script>/);
 });
 test('sandbox snapshot keeps text when a card cannot be rasterized',async()=>{

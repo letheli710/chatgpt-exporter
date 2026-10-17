@@ -18,7 +18,7 @@ test('real fixture: static render recovers what fallbackMarkdown omits',()=>{
   assert.match(byId(CHECK).dil.fallbackMarkdown,/当前值：\n/);assert.match(check,/- \[ \] 测试开关/);assert.match(check,/当前值：\*\*关\*\*/);
   const long=staticMd(LONG),rows=long.match(/^行\d{2} — 这是用于验证滚动截图的测试内容。$/gm);
   assert.doesNotMatch(byId(LONG).dil.fallbackMarkdown,/行01/);assert.equal(rows.length,30);assert.equal(rows[0].slice(0,3),'行01');assert.equal(rows[29].slice(0,3),'行30');
-  assert.match(long,/^长卡开始[\s\S]*### 长卡片完整性实验[\s\S]*---\n\n\*\*长卡片终点 END30\*\*\n\n- \[ \] 仅本地测试开关\n\n长卡结束$/);
+  assert.match(long,/^长卡开始[\s\S]*\*\*长卡片完整性实验\*\*[\s\S]*---\n\n\*\*长卡片终点 END30\*\*\n\n- \[ \] 仅本地测试开关\n\n长卡结束$/);
   const resource=staticMd(RESOURCE);assert.match(resource,/- \[ \] 显示公开测试图\n\n图片未挂载\n\n资源结束$/);assert.doesNotMatch(resource,/widget/);
 });
 test('unknown hooks and components degrade to their text instead of failing',()=>{
