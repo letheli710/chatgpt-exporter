@@ -35,7 +35,8 @@
     // appData.opGenui.componentResults, keyed by __resolutionId.
     const resolved = id => dil.appData?.opGenui?.componentResults?.[id]?.state || {};
     const components = {
-      Link:props => {const s = resolved(props.__resolutionId), url = s.url || props.url, title = String(s.title || props.title || url || '');return typeof url === 'string' && url ? {type:'link', props:{url}, children:[title]} : title;},
+      // Link text: what the model wrote between the tags, else its title, else the resolved page title.
+      Link:props => {const s = resolved(props.__resolutionId), url = s.url || props.url, kids = [].concat(props.children ?? []).filter(c => c != null && c !== false && c !== ''), label = kids.length ? kids : [String(props.title || s.title || url || '')];return typeof url === 'string' && url ? {type:'link', props:{url}, children:label} : {type:'Fragment', props:{}, children:label};},
       Cite:props => ({type:'cite', props:{items:(Array.isArray(resolved(props.__resolutionId).items) ? resolved(props.__resolutionId).items : []).filter(i => typeof i?.url === 'string').map(i => ({url:i.url, label:String(i.source_label || i.title || i.url)}))}, children:[]}),
       // Inline names that open a detail panel: the name is part of the sentence.
       Entity:props => String(resolved(props.__resolutionId).value ?? props.value ?? ''),
@@ -48,7 +49,8 @@
     // Search images: the server resolved them to content URLs.
     function images(props, max) {
       const list = (Array.isArray(resolved(props.__resolutionId).images) ? resolved(props.__resolutionId).images : []).filter(i => typeof i?.content_url === 'string').slice(0, max);
-      const nodes = list.map(i => ({type:'image', props:{src:i.content_url, href:typeof i.url === 'string' ? i.url : '', alt:String(i.title || props.query || props.alt || '图片')}, children:[]}));
+      const s = resolved(props.__resolutionId), ratio = String(s.frame_aspect_ratio || s.aspect_ratio || props.aspectRatio || '4:3'), width = s.frame_max_width || s.item_width || props.maxWidth || '180px';
+      const nodes = list.map(i => ({type:'image', props:{src:i.content_url, href:typeof i.url === 'string' ? i.url : '', alt:String(i.title || props.query || props.alt || '图片'), width, ratio}, children:[]}));
       return nodes.length > 1 ? {type:'Fragment', props:{}, children:nodes} : nodes[0] || '';
     }
     function quiz(props, state) {
@@ -257,6 +259,7 @@
 .math{font-family:"Cambria Math","Times New Roman",serif;font-style:italic}.math-block{display:block;text-align:center}
 code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:4px;padding:0 4px;font-size:.9em}.link{color:#2964aa;text-decoration:underline}.cite{display:inline-flex;margin-left:4px;padding:0 8px;border-radius:9999px;background:#f3f3f3;color:#5d5d5d;font-size:12px;line-height:20px;white-space:nowrap}
 .input{display:flex;align-items:center;min-height:36px;width:100%;padding:6px 12px;border:1px solid rgba(13,13,13,.15);border-radius:10px;background:#fff;color:#8f8f8f;font-size:14px;line-height:20px}.input-area{min-height:80px;align-items:flex-start}
+.img-ph{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;background:#f3f3f3;text-align:center}.img-alt{font-size:11px;line-height:14px;max-height:42px;overflow:hidden;padding:0 6px}
 .widget,.img{border:1px dashed #c9c9c9;border-radius:10px;padding:10px 12px;color:#5d5d5d;font-size:13px}`;
   const RADIUS = {none:'0', xs:'4px', sm:'6px', md:'8px', lg:'10px', xl:'16px', '2xl':'20px', full:'9999px'};
   const BACKGROUND = {surface:'#fff', 'surface-primary':'#fff', 'surface-secondary':'#f9f9f9', 'surface-tertiary':'#f3f3f3', 'surface-elevated':'#fff', success:'#def3e5', danger:'#fff0f0', warning:'#fdf5f1', info:'#e8f1fe'};
@@ -327,6 +330,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
     return seq(false);
   }
   const ICONS = {coffee:'☕', clock:'◷', 'trending-up':'↗', 'trending-down':'↘', 'chart-line':'↗', 'line-chart':'↗', 'chart-bar':'▥', 'bar-chart':'▥', 'bar-chart-2':'▥', 'chart-pie':'◔', 'pie-chart':'◔', file:'▤', 'file-text':'▤', 'file-spreadsheet':'▦', 'file-code':'▤', download:'⤓', upload:'⤒', 'external-link':'↗', link:'⛓', search:'⌕', settings:'⚙', calendar:'▦', 'map-pin':'⌖', heart:'♥', flame:'♨', droplet:'◖', thermometer:'🌡', 'lightbulb':'✦', sparkles:'✦', target:'◎', flag:'⚑', bookmark:'⚑', book:'▯', 'graduation-cap':'🎓', user:'◯', users:'◯◯', mail:'✉', phone:'✆', lock:'⚿', 'shield':'⛨', 'shield-check':'⛨', 'help-circle':'?', 'circle-help':'?', 'alert-octagon':'!', 'circle-alert':'!', 'triangle-alert':'⚠', 'chevron-right':'›', 'chevron-left':'‹', 'chevron-down':'⌄', 'chevron-up':'⌃', play:'▶', pause:'❚❚', square:'□', circle:'○', moon:'☾', cloud:'☁', 'cloud-rain':'☂', leaf:'❦', home:'⌂', timer:'◷', hourglass:'⧗', activity:'∿', percent:'%', hash:'#', calculator:'▦',
+    'arrow-up-right':'↗', 'arrow-down-right':'↘', trash:'🗑', 'trash-2':'🗑', eraser:'⌫', brush:'🖌', pencil:'✎', palette:'🎨', image:'🖼', video:'▶', music:'♪', copy:'⧉', edit:'✎', 'circle-dot':'◉', 'dot':'•',
     'rotate-ccw':'↺', 'refresh-cw':'↻', check:'✓', 'check-circle':'✓', 'circle-check':'✓', x:'✕', 'x-circle':'✕', 'circle-x':'✕', 'alert-triangle':'⚠', 'alert-circle':'!', info:'ⓘ', 'arrow-right':'→', 'arrow-left':'←', 'arrow-up':'↑', 'arrow-down':'↓', plus:'+', minus:'−', star:'★', sun:'☀', zap:'⚡', battery:'▭', clock:'◷'};
   // SVG elements and attributes that are written camelCase in SVG itself.
   const SVG_TAGS = new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','text','tspan','defs','marker','linearGradient','radialGradient','stop','clipPath','pattern','use','title']);
@@ -436,7 +440,12 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
         case 'select': return `<span class="select"><span>${escapeHtml(optionLabel(p.options, p.value))}</span><span class="c-secondary">▾</span></span>`;
         case 'chart': return chartSvg(p, false);
         case 'pie-chart': return chartSvg(p, true);
-        case 'image': return `<div class="img">图片${p.alt ? `：${escapeHtml(p.alt)}` : ''}</div>`;
+        case 'image': {
+          // Remote images cannot be drawn offscreen; a placeholder of the image's own size keeps the layout.
+          const width = /^\d+(\.\d+)?px$/.test(String(p.width)) ? String(p.width) : '180px', [rw, rh] = String(p.ratio || '4:3').split(':').map(Number);
+          const height = rw > 0 && rh > 0 ? `${Math.round(parseFloat(width) * rh / rw)}px` : '135px';
+          return `<div class="img img-ph" style="width:${width};height:${height}"><span>🖼</span><span class="img-alt">${escapeHtml(String(p.alt || '图片').slice(0, 60))}</span></div>`;
+        }
         case '__chatgptClientDefinedWidget': return '<div class="widget">嵌入应用（已另存为独立 HTML）</div>';
         default: return ctx.inline || inlineTypes.has(node.type) ? inline() : `<div>${kids()}</div>`;
       }

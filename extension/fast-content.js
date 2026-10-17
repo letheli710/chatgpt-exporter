@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.11';
+  const version='0.8.12';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -25,7 +25,7 @@
     state={...data,url,leaf,timings:{readMs:performance.now()-start}};
     state.timings.render=await renderStatic(data.messages,sandbox);state.timings.renderMs=performance.now()-start-state.timings.readMs;
     for(const m of data.messages){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.checked=true;box.dataset.messageId=m.id;label.append(box,` ${m.role==='user'?'我':'ChatGPT'} · ${m.summary}`);$('list').append(label);}
-    $('status').textContent=`已读取 ${data.messages.length} 条正文，耗时 ${(state.timings.readMs/1000).toFixed(2)} 秒。预览可补齐交互文字，ZIP 可自动保存画面。`;
+    $('status').textContent=`已读取 ${data.messages.length} 条正文，耗时 ${(state.timings.readMs/1000).toFixed(2)} 秒。预览可补齐交互文字，ZIP 可自动保存画面。${staleNotice()}`;
   }catch(e){if(current===generation)$('status').textContent=e.message;}finally{sandbox?.client.close();if(current===generation)busy(false);}}
   // Created before the conversation is read so the sandbox page, fonts and
   // canvas are ready by the time the cards are drawn.
@@ -60,6 +60,9 @@
   }).filter(Boolean).join('\n\n');}
   const blocksOf=m=>dilRender&&m.dil?dilRender.appBlocks(m.dil,m.contentReferences):[];
   const widgetToken=/\u0000APPBLOCK:([^\u0000]*)\u0000/g,sandboxLink=/\]\((sandbox:\/[^)\s]+)\)/g;
+  // The panel is injected from the files on disk at every click, but the background worker and
+  // permissions only change when the extension is reloaded; a version mismatch means it was not.
+  function staleNotice(){let loaded=null;try{loaded=chrome.runtime.getManifest?.().version;}catch{}return loaded&&loaded!==version?`\n⚠ 插件后台仍是 ${loaded}，面板是 ${version}：请在 chrome://extensions 点击本插件的“重新加载”，否则部分功能（如搜索图片下载）不可用。`:'';}
   // Search images (images.openai.com) are fetched by the background worker, which may cross origins.
   async function fetchImage(url){const r=await send({type:'archive:image',url});const bytes=Uint8Array.from(atob(r.data),c=>c.charCodeAt(0));return new Blob([bytes],{type:r.type});}
   async function send(message){const response=await chrome.runtime.sendMessage(message);if(response?.error)throw Error(response.error);return response;}
@@ -131,7 +134,7 @@
     const result=await build(mode==='zip');$('output').value=result.md;$('output').hidden=false;
     if(mode!=='preview'){let blob;if(mode==='zip'){
       const zip=new JSZip();zip.file('conversation.md',result.md);for(const asset of result.assets)zip.file(asset.path,asset.blob);
-      const manifest={version,source:state.url,options:{pageSupplement:$('live').checked},visibility:{hiddenDuringExport,atEnd:document.visibilityState},messages:result.messages,warnings:result.warnings,timings:{...state.timings,exportPrepareMs:performance.now()-started},assets:result.assets.map(({path,messageId,width,height,tiles,kind})=>({path,messageId,width,height,tiles,kind})),exportedAt:new Date().toISOString()};
+      const manifest={version,loadedVersion:(()=>{try{return chrome.runtime.getManifest?.().version??null;}catch{return null;}})(),source:state.url,options:{pageSupplement:$('live').checked},visibility:{hiddenDuringExport,atEnd:document.visibilityState},messages:result.messages,warnings:result.warnings,timings:{...state.timings,exportPrepareMs:performance.now()-started},assets:result.assets.map(({path,messageId,width,height,tiles,kind})=>({path,messageId,width,height,tiles,kind})),exportedAt:new Date().toISOString()};
       zip.file('manifest.json',JSON.stringify(manifest,null,2));blob=await zip.generateAsync({type:'blob'});
     }else blob=new Blob([result.md],{type:'text/markdown;charset=utf-8'});
     assertCurrent();const url=URL.createObjectURL(blob);try{await send({type:'archive:download',url,filename:filename(mode==='zip'?'zip':'md'),saveAs:$('saveAs').checked});}finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}}

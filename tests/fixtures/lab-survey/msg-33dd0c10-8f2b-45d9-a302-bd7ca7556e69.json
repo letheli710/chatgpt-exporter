@@ -1,0 +1,1034 @@
+{
+  "messageId": "33dd0c10-8f2b-45d9-a302-bd7ca7556e69",
+  "format": "model_dil_v2",
+  "source": "MIT OpenCourseWare（MIT OCW）在 Electrical Engineering（EE，电气工程）方面的课程相当丰富，**从基础电路、电路设计、半导体、数字硬件，一直到通信、信号处理、自动控制、电机与电力电子都有覆盖**。\n\n截至目前，MIT OCW 官方搜索页在 Electrical Engineering and Computer Science（EECS）院系列出了约 285 个课程条目，其中本科课程筛选结果约 135 个。不过，EECS 同时包括 Electrical Engineering 和 Computer Science，所以这些数字不能全部算作纯 EE 课程。<Cite refs={[\"turn724140search0\",\"turn724140search3\"]}/>\n\n下面按专业方向分类。所有课程都附 MIT 官方链接，方便你直接查看教学资料。\n\n## 1. 基础电路、模拟电子与半导体\n\n这是与你现在的 QCC EE-204、ET-110 联系最直接的一组。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|---|---|---|\n| <Link url=\"https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/\">6.002 — Circuits and Electronics</Link> | KVL、KCL、MOSFET、RC/RLC、放大器 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/\">6.101 — Analog Electronics Lab</Link> | 二极管、晶体管、运放、音频放大器、实验设计 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/\">6.012 — Microelectronic Devices and Circuits</Link> | 半导体物理、PN 结、BJT、MOSFET、电路设计 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/\">6.301 — Solid-State Circuits</Link> | 模拟晶体管电路分析与设计 | 研究生 |\n| <Link url=\"https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/\">6.720J — Integrated Microelectronic Devices</Link> | 半导体器件物理、MOS 结构、器件缩放 | 高阶课程 |\n\n这些课程不是单纯教你计算电压、电流，而是逐渐转向如何利用电子器件设计真正有功能的电路，例如放大器、信号调理电路和集成电路。<Cite refs={[\"turn724140search11\",\"turn892002search4\",\"turn724140search15\",\"turn333193search17\",\"turn333193search14\"]}/>\n\n## 2. 数字电路与计算机硬件\n\n这组课程属于 EE 与 Computer Engineering 的交叉领域，重点是从晶体管、逻辑门一步步构建数字系统。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|---|---|---|\n| <Link url=\"https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/\">6.004 — Computation Structures</Link> | 逻辑门、数字电路、计算机体系结构 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/\">6.111 — Digital Systems Laboratory</Link> | Verilog、FPGA、有限状态机、数字系统项目 | 本科 |\n\n尤其是 6.111，其期末项目允许学生设计游戏、音乐系统、数字滤波器或图形系统，属于实践性很强的数字硬件课程。<Cite refs={[\"turn892002search13\",\"turn737248search2\"]}/>\n\n## 3. 信号处理、通信与自动控制\n\n这一方向研究如何从信号中提取信息、传输信息，以及控制动态系统。数学要求明显高于基础电路。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|---|---|---|\n| <Link url=\"https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/\">6.003 — Signals and Systems</Link> | 傅里叶变换、拉普拉斯变换、卷积、频率响应 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/\">6.011 — Communication, Control, and Signal Processing</Link> | 状态空间、随机信号、滤波、估计与控制 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/\">6.02 — Digital Communication Systems</Link> | 信息编码、纠错、数字信号与通信网络 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/\">6.302 — Feedback Systems</Link> | 反馈控制、系统稳定性、根轨迹、Nyquist | 研究生 |\n| <Link url=\"https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/\">6.450 — Digital Communications I</Link> | 调制、数字通信理论、信道与信号检测 | 研究生 |\n\n其中 6.003 提供课程录像、讲义、题目和答案，特别适合在学过微分方程后系统学习。6.011 则明确要求学生先掌握信号与系统、概率和相关微分方程知识。<Cite refs={[\"turn737248search1\",\"turn823703search18\",\"turn724140search13\",\"turn892002search0\",\"turn333193search1\"]}/>\n\n## 4. 电磁学、电机、电力与能源工程\n\n如果你更喜欢传统 EE，而不是计算机和软件方向，这一组尤其重要。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|---|---|---|\n| <Link url=\"https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/\">6.007 — Electromagnetic Energy</Link> | 电机、发电机、能量转换、太阳能电池、激光 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/\">6.013 — Electromagnetics and Applications</Link> | Maxwell 方程、电磁波、天线、微波 | 本科 |\n| <Link url=\"https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/\">6.622 — Power Electronics</Link> | 功率变换、DC-DC 转换器、开关电源、控制 | 研究生 |\n| <Link url=\"https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/\">6.685 — Electric Machines</Link> | 直流电机、永磁电机、感应电机、同步电机 | 研究生 |\n\n这些课程的应用范围覆盖电动汽车驱动系统、发电设备、电力转换设备、天线与无线通信，以及电磁器件设计。<Cite refs={[\"turn892002search9\",\"turn737248search19\",\"turn724140search10\",\"turn333193search5\"]}/>\n\n这里有一门课程格外值得注意：\n\n<row align=start gap={3}>\n  <AsyncImage query=\"MIT David Perreault power electronics MIT 6.622 lecture electrical power converter classroom\" aspectRatio=\"4:3\" maxWidth=\"164px\"/>\n  <box flex=\"1\" gap={1}>\n    **<Link url=\"https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/\">MIT 6.622 — Power Electronics (2023)</Link>**\n\n    这是一门比较新的公开课程，不只是十几年前的老资料。课程包含 Lecture Videos、Lecture Notes、Problem Sets、Solutions、Exams 和 Design Assignments，比较适合将来系统自学。<Cite ref=\"turn724140search10\"/>\n  </box>\n</row>\n\n## 5. EE 必备的数学配套课程\n\n这些不属于 EECS 院系课程，但它们会决定你后续能不能真正理解高级 EE 内容。\n\n| 课程 | 与 EE 的关系 |\n|---|---|\n| <Link url=\"https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/\">18.03SC — Differential Equations</Link> | RC/RLC 动态电路、控制系统、信号分析 |\n| <Link url=\"https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/\">18.06SC — Linear Algebra</Link> | 多节点电路方程、状态空间、信号处理 |\n\n这两门都有课堂录像、习题讲解视频、作业及考试答案，尤其适合独立学习。<Cite refs={[\"turn823703search2\",\"turn823703search0\"]}/>\n\n## 6. 针对你的学习进度，应该怎样选择？\n\n将这些课程放到一条学习路径中，大致可以这样理解：\n\n<box border radius=\"xl\" padding={3} gap={2}>\n  <box background=\"surface-secondary\" radius=\"lg\" padding={3} align=center gap={1}>\n    <badge color=\"success\">目前阶段</badge>\n    **QCC EE-204 / ET-110**\n\n    <text size=\"xs\" color=\"secondary\">电压、电流、电阻、KCL、KVL、电路基础</text>\n  </box>\n  <row justify=\"center\"><icon name=\"arrow-down\" color=\"tertiary\"/></row>\n  <box border={{size:1,color:\"#90b8eb\"}} radius=\"lg\" padding={3} align=center gap={1}>\n    **MIT 6.002 — Circuits and Electronics**\n\n    <text size=\"xs\" color=\"secondary\">系统建立电路分析与建模能力</text>\n  </box>\n  <row justify=\"center\"><icon name=\"arrow-down\" color=\"tertiary\"/></row>\n  <grid columns={2} gap={2}>\n    <grid-item>\n      <box background=\"surface-secondary\" radius=\"lg\" padding={3} align=center gap={1}>\n        **6.012 / 6.101**\n\n        <text size=\"xs\" textAlign=\"center\">模拟电路、半导体、实验设计</text>\n      </box>\n    </grid-item>\n    <grid-item>\n      <box background=\"surface-secondary\" radius=\"lg\" padding={3} align=center gap={1}>\n        **6.003 / 6.004**\n\n        <text size=\"xs\" textAlign=\"center\">信号系统、数字硬件</text>\n      </box>\n    </grid-item>\n  </grid>\n  <row justify=\"center\"><icon name=\"arrow-down\" color=\"tertiary\"/></row>\n  <grid columns={3} gap={2}>\n    {#each [{h:\"6.622\",d:\"电力电子\"},{h:\"6.302\",d:\"自动控制\"},{h:\"6.685\",d:\"电机工程\"}] as c}\n      <grid-item>\n        <box background=\"surface-tertiary\" radius=\"lg\" padding={2} align=center gap={1}>\n          <text weight=\"medium\">{c.h}</text>\n          <text size=\"2xs\" color=\"secondary\">{c.d}</text>\n        </box>\n      </grid-item>\n    {/each}\n  </grid>\n  <caption textAlign=\"center\">示意学习路线，并非 MIT 官方先修课程关系图。</caption>\n</box>\n\n现在不需要一次学习这么多门。按照你正在学的 EE-204、ET-110，以及微分方程的进度，先以 6.002 为主、18.03SC 为数学辅助，等基础扎实后再决定往模拟电子、数字硬件还是电力工程发展，会比较有效率。\n\n**查找其他 EE 课程：** <Link url=\"https://ocw.mit.edu/search/?t=Electrical+Engineering\" title=\"MIT OCW — Electrical Engineering 主题筛选\"/>。这个入口比直接浏览整个 EECS 院系更接近纯电气工程课程。\n\nMIT OCW 的真正优势不仅是提供了很多本科高年级和研究生课程，而是让你能够沿着某一个 EE 专业方向持续深入，从基础理论一直学习到专业设计与系统分析。",
+  "staticMarkdown": "MIT OpenCourseWare（MIT OCW）在 Electrical Engineering（EE，电气工程）方面的课程相当丰富，**从基础电路、电路设计、半导体、数字硬件，一直到通信、信号处理、自动控制、电机与电力电子都有覆盖**。\n\n截至目前，MIT OCW 官方搜索页在 Electrical Engineering and Computer Science（EECS）院系列出了约 285 个课程条目，其中本科课程筛选结果约 135 个。不过，EECS 同时包括 Electrical Engineering 和 Computer Science，所以这些数字不能全部算作纯 EE 课程。（[Free Online Course Materials](https://ocw.mit.edu/search/)、[Free Online Course Materials](https://ocw.mit.edu/search/?l=Undergraduate)）\n\n下面按专业方向分类。所有课程都附 MIT 官方链接，方便你直接查看教学资料。\n\n## 1. 基础电路、模拟电子与半导体\n\n这是与你现在的 QCC EE-204、ET-110 联系最直接的一组。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n| --- | --- | --- |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/) | KVL、KCL、MOSFET、RC/RLC、放大器 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/) | 二极管、晶体管、运放、音频放大器、实验设计 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/) | 半导体物理、PN 结、BJT、MOSFET、电路设计 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/) | 模拟晶体管电路分析与设计 | 研究生 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/) | 半导体器件物理、MOS 结构、器件缩放 | 高阶课程 |\n\n这些课程不是单纯教你计算电压、电流，而是逐渐转向如何利用电子器件设计真正有功能的电路，例如放大器、信号调理电路和集成电路。（[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/)）\n\n## 2. 数字电路与计算机硬件\n\n这组课程属于 EE 与 Computer Engineering 的交叉领域，重点是从晶体管、逻辑门一步步构建数字系统。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n| --- | --- | --- |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/) | 逻辑门、数字电路、计算机体系结构 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/) | Verilog、FPGA、有限状态机、数字系统项目 | 本科 |\n\n尤其是 6.111，其期末项目允许学生设计游戏、音乐系统、数字滤波器或图形系统，属于实践性很强的数字硬件课程。（[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/)）\n\n## 3. 信号处理、通信与自动控制\n\n这一方向研究如何从信号中提取信息、传输信息，以及控制动态系统。数学要求明显高于基础电路。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n| --- | --- | --- |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/) | 傅里叶变换、拉普拉斯变换、卷积、频率响应 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/) | 状态空间、随机信号、滤波、估计与控制 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/) | 信息编码、纠错、数字信号与通信网络 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/) | 反馈控制、系统稳定性、根轨迹、Nyquist | 研究生 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/) | 调制、数字通信理论、信道与信号检测 | 研究生 |\n\n其中 6.003 提供课程录像、讲义、题目和答案，特别适合在学过微分方程后系统学习。6.011 则明确要求学生先掌握信号与系统、概率和相关微分方程知识。（[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/pages/syllabus/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/pages/syllabus/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/)）\n\n## 4. 电磁学、电机、电力与能源工程\n\n如果你更喜欢传统 EE，而不是计算机和软件方向，这一组尤其重要。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n| --- | --- | --- |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/) | 电机、发电机、能量转换、太阳能电池、激光 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/) | Maxwell 方程、电磁波、天线、微波 | 本科 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/) | 功率变换、DC-DC 转换器、开关电源、控制 | 研究生 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/) | 直流电机、永磁电机、感应电机、同步电机 | 研究生 |\n\n这些课程的应用范围覆盖电动汽车驱动系统、发电设备、电力转换设备、天线与无线通信，以及电磁器件设计。（[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/)、[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/)）\n\n这里有一门课程格外值得注意：\n\n![Free Video: Power Electronics - MIT 6.622 Spring 2023 from MIT OpenCourseWare | Class Central](https://images.openai.com/static-rsc-4/BcgZePhMvLIja6yvhVTn_BxKiEcjFnLufIPB1L2BEe6tJp51hjgSPNJ0FlYIdzu2CYFFVKmJn18ZVOtsKe7j716pjjqzpfzQQqeFpaU2sn9g_G6VAvD15ye1xvFsuYd5z8NbgA4W_TNtqwghNA5a94LNcZuXvhDSXNHgBfeK37wM_HhRt0HKgS-PrhfCDrkI?purpose=fullsize)\n\n**[ocw.mit.edu](https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/)**\n\n这是一门比较新的公开课程，不只是十几年前的老资料。课程包含 Lecture Videos、Lecture Notes、Problem Sets、Solutions、Exams 和 Design Assignments，比较适合将来系统自学。（[MIT OpenCourseWare](https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/)）\n\n## 5. EE 必备的数学配套课程\n\n这些不属于 EECS 院系课程，但它们会决定你后续能不能真正理解高级 EE 内容。\n\n| 课程 | 与 EE 的关系 |\n| --- | --- |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/) | RC/RLC 动态电路、控制系统、信号分析 |\n| [ocw.mit.edu](https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/) | 多节点电路方程、状态空间、信号处理 |\n\n这两门都有课堂录像、习题讲解视频、作业及考试答案，尤其适合独立学习。（[MIT OpenCourseWare](https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/)、[MIT OpenCourseWare](https://www.ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/)）\n\n## 6. 针对你的学习进度，应该怎样选择？\n\n将这些课程放到一条学习路径中，大致可以这样理解：\n\n［目前阶段］\n\n**QCC EE-204 / ET-110**\n\n电压、电流、电阻、KCL、KVL、电路基础\n\n**MIT 6.002 — Circuits and Electronics**\n\n系统建立电路分析与建模能力\n\n**6.012 / 6.101**\n\n模拟电路、半导体、实验设计\n\n**6.003 / 6.004**\n\n信号系统、数字硬件\n\n6.622\n\n电力电子\n\n6.302\n\n自动控制\n\n6.685\n\n电机工程\n\n示意学习路线，并非 MIT 官方先修课程关系图。\n\n现在不需要一次学习这么多门。按照你正在学的 EE-204、ET-110，以及微分方程的进度，先以 6.002 为主、18.03SC 为数学辅助，等基础扎实后再决定往模拟电子、数字硬件还是电力工程发展，会比较有效率。\n\n**查找其他 EE 课程：** [MIT OCW — Electrical Engineering 主题筛选](https://ocw.mit.edu/search/?t=Electrical+Engineering)。这个入口比直接浏览整个 EECS 院系更接近纯电气工程课程。\n\nMIT OCW 的真正优势不仅是提供了很多本科高年级和研究生课程，而是让你能够沿着某一个 EE 专业方向持续深入，从基础理论一直学习到专业设计与系统分析。",
+  "renderError": null,
+  "appBlocks": [],
+  "localAssets": {},
+  "dil": {
+    "code": "function __dilSafe(evaluate,failureValue){try{return evaluate()}catch{return failureValue}}\n\nDIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});return __dil.jsx(__dil.Fragment,null,__dil.jsx(\"text\",null,__dilConstants[\"0\"],__dil.jsx(\"bold\",null,__dilConstants[\"1\"]),__dilConstants[\"2\"]),__dil.jsx(\"text\",null,__dilConstants[\"3\"],__dilSafe(()=>(__dil.jsx(Cite,{\"refs\":__dilConstants[\"4\"],\"__resolutionId\":__dilConstants[\"5\"]})),null)),__dil.jsx(\"text\",null,__dilConstants[\"6\"]),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"7\"]),__dil.jsx(\"text\",null,__dilConstants[\"8\"]),__dil.jsx(\"table\",null,__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"9\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"10\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"11\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/\",\"__resolutionId\":__dilConstants[\"12\"]},__dilConstants[\"13\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"14\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"15\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/\",\"__resolutionId\":__dilConstants[\"16\"]},__dilConstants[\"17\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"18\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"19\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/\",\"__resolutionId\":__dilConstants[\"20\"]},__dilConstants[\"21\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"22\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"23\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/\",\"__resolutionId\":__dilConstants[\"24\"]},__dilConstants[\"25\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"26\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"27\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/\",\"__resolutionId\":__dilConstants[\"28\"]},__dilConstants[\"29\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"30\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"31\"])))),__dil.jsx(\"text\",null,__dilConstants[\"32\"],__dilSafe(()=>(__dil.jsx(Cite,{\"refs\":__dilConstants[\"33\"],\"__resolutionId\":__dilConstants[\"34\"]})),null)),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"35\"]),__dil.jsx(\"text\",null,__dilConstants[\"36\"]),__dil.jsx(\"table\",null,__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"37\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"38\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"39\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/\",\"__resolutionId\":__dilConstants[\"40\"]},__dilConstants[\"41\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"42\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"43\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/\",\"__resolutionId\":__dilConstants[\"44\"]},__dilConstants[\"45\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"46\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"47\"])))),__dil.jsx(\"text\",null,__dilConstants[\"48\"],__dilSafe(()=>(__dil.jsx(Cite,{\"refs\":__dilConstants[\"49\"],\"__resolutionId\":__dilConstants[\"50\"]})),null)),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"51\"]),__dil.jsx(\"text\",null,__dilConstants[\"52\"]),__dil.jsx(\"table\",null,__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"53\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"54\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"55\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/\",\"__resolutionId\":__dilConstants[\"56\"]},__dilConstants[\"57\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"58\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"59\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/\",\"__resolutionId\":__dilConstants[\"60\"]},__dilConstants[\"61\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"62\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"63\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/\",\"__resolutionId\":__dilConstants[\"64\"]},__dilConstants[\"65\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"66\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"67\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/\",\"__resolutionId\":__dilConstants[\"68\"]},__dilConstants[\"69\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"70\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"71\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/\",\"__resolutionId\":__dilConstants[\"72\"]},__dilConstants[\"73\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"74\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"75\"])))),__dil.jsx(\"text\",null,__dilConstants[\"76\"],__dilSafe(()=>(__dil.jsx(Cite,{\"refs\":__dilConstants[\"77\"],\"__resolutionId\":__dilConstants[\"78\"]})),null)),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"79\"]),__dil.jsx(\"text\",null,__dilConstants[\"80\"]),__dil.jsx(\"table\",null,__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"81\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"82\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"83\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/\",\"__resolutionId\":__dilConstants[\"84\"]},__dilConstants[\"85\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"86\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"87\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/\",\"__resolutionId\":__dilConstants[\"88\"]},__dilConstants[\"89\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"90\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"91\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/\",\"__resolutionId\":__dilConstants[\"92\"]},__dilConstants[\"93\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"94\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"95\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/\",\"__resolutionId\":__dilConstants[\"96\"]},__dilConstants[\"97\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"98\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"99\"])))),__dil.jsx(\"text\",null,__dilConstants[\"100\"],__dilSafe(()=>(__dil.jsx(Cite,{\"refs\":__dilConstants[\"101\"],\"__resolutionId\":__dilConstants[\"102\"]})),null)),__dil.jsx(\"text\",null,__dilConstants[\"103\"]),__dil.jsx(\"row\",{\"align\":\"start\",\"gap\":3},__dilSafe(()=>(__dil.jsx(AsyncImage,{\"query\":\"MIT David Perreault power electronics MIT 6.622 lecture electrical power converter classroom\",\"aspectRatio\":\"4:3\",\"maxWidth\":\"164px\",\"__resolutionId\":__dilConstants[\"104\"]})),null),__dil.jsx(\"box\",{\"flex\":\"1\",\"gap\":1},__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/\",\"__resolutionId\":__dilConstants[\"105\"]},__dilConstants[\"106\"])),null))),__dil.jsx(\"text\",null,__dilConstants[\"107\"],__dilSafe(()=>(__dil.jsx(Cite,{\"ref\":\"turn724140search10\",\"__resolutionId\":__dilConstants[\"108\"]})),null)))),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"109\"]),__dil.jsx(\"text\",null,__dilConstants[\"110\"]),__dil.jsx(\"table\",null,__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"111\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"112\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/\",\"__resolutionId\":__dilConstants[\"113\"]},__dilConstants[\"114\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"115\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/\",\"__resolutionId\":__dilConstants[\"116\"]},__dilConstants[\"117\"])),null))),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"118\"])))),__dil.jsx(\"text\",null,__dilConstants[\"119\"],__dilSafe(()=>(__dil.jsx(Cite,{\"refs\":__dilConstants[\"120\"],\"__resolutionId\":__dilConstants[\"121\"]})),null)),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"122\"]),__dil.jsx(\"text\",null,__dilConstants[\"123\"]),__dil.jsx(\"box\",{\"border\":true,\"radius\":\"xl\",\"padding\":3,\"gap\":2},__dil.jsx(\"box\",{\"background\":\"surface-secondary\",\"radius\":\"lg\",\"padding\":3,\"align\":\"center\",\"gap\":1},__dil.jsx(\"badge\",{\"color\":\"success\"},__dilConstants[\"124\"]),__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"125\"])),__dil.jsx(\"text\",{\"size\":\"xs\",\"color\":\"secondary\"},__dilConstants[\"126\"])),__dil.jsx(\"row\",{\"justify\":\"center\"},__dil.jsx(\"icon\",{\"name\":\"arrow-down\",\"color\":\"tertiary\"})),__dil.jsx(\"box\",{\"border\":__dilConstants[\"127\"],\"radius\":\"lg\",\"padding\":3,\"align\":\"center\",\"gap\":1},__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"128\"])),__dil.jsx(\"text\",{\"size\":\"xs\",\"color\":\"secondary\"},__dilConstants[\"129\"])),__dil.jsx(\"row\",{\"justify\":\"center\"},__dil.jsx(\"icon\",{\"name\":\"arrow-down\",\"color\":\"tertiary\"})),__dil.jsx(\"grid\",{\"columns\":2,\"gap\":2},__dil.jsx(\"grid-item\",null,__dil.jsx(\"box\",{\"background\":\"surface-secondary\",\"radius\":\"lg\",\"padding\":3,\"align\":\"center\",\"gap\":1},__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"130\"])),__dil.jsx(\"text\",{\"size\":\"xs\",\"textAlign\":\"center\"},__dilConstants[\"131\"]))),__dil.jsx(\"grid-item\",null,__dil.jsx(\"box\",{\"background\":\"surface-secondary\",\"radius\":\"lg\",\"padding\":3,\"align\":\"center\",\"gap\":1},__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"132\"])),__dil.jsx(\"text\",{\"size\":\"xs\",\"textAlign\":\"center\"},__dilConstants[\"133\"])))),__dil.jsx(\"row\",{\"justify\":\"center\"},__dil.jsx(\"icon\",{\"name\":\"arrow-down\",\"color\":\"tertiary\"})),__dil.jsx(\"grid\",{\"columns\":3,\"gap\":2},__dilSafe(()=>(([{h:\"6.622\",d:\"电力电子\"},{h:\"6.302\",d:\"自动控制\"},{h:\"6.685\",d:\"电机工程\"}]).map((c)=>__dilSafe(()=>(__dil.jsx(\"grid-item\",null,__dil.jsx(\"box\",{\"background\":\"surface-tertiary\",\"radius\":\"lg\",\"padding\":2,\"align\":\"center\",\"gap\":1},__dilSafe(()=>(__dil.jsx(\"text\",{\"weight\":\"medium\"},c.h)),null),__dilSafe(()=>(__dil.jsx(\"text\",{\"size\":\"2xs\",\"color\":\"secondary\"},c.d)),null)))),null))),[])),__dil.jsx(\"caption\",{\"textAlign\":\"center\"},__dilConstants[\"134\"])),__dil.jsx(\"text\",null,__dilConstants[\"135\"]),__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"136\"]),__dilConstants[\"137\"],__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"https://ocw.mit.edu/search/?t=Electrical+Engineering\",\"title\":__dilConstants[\"138\"],\"__resolutionId\":__dilConstants[\"139\"]})),null),__dilConstants[\"140\"]),__dil.jsx(\"text\",null,__dilConstants[\"141\"]));},{\"key\":\"body:0\"}));",
+    "constants": {
+      "0": "MIT OpenCourseWare（MIT OCW）在 Electrical Engineering（EE，电气工程）方面的课程相当丰富，",
+      "1": "从基础电路、电路设计、半导体、数字硬件，一直到通信、信号处理、自动控制、电机与电力电子都有覆盖",
+      "2": "。",
+      "3": "截至目前，MIT OCW 官方搜索页在 Electrical Engineering and Computer Science（EECS）院系列出了约 285 个课程条目，其中本科课程筛选结果约 135 个。不过，EECS 同时包括 Electrical Engineering 和 Computer Science，所以这些数字不能全部算作纯 EE 课程。",
+      "4": [
+        "turn724140search0",
+        "turn724140search3"
+      ],
+      "5": "624eac0f-78cb-533b-95ff-98c4c916401a",
+      "6": "下面按专业方向分类。所有课程都附 MIT 官方链接，方便你直接查看教学资料。",
+      "7": "1. 基础电路、模拟电子与半导体",
+      "8": "这是与你现在的 QCC EE-204、ET-110 联系最直接的一组。",
+      "9": "MIT 课程",
+      "10": "主要内容",
+      "11": "官方层级",
+      "12": "25bfac6e-fbcd-5e68-a028-1e13eb99de53",
+      "13": "6.002 — Circuits and Electronics",
+      "14": "KVL、KCL、MOSFET、RC/RLC、放大器",
+      "15": "本科",
+      "16": "dedf923e-efb9-5796-821d-1bd07d4a9183",
+      "17": "6.101 — Analog Electronics Lab",
+      "18": "二极管、晶体管、运放、音频放大器、实验设计",
+      "19": "本科",
+      "20": "4ddbf0e3-3cd8-5180-91fb-b24f383fd167",
+      "21": "6.012 — Microelectronic Devices and Circuits",
+      "22": "半导体物理、PN 结、BJT、MOSFET、电路设计",
+      "23": "本科",
+      "24": "3e979f04-30fe-57ef-933b-57fafb04a40e",
+      "25": "6.301 — Solid-State Circuits",
+      "26": "模拟晶体管电路分析与设计",
+      "27": "研究生",
+      "28": "a517026a-f527-57b2-baac-bce3110104a1",
+      "29": "6.720J — Integrated Microelectronic Devices",
+      "30": "半导体器件物理、MOS 结构、器件缩放",
+      "31": "高阶课程",
+      "32": "这些课程不是单纯教你计算电压、电流，而是逐渐转向如何利用电子器件设计真正有功能的电路，例如放大器、信号调理电路和集成电路。",
+      "33": [
+        "turn724140search11",
+        "turn892002search4",
+        "turn724140search15",
+        "turn333193search17",
+        "turn333193search14"
+      ],
+      "34": "942d2c4a-6ecd-545a-a687-b8420b25b9e3",
+      "35": "2. 数字电路与计算机硬件",
+      "36": "这组课程属于 EE 与 Computer Engineering 的交叉领域，重点是从晶体管、逻辑门一步步构建数字系统。",
+      "37": "MIT 课程",
+      "38": "主要内容",
+      "39": "官方层级",
+      "40": "9585d04c-d99c-5f6a-b2c6-bf3666979b46",
+      "41": "6.004 — Computation Structures",
+      "42": "逻辑门、数字电路、计算机体系结构",
+      "43": "本科",
+      "44": "05cf746e-e22c-51fd-8ada-3bf559716798",
+      "45": "6.111 — Digital Systems Laboratory",
+      "46": "Verilog、FPGA、有限状态机、数字系统项目",
+      "47": "本科",
+      "48": "尤其是 6.111，其期末项目允许学生设计游戏、音乐系统、数字滤波器或图形系统，属于实践性很强的数字硬件课程。",
+      "49": [
+        "turn892002search13",
+        "turn737248search2"
+      ],
+      "50": "965e8727-dd6e-5984-99ee-d31eb3b63259",
+      "51": "3. 信号处理、通信与自动控制",
+      "52": "这一方向研究如何从信号中提取信息、传输信息，以及控制动态系统。数学要求明显高于基础电路。",
+      "53": "MIT 课程",
+      "54": "主要内容",
+      "55": "官方层级",
+      "56": "942925b5-27e4-5ff3-9291-fc0c09d4195d",
+      "57": "6.003 — Signals and Systems",
+      "58": "傅里叶变换、拉普拉斯变换、卷积、频率响应",
+      "59": "本科",
+      "60": "6b119e4f-0eba-5d21-8ea8-0c369eff09bd",
+      "61": "6.011 — Communication, Control, and Signal Processing",
+      "62": "状态空间、随机信号、滤波、估计与控制",
+      "63": "本科",
+      "64": "da68cac0-338f-5717-b6f3-9fc675fc56a6",
+      "65": "6.02 — Digital Communication Systems",
+      "66": "信息编码、纠错、数字信号与通信网络",
+      "67": "本科",
+      "68": "c88d4f3e-fbf8-526f-82ac-c1d65e780122",
+      "69": "6.302 — Feedback Systems",
+      "70": "反馈控制、系统稳定性、根轨迹、Nyquist",
+      "71": "研究生",
+      "72": "6d939b19-efb4-5292-b277-8c1d5ad36399",
+      "73": "6.450 — Digital Communications I",
+      "74": "调制、数字通信理论、信道与信号检测",
+      "75": "研究生",
+      "76": "其中 6.003 提供课程录像、讲义、题目和答案，特别适合在学过微分方程后系统学习。6.011 则明确要求学生先掌握信号与系统、概率和相关微分方程知识。",
+      "77": [
+        "turn737248search1",
+        "turn823703search18",
+        "turn724140search13",
+        "turn892002search0",
+        "turn333193search1"
+      ],
+      "78": "f6f56486-f9e8-5487-bada-8d928fdfc15f",
+      "79": "4. 电磁学、电机、电力与能源工程",
+      "80": "如果你更喜欢传统 EE，而不是计算机和软件方向，这一组尤其重要。",
+      "81": "MIT 课程",
+      "82": "主要内容",
+      "83": "官方层级",
+      "84": "f82ebf0b-3a04-5b06-b34f-494623e1176e",
+      "85": "6.007 — Electromagnetic Energy",
+      "86": "电机、发电机、能量转换、太阳能电池、激光",
+      "87": "本科",
+      "88": "603680ab-b931-5c50-b377-cd76edab4416",
+      "89": "6.013 — Electromagnetics and Applications",
+      "90": "Maxwell 方程、电磁波、天线、微波",
+      "91": "本科",
+      "92": "06d7d1bb-fb00-58e8-a6f9-bbaadef4bc04",
+      "93": "6.622 — Power Electronics",
+      "94": "功率变换、DC-DC 转换器、开关电源、控制",
+      "95": "研究生",
+      "96": "22506ba4-02f7-5bea-be51-62975e5baf7d",
+      "97": "6.685 — Electric Machines",
+      "98": "直流电机、永磁电机、感应电机、同步电机",
+      "99": "研究生",
+      "100": "这些课程的应用范围覆盖电动汽车驱动系统、发电设备、电力转换设备、天线与无线通信，以及电磁器件设计。",
+      "101": [
+        "turn892002search9",
+        "turn737248search19",
+        "turn724140search10",
+        "turn333193search5"
+      ],
+      "102": "4d343fcd-41df-5b74-81df-63c72367c41d",
+      "103": "这里有一门课程格外值得注意：",
+      "104": "a588d0a9-b3f2-5d84-b96a-e7dbc7573701",
+      "105": "06d7d1bb-fb00-58e8-a6f9-bbaadef4bc04",
+      "106": "MIT 6.622 — Power Electronics (2023)",
+      "107": "这是一门比较新的公开课程，不只是十几年前的老资料。课程包含 Lecture Videos、Lecture Notes、Problem Sets、Solutions、Exams 和 Design Assignments，比较适合将来系统自学。",
+      "108": "567c4e78-901e-511d-a9d6-a65480f3d154",
+      "109": "5. EE 必备的数学配套课程",
+      "110": "这些不属于 EECS 院系课程，但它们会决定你后续能不能真正理解高级 EE 内容。",
+      "111": "课程",
+      "112": "与 EE 的关系",
+      "113": "8ab4d161-5f8f-5a74-b71b-f6111dfa5e34",
+      "114": "18.03SC — Differential Equations",
+      "115": "RC/RLC 动态电路、控制系统、信号分析",
+      "116": "4291fe61-1e84-52ae-aaae-28778305eab1",
+      "117": "18.06SC — Linear Algebra",
+      "118": "多节点电路方程、状态空间、信号处理",
+      "119": "这两门都有课堂录像、习题讲解视频、作业及考试答案，尤其适合独立学习。",
+      "120": [
+        "turn823703search2",
+        "turn823703search0"
+      ],
+      "121": "77220593-0372-59ec-91ea-c8522e0f86d0",
+      "122": "6. 针对你的学习进度，应该怎样选择？",
+      "123": "将这些课程放到一条学习路径中，大致可以这样理解：",
+      "124": "目前阶段",
+      "125": "QCC EE-204 / ET-110",
+      "126": "电压、电流、电阻、KCL、KVL、电路基础",
+      "127": {
+        "size": 1,
+        "color": "#90b8eb"
+      },
+      "128": "MIT 6.002 — Circuits and Electronics",
+      "129": "系统建立电路分析与建模能力",
+      "130": "6.012 / 6.101",
+      "131": "模拟电路、半导体、实验设计",
+      "132": "6.003 / 6.004",
+      "133": "信号系统、数字硬件",
+      "134": "示意学习路线，并非 MIT 官方先修课程关系图。",
+      "135": "现在不需要一次学习这么多门。按照你正在学的 EE-204、ET-110，以及微分方程的进度，先以 6.002 为主、18.03SC 为数学辅助，等基础扎实后再决定往模拟电子、数字硬件还是电力工程发展，会比较有效率。",
+      "136": "查找其他 EE 课程：",
+      "137": " ",
+      "138": "MIT OCW — Electrical Engineering 主题筛选",
+      "139": "f3e17744-be81-551a-bdda-848c99ead064",
+      "140": "。这个入口比直接浏览整个 EECS 院系更接近纯电气工程课程。",
+      "141": "MIT OCW 的真正优势不仅是提供了很多本科高年级和研究生课程，而是让你能够沿着某一个 EE 专业方向持续深入，从基础理论一直学习到专业设计与系统分析。"
+    },
+    "fallbackMarkdown": "MIT OpenCourseWare（MIT OCW）在 Electrical Engineering（EE，电气工程）方面的课程相当丰富，**从基础电路、电路设计、半导体、数字硬件，一直到通信、信号处理、自动控制、电机与电力电子都有覆盖**。\n\n截至目前，MIT OCW 官方搜索页在 Electrical Engineering and Computer Science（EECS）院系列出了约 285 个课程条目，其中本科课程筛选结果约 135 个。不过，EECS 同时包括 Electrical Engineering 和 Computer Science，所以这些数字不能全部算作纯 EE 课程。citeturn724140search0turn724140search3\n\n下面按专业方向分类。所有课程都附 MIT 官方链接，方便你直接查看教学资料。\n\n## 1\\. 基础电路、模拟电子与半导体\n\n这是与你现在的 QCC EE-204、ET-110 联系最直接的一组。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|--------|--------|--------|\n| url6.002 — Circuits and Electronicshttps://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/ | KVL、KCL、MOSFET、RC/RLC、放大器 | 本科 |\n| url6.101 — Analog Electronics Labhttps://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/ | 二极管、晶体管、运放、音频放大器、实验设计 | 本科 |\n| url6.012 — Microelectronic Devices and Circuitshttps://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/ | 半导体物理、PN 结、BJT、MOSFET、电路设计 | 本科 |\n| url6.301 — Solid-State Circuitshttps://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/ | 模拟晶体管电路分析与设计 | 研究生 |\n| url6.720J — Integrated Microelectronic Deviceshttps://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/ | 半导体器件物理、MOS 结构、器件缩放 | 高阶课程 |\n\n这些课程不是单纯教你计算电压、电流，而是逐渐转向如何利用电子器件设计真正有功能的电路，例如放大器、信号调理电路和集成电路。citeturn724140search11turn892002search4turn724140search15turn333193search17turn333193search14\n\n## 2\\. 数字电路与计算机硬件\n\n这组课程属于 EE 与 Computer Engineering 的交叉领域，重点是从晶体管、逻辑门一步步构建数字系统。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|--------|--------|--------|\n| url6.004 — Computation Structureshttps://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/ | 逻辑门、数字电路、计算机体系结构 | 本科 |\n| url6.111 — Digital Systems Laboratoryhttps://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/ | Verilog、FPGA、有限状态机、数字系统项目 | 本科 |\n\n尤其是 6.111，其期末项目允许学生设计游戏、音乐系统、数字滤波器或图形系统，属于实践性很强的数字硬件课程。citeturn892002search13turn737248search2\n\n## 3\\. 信号处理、通信与自动控制\n\n这一方向研究如何从信号中提取信息、传输信息，以及控制动态系统。数学要求明显高于基础电路。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|--------|--------|--------|\n| url6.003 — Signals and Systemshttps://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/ | 傅里叶变换、拉普拉斯变换、卷积、频率响应 | 本科 |\n| url6.011 — Communication, Control, and Signal Processinghttps://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/ | 状态空间、随机信号、滤波、估计与控制 | 本科 |\n| url6.02 — Digital Communication Systemshttps://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/ | 信息编码、纠错、数字信号与通信网络 | 本科 |\n| url6.302 — Feedback Systemshttps://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/ | 反馈控制、系统稳定性、根轨迹、Nyquist | 研究生 |\n| url6.450 — Digital Communications Ihttps://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/ | 调制、数字通信理论、信道与信号检测 | 研究生 |\n\n其中 6.003 提供课程录像、讲义、题目和答案，特别适合在学过微分方程后系统学习。6.011 则明确要求学生先掌握信号与系统、概率和相关微分方程知识。citeturn737248search1turn823703search18turn724140search13turn892002search0turn333193search1\n\n## 4\\. 电磁学、电机、电力与能源工程\n\n如果你更喜欢传统 EE，而不是计算机和软件方向，这一组尤其重要。\n\n| MIT 课程 | 主要内容 | 官方层级 |\n|--------|--------|--------|\n| url6.007 — Electromagnetic Energyhttps://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/ | 电机、发电机、能量转换、太阳能电池、激光 | 本科 |\n| url6.013 — Electromagnetics and Applicationshttps://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/ | Maxwell 方程、电磁波、天线、微波 | 本科 |\n| url6.622 — Power Electronicshttps://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/ | 功率变换、DC-DC 转换器、开关电源、控制 | 研究生 |\n| url6.685 — Electric Machineshttps://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/ | 直流电机、永磁电机、感应电机、同步电机 | 研究生 |\n\n这些课程的应用范围覆盖电动汽车驱动系统、发电设备、电力转换设备、天线与无线通信，以及电磁器件设计。citeturn892002search9turn737248search19turn724140search10turn333193search5\n\n这里有一门课程格外值得注意：\n\nimage_group{\"query\":[\"MIT David Perreault power electronics MIT 6.622 lecture electrical power converter classroom\"],\"aspect_ratio\":\"4:3\",\"layout\":\"carousel\",\"num_per_query\":1}\n\n**urlMIT 6.622 — Power Electronics (2023)https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/**\n\n这是一门比较新的公开课程，不只是十几年前的老资料。课程包含 Lecture Videos、Lecture Notes、Problem Sets、Solutions、Exams 和 Design Assignments，比较适合将来系统自学。citeturn724140search10\n\n## 5\\. EE 必备的数学配套课程\n\n这些不属于 EECS 院系课程，但它们会决定你后续能不能真正理解高级 EE 内容。\n\n| 课程 | 与 EE 的关系 |\n|--------|--------|\n| url18.03SC — Differential Equationshttps://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/ | RC/RLC 动态电路、控制系统、信号分析 |\n| url18.06SC — Linear Algebrahttps://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/ | 多节点电路方程、状态空间、信号处理 |\n\n这两门都有课堂录像、习题讲解视频、作业及考试答案，尤其适合独立学习。citeturn823703search2turn823703search0\n\n## 6\\. 针对你的学习进度，应该怎样选择？\n\n将这些课程放到一条学习路径中，大致可以这样理解：\n\n(目前阶段)\n\n**QCC EE-204 / ET-110**\n\n电压、电流、电阻、KCL、KVL、电路基础\n\n**MIT 6.002 — Circuits and Electronics**\n\n系统建立电路分析与建模能力\n\n**6.012 / 6.101**\n\n模拟电路、半导体、实验设计\n\n**6.003 / 6.004**\n\n信号系统、数字硬件\n\n示意学习路线，并非 MIT 官方先修课程关系图。\n\n现在不需要一次学习这么多门。按照你正在学的 EE-204、ET-110，以及微分方程的进度，先以 6.002 为主、18.03SC 为数学辅助，等基础扎实后再决定往模拟电子、数字硬件还是电力工程发展，会比较有效率。\n\n**查找其他 EE 课程：** urlMIT OCW — Electrical Engineering 主题筛选https://ocw.mit.edu/search/?t=Electrical+Engineering。这个入口比直接浏览整个 EECS 院系更接近纯电气工程课程。\n\nMIT OCW 的真正优势不仅是提供了很多本科高年级和研究生课程，而是让你能够沿着某一个 EE 专业方向持续深入，从基础理论一直学习到专业设计与系统分析。",
+    "fallbackMarkdownVersion": 1,
+    "requiredComponents": [
+      "AsyncImage",
+      "Cite",
+      "Link"
+    ],
+    "appData": {
+      "opGenui": {
+        "componentResults": {
+          "25bfac6e-fbcd-5e68-a028-1e13eb99de53": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/"
+            ],
+            "componentName": "Link"
+          },
+          "dedf923e-efb9-5796-821d-1bd07d4a9183": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/"
+            ],
+            "componentName": "Link"
+          },
+          "4ddbf0e3-3cd8-5180-91fb-b24f383fd167": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/"
+            ],
+            "componentName": "Link"
+          },
+          "3e979f04-30fe-57ef-933b-57fafb04a40e": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/"
+            ],
+            "componentName": "Link"
+          },
+          "a517026a-f527-57b2-baac-bce3110104a1": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/"
+            ],
+            "componentName": "Link"
+          },
+          "9585d04c-d99c-5f6a-b2c6-bf3666979b46": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/"
+            ],
+            "componentName": "Link"
+          },
+          "05cf746e-e22c-51fd-8ada-3bf559716798": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/"
+            ],
+            "componentName": "Link"
+          },
+          "942925b5-27e4-5ff3-9291-fc0c09d4195d": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/"
+            ],
+            "componentName": "Link"
+          },
+          "6b119e4f-0eba-5d21-8ea8-0c369eff09bd": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/"
+            ],
+            "componentName": "Link"
+          },
+          "da68cac0-338f-5717-b6f3-9fc675fc56a6": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/"
+            ],
+            "componentName": "Link"
+          },
+          "c88d4f3e-fbf8-526f-82ac-c1d65e780122": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/"
+            ],
+            "componentName": "Link"
+          },
+          "6d939b19-efb4-5292-b277-8c1d5ad36399": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/"
+            ],
+            "componentName": "Link"
+          },
+          "f82ebf0b-3a04-5b06-b34f-494623e1176e": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/"
+            ],
+            "componentName": "Link"
+          },
+          "603680ab-b931-5c50-b377-cd76edab4416": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/"
+            ],
+            "componentName": "Link"
+          },
+          "06d7d1bb-fb00-58e8-a6f9-bbaadef4bc04": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/"
+            ],
+            "componentName": "Link"
+          },
+          "22506ba4-02f7-5bea-be51-62975e5baf7d": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/"
+            ],
+            "componentName": "Link"
+          },
+          "a588d0a9-b3f2-5d84-b96a-e7dbc7573701": {
+            "status": "resolved",
+            "state": {
+              "frame_aspect_ratio": "4:3",
+              "frame_width": "100%",
+              "frame_max_width": "164px",
+              "frame_height": "auto",
+              "max_height": null,
+              "presentation": {
+                "min_width": "0px",
+                "min_height": null,
+                "radius": "xl",
+                "frame": true
+              },
+              "has_fallback": false,
+              "image_fit": "cover",
+              "is_loading": false,
+              "images": [
+                {
+                  "url": "https://www.classcentral.com/course/youtube-mit-6-622-power-electronics-spring-2023-512404",
+                  "content_url": "https://images.openai.com/static-rsc-4/BcgZePhMvLIja6yvhVTn_BxKiEcjFnLufIPB1L2BEe6tJp51hjgSPNJ0FlYIdzu2CYFFVKmJn18ZVOtsKe7j716pjjqzpfzQQqeFpaU2sn9g_G6VAvD15ye1xvFsuYd5z8NbgA4W_TNtqwghNA5a94LNcZuXvhDSXNHgBfeK37wM_HhRt0HKgS-PrhfCDrkI?purpose=fullsize",
+                  "thumbnail_url": "https://images.openai.com/static-rsc-4/TDklmHYjFeNcpAlsqc5iHBcKYUZz86sM3QNSyZ7R2SRPoGDhQXLaz0jKNnbOSh1Uw4DSrUOVnCR7OenzTwBfX1hVkxb2q_EOA-d4sfsK4J3ZyF9pIOSIx47GvGvxJQf4sA1E1otxGuiGkcA6bfH0KDG23unT2sl2ojHHUwLMFJM?purpose=inline",
+                  "original_content_url": "https://d3f1iyfxxz8i1e.cloudfront.net/courses/course_image/259285458450.jpg",
+                  "save_target": "image",
+                  "title": "Free Video: Power Electronics - MIT 6.622 Spring 2023 from MIT OpenCourseWare | Class Central",
+                  "show_url": true,
+                  "content_size": {
+                    "width": 640,
+                    "height": 480
+                  },
+                  "thumbnail_size": {
+                    "width": 640,
+                    "height": 480
+                  },
+                  "thumbnail_crop_info": {
+                    "center_x_percent": 0.2234375,
+                    "center_y_percent": 0.24166666666666667
+                  },
+                  "shop_eligible": false
+                }
+              ],
+              "default_on_click_action": null
+            },
+            "safe_urls": [
+              "https://www.classcentral.com/course/youtube-mit-6-622-power-electronics-spring-2023-512404",
+              "https://images.openai.com/static-rsc-4/BcgZePhMvLIja6yvhVTn_BxKiEcjFnLufIPB1L2BEe6tJp51hjgSPNJ0FlYIdzu2CYFFVKmJn18ZVOtsKe7j716pjjqzpfzQQqeFpaU2sn9g_G6VAvD15ye1xvFsuYd5z8NbgA4W_TNtqwghNA5a94LNcZuXvhDSXNHgBfeK37wM_HhRt0HKgS-PrhfCDrkI?purpose=fullsize",
+              "https://images.openai.com/static-rsc-4/TDklmHYjFeNcpAlsqc5iHBcKYUZz86sM3QNSyZ7R2SRPoGDhQXLaz0jKNnbOSh1Uw4DSrUOVnCR7OenzTwBfX1hVkxb2q_EOA-d4sfsK4J3ZyF9pIOSIx47GvGvxJQf4sA1E1otxGuiGkcA6bfH0KDG23unT2sl2ojHHUwLMFJM?purpose=inline"
+            ],
+            "componentName": "AsyncImage"
+          },
+          "8ab4d161-5f8f-5a74-b71b-f6111dfa5e34": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/"
+            ],
+            "componentName": "Link"
+          },
+          "4291fe61-1e84-52ae-aaae-28778305eab1": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/",
+              "title": "ocw.mit.edu",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "",
+              "title_last_word": "ocw.mit.edu"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/"
+            ],
+            "componentName": "Link"
+          },
+          "f3e17744-be81-551a-bdda-848c99ead064": {
+            "status": "resolved",
+            "state": {
+              "url": "https://ocw.mit.edu/search/?t=Electrical+Engineering",
+              "title": "MIT OCW — Electrical Engineering 主题筛选",
+              "source_label": "ocw.mit.edu",
+              "domain": "ocw.mit.edu",
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "MIT OCW — Electrical Engineering",
+              "title_last_word": "主题筛选"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/search/?t=Electrical+Engineering"
+            ],
+            "componentName": "Link"
+          },
+          "624eac0f-78cb-533b-95ff-98c4c916401a": {
+            "status": "resolved",
+            "state": {
+              "items": [
+                {
+                  "url": "https://ocw.mit.edu/search/",
+                  "ref_id": "turn724140search0",
+                  "refs": [
+                    {
+                      "turn_index": 724140,
+                      "ref_type": "search",
+                      "ref_index": 0
+                    }
+                  ],
+                  "source_label": "Free Online Course Materials",
+                  "title": "Search | MIT OpenCourseWare",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/search/?l=Undergraduate",
+                  "ref_id": "turn724140search3",
+                  "refs": [
+                    {
+                      "turn_index": 724140,
+                      "ref_type": "search",
+                      "ref_index": 3
+                    }
+                  ],
+                  "source_label": "Free Online Course Materials",
+                  "title": "Search | MIT OpenCourseWare",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                }
+              ],
+              "active_index": 0,
+              "sources_title": "2 Sources"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/search/",
+              "https://ocw.mit.edu/search/?l=Undergraduate"
+            ],
+            "componentName": "Cite"
+          },
+          "942d2c4a-6ecd-545a-a687-b8420b25b9e3": {
+            "status": "resolved",
+            "state": {
+              "items": [
+                {
+                  "url": "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/",
+                  "ref_id": "turn724140search11",
+                  "refs": [
+                    {
+                      "turn_index": 724140,
+                      "ref_type": "search",
+                      "ref_index": 11
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Circuits and Electronics | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/",
+                  "ref_id": "turn892002search4",
+                  "refs": [
+                    {
+                      "turn_index": 892002,
+                      "ref_type": "search",
+                      "ref_index": 4
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Introductory Analog Electronics Laboratory | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/",
+                  "ref_id": "turn724140search15",
+                  "refs": [
+                    {
+                      "turn_index": 724140,
+                      "ref_type": "search",
+                      "ref_index": 15
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Microelectronic Devices and Circuits | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/",
+                  "ref_id": "turn333193search17",
+                  "refs": [
+                    {
+                      "turn_index": 333193,
+                      "ref_type": "search",
+                      "ref_index": 17
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Solid-State Circuits | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/",
+                  "ref_id": "turn333193search14",
+                  "refs": [
+                    {
+                      "turn_index": 333193,
+                      "ref_type": "search",
+                      "ref_index": 14
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Integrated Microelectronic Devices | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                }
+              ],
+              "active_index": 0,
+              "sources_title": "5 Sources"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-002-circuits-and-electronics-spring-2007/",
+              "https://ocw.mit.edu/courses/6-101-introductory-analog-electronics-laboratory-spring-2007/",
+              "https://ocw.mit.edu/courses/6-012-microelectronic-devices-and-circuits-spring-2009/",
+              "https://ocw.mit.edu/courses/6-301-solid-state-circuits-fall-2010/",
+              "https://ocw.mit.edu/courses/6-720j-integrated-microelectronic-devices-spring-2007/"
+            ],
+            "componentName": "Cite"
+          },
+          "965e8727-dd6e-5984-99ee-d31eb3b63259": {
+            "status": "resolved",
+            "state": {
+              "items": [
+                {
+                  "url": "https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/",
+                  "ref_id": "turn892002search13",
+                  "refs": [
+                    {
+                      "turn_index": 892002,
+                      "ref_type": "search",
+                      "ref_index": 13
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Computation Structures | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/",
+                  "ref_id": "turn737248search2",
+                  "refs": [
+                    {
+                      "turn_index": 737248,
+                      "ref_type": "search",
+                      "ref_index": 2
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Introductory Digital Systems Laboratory | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                }
+              ],
+              "active_index": 0,
+              "sources_title": "2 Sources"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/",
+              "https://ocw.mit.edu/courses/6-111-introductory-digital-systems-laboratory-spring-2006/"
+            ],
+            "componentName": "Cite"
+          },
+          "f6f56486-f9e8-5487-bada-8d928fdfc15f": {
+            "status": "resolved",
+            "state": {
+              "items": [
+                {
+                  "url": "https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/",
+                  "ref_id": "turn737248search1",
+                  "refs": [
+                    {
+                      "turn_index": 737248,
+                      "ref_type": "search",
+                      "ref_index": 1
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Signals and Systems | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/pages/syllabus/",
+                  "ref_id": "turn823703search18",
+                  "refs": [
+                    {
+                      "turn_index": 823703,
+                      "ref_type": "search",
+                      "ref_index": 18
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Syllabus | Introduction to Communication, Control, and Signal Processing | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/pages/syllabus/",
+                  "ref_id": "turn724140search13",
+                  "refs": [
+                    {
+                      "turn_index": 724140,
+                      "ref_type": "search",
+                      "ref_index": 13
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Syllabus | Introduction to EECS II: Digital Communication Systems | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/",
+                  "ref_id": "turn892002search0",
+                  "refs": [
+                    {
+                      "turn_index": 892002,
+                      "ref_type": "search",
+                      "ref_index": 0
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Feedback Systems | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/",
+                  "ref_id": "turn333193search1",
+                  "refs": [
+                    {
+                      "turn_index": 333193,
+                      "ref_type": "search",
+                      "ref_index": 1
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Principles of Digital Communications I | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                }
+              ],
+              "active_index": 0,
+              "sources_title": "5 Sources"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-003-signals-and-systems-fall-2011/",
+              "https://ocw.mit.edu/courses/6-011-introduction-to-communication-control-and-signal-processing-spring-2010/pages/syllabus/",
+              "https://ocw.mit.edu/courses/6-02-introduction-to-eecs-ii-digital-communication-systems-fall-2012/pages/syllabus/",
+              "https://ocw.mit.edu/courses/6-302-feedback-systems-spring-2007/",
+              "https://ocw.mit.edu/courses/6-450-principles-of-digital-communications-i-fall-2006/"
+            ],
+            "componentName": "Cite"
+          },
+          "4d343fcd-41df-5b74-81df-63c72367c41d": {
+            "status": "resolved",
+            "state": {
+              "items": [
+                {
+                  "url": "https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/",
+                  "ref_id": "turn892002search9",
+                  "refs": [
+                    {
+                      "turn_index": 892002,
+                      "ref_type": "search",
+                      "ref_index": 9
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Electromagnetic Energy: From Motors to Lasers | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/",
+                  "ref_id": "turn737248search19",
+                  "refs": [
+                    {
+                      "turn_index": 737248,
+                      "ref_type": "search",
+                      "ref_index": 19
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Electromagnetics and Applications | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/",
+                  "ref_id": "turn724140search10",
+                  "refs": [
+                    {
+                      "turn_index": 724140,
+                      "ref_type": "search",
+                      "ref_index": 10
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Power Electronics | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/",
+                  "ref_id": "turn333193search5",
+                  "refs": [
+                    {
+                      "turn_index": 333193,
+                      "ref_type": "search",
+                      "ref_index": 5
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Electric Machines | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                }
+              ],
+              "active_index": 0,
+              "sources_title": "4 Sources"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-007-electromagnetic-energy-from-motors-to-lasers-spring-2011/",
+              "https://ocw.mit.edu/courses/6-013-electromagnetics-and-applications-spring-2009/",
+              "https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/",
+              "https://ocw.mit.edu/courses/6-685-electric-machines-fall-2013/"
+            ],
+            "componentName": "Cite"
+          },
+          "567c4e78-901e-511d-a9d6-a65480f3d154": {
+            "status": "resolved",
+            "state": {
+              "items": [
+                {
+                  "url": "https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/",
+                  "ref_id": "turn724140search10",
+                  "refs": [
+                    {
+                      "turn_index": 724140,
+                      "ref_type": "search",
+                      "ref_index": 10
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Power Electronics | Electrical Engineering and Computer Science",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                }
+              ],
+              "active_index": 0,
+              "sources_title": "1 Source"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/6-622-power-electronics-spring-2023/"
+            ],
+            "componentName": "Cite"
+          },
+          "77220593-0372-59ec-91ea-c8522e0f86d0": {
+            "status": "resolved",
+            "state": {
+              "items": [
+                {
+                  "url": "https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/",
+                  "ref_id": "turn823703search2",
+                  "refs": [
+                    {
+                      "turn_index": 823703,
+                      "ref_type": "search",
+                      "ref_index": 2
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Differential Equations | Mathematics",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                },
+                {
+                  "url": "https://www.ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/",
+                  "ref_id": "turn823703search0",
+                  "refs": [
+                    {
+                      "turn_index": 823703,
+                      "ref_type": "search",
+                      "ref_index": 0
+                    }
+                  ],
+                  "source_label": "MIT OpenCourseWare",
+                  "title": "Linear Algebra | Mathematics",
+                  "snippet": null,
+                  "pub_timestamp": null,
+                  "metadata_label": null
+                }
+              ],
+              "active_index": 0,
+              "sources_title": "2 Sources"
+            },
+            "safe_urls": [
+              "https://ocw.mit.edu/courses/18-03sc-differential-equations-fall-2011/",
+              "https://www.ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/"
+            ],
+            "componentName": "Cite"
+          }
+        },
+        "interactionSurface": "mainline",
+        "modelDataBindings": {}
+      }
+    }
+  },
+  "contentReferences": []
+}
