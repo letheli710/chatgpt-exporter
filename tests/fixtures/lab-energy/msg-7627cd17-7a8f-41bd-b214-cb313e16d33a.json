@@ -1,0 +1,52 @@
+{
+  "messageId": "7627cd17-7a8f-41bd-b214-cb313e16d33a",
+  "format": "model_dil_v2",
+  "source": "Canvas（画布）目前已停用，无法直接打开。我改用 ChatGPT 的可编辑文档形式呈现，保留标题、小标题、列表和表格。\n\n<WritingBlock id=\"58314\" variant=\"document\"># 能量饮料与学习效率\n\n## 一、能量饮料如何影响学习？\n\n能量饮料通常含有咖啡因，能够在短时间内提高警觉性、缓解困倦，因此受到部分学生欢迎。例如，一罐 473 mL 的 Monster Ultra Strawberry Dreams 含有约 150 mg 咖啡因。\n\n然而，**短暂清醒并不等于学习效率真正提高**。过量摄入咖啡因可能导致心悸、焦虑或睡眠质量下降，进而影响第二天的记忆与注意力。\n\n## 二、提高学习效率的建议\n\n- **合理安排时间**：采用番茄工作法，学习 25 分钟后短暂休息。\n- **控制咖啡因摄入**：避免临近睡觉时饮用能量饮料。\n- **保证充足睡眠**：优先建立规律作息，而不是依赖饮料提神。\n\n## 三、不同学习方式的比较\n\n| 学习方式 | 短期效果 | 潜在问题 |\n|---|---|---|\n| 饮用能量饮料 | 暂时提高警觉性 | 可能影响睡眠 |\n| 规律休息 | 缓解疲劳 | 需要时间管理 |\n| 充足睡眠 | 支持记忆与专注 | 需要稳定作息 |\n\n## 四、结论\n\n能量饮料可以作为偶尔提神的辅助工具，但不能替代睡眠、营养与科学的学习计划。长期而言，稳定的学习习惯比依赖咖啡因更可靠。\n\n**真正的学习效率来自持续的专注，而不是单纯延长清醒时间。**</WritingBlock>",
+  "staticMarkdown": "Canvas（画布）目前已停用，无法直接打开。我改用 ChatGPT 的可编辑文档形式呈现，保留标题、小标题、列表和表格。\n\n\u0000APPBLOCK:90c63663-7144-5241-a4f1-0af993ed7de6\u0000",
+  "renderError": null,
+  "appBlocks": [],
+  "localAssets": {},
+  "dil": {
+    "code": "DIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});return __dil.jsx(__dil.Fragment,null,__dil.jsx(\"text\",null,__dilConstants[\"0\"]),(__dilConstants[\"2\"]==null?__dil.jsx(\"__chatgptClientDefinedWidget\",{\"key\":\"cdw:0\",\"invocationId\":__dilConstants[\"1\"]}):__dilConstants[\"2\"].type===\"math\"?__dil.jsx(\"math\",{\"key\":\"cdw:0\",\"value\":__dilConstants[\"2\"].value}):__dilConstants[\"2\"].type===\"text\"?__dil.jsx(\"text\",{\"key\":\"cdw:0\"},__dilConstants[\"2\"].value):null));},{\"key\":\"body:0\"}));",
+    "constants": {
+      "0": "Canvas（画布）目前已停用，无法直接打开。我改用 ChatGPT 的可编辑文档形式呈现，保留标题、小标题、列表和表格。",
+      "1": "90c63663-7144-5241-a4f1-0af993ed7de6",
+      "2": null
+    },
+    "fallbackMarkdown": "Canvas（画布）目前已停用，无法直接打开。我改用 ChatGPT 的可编辑文档形式呈现，保留标题、小标题、列表和表格。\n\n:::writing{variant=\"document\" id=\"58314\"}\n# 能量饮料与学习效率\n\n## 一、能量饮料如何影响学习？\n\n能量饮料通常含有咖啡因，能够在短时间内提高警觉性、缓解困倦，因此受到部分学生欢迎。例如，一罐 473 mL 的 Monster Ultra Strawberry Dreams 含有约 150 mg 咖啡因。\n\n然而，**短暂清醒并不等于学习效率真正提高**。过量摄入咖啡因可能导致心悸、焦虑或睡眠质量下降，进而影响第二天的记忆与注意力。\n\n## 二、提高学习效率的建议\n\n- **合理安排时间**：采用番茄工作法，学习 25 分钟后短暂休息。\n- **控制咖啡因摄入**：避免临近睡觉时饮用能量饮料。\n- **保证充足睡眠**：优先建立规律作息，而不是依赖饮料提神。\n\n## 三、不同学习方式的比较\n\n| 学习方式 | 短期效果 | 潜在问题 |\n|---|---|---|\n| 饮用能量饮料 | 暂时提高警觉性 | 可能影响睡眠 |\n| 规律休息 | 缓解疲劳 | 需要时间管理 |\n| 充足睡眠 | 支持记忆与专注 | 需要稳定作息 |\n\n## 四、结论\n\n能量饮料可以作为偶尔提神的辅助工具，但不能替代睡眠、营养与科学的学习计划。长期而言，稳定的学习习惯比依赖咖啡因更可靠。\n\n**真正的学习效率来自持续的专注，而不是单纯延长清醒时间。**\n:::",
+    "fallbackMarkdownVersion": 1,
+    "clientDefinedWidgets": {
+      "90c63663-7144-5241-a4f1-0af993ed7de6": {
+        "status": "resolved",
+        "refIndex": 0,
+        "isStreaming": false
+      }
+    },
+    "appData": {
+      "opGenui": {
+        "componentResults": {},
+        "interactionSurface": "mainline",
+        "modelDataBindings": {}
+      }
+    }
+  },
+  "contentReferences": [
+    {
+      "type": "client_defined_widget",
+      "category": "writing_block",
+      "data": {
+        "content": "# 能量饮料与学习效率\n\n## 一、能量饮料如何影响学习？\n\n能量饮料通常含有咖啡因，能够在短时间内提高警觉性、缓解困倦，因此受到部分学生欢迎。例如，一罐 473 mL 的 Monster Ultra Strawberry Dreams 含有约 150 mg 咖啡因。\n\n然而，**短暂清醒并不等于学习效率真正提高**。过量摄入咖啡因可能导致心悸、焦虑或睡眠质量下降，进而影响第二天的记忆与注意力。\n\n## 二、提高学习效率的建议\n\n- **合理安排时间**：采用番茄工作法，学习 25 分钟后短暂休息。\n- **控制咖啡因摄入**：避免临近睡觉时饮用能量饮料。\n- **保证充足睡眠**：优先建立规律作息，而不是依赖饮料提神。\n\n## 三、不同学习方式的比较\n\n| 学习方式 | 短期效果 | 潜在问题 |\n|---|---|---|\n| 饮用能量饮料 | 暂时提高警觉性 | 可能影响睡眠 |\n| 规律休息 | 缓解疲劳 | 需要时间管理 |\n| 充足睡眠 | 支持记忆与专注 | 需要稳定作息 |\n\n## 四、结论\n\n能量饮料可以作为偶尔提神的辅助工具，但不能替代睡眠、营养与科学的学习计划。长期而言，稳定的学习习惯比依赖咖啡因更可靠。\n\n**真正的学习效率来自持续的专注，而不是单纯延长清醒时间。**",
+        "id": "58314",
+        "variant": "document",
+        "widget_type": "writing_block"
+      },
+      "matched_text": ":::writing{variant=\"document\" id=\"58314\"}\n# 能量饮料与学习效率\n\n## 一、能量饮料如何影响学习？\n\n能量饮料通常含有咖啡因，能够在短时间内提高警觉性、缓解困倦，因此受到部分学生欢迎。例如，一罐 473 mL 的 Monster Ultra Strawberry Dreams 含有约 150 mg 咖啡因。\n\n然而，**短暂清醒并不等于学习效率真正提高**。过量摄入咖啡因可能导致心悸、焦虑或睡眠质量下降，进而影响第二天的记忆与注意力。\n\n## 二、提高学习效率的建议\n\n- **合理安排时间**：采用番茄工作法，学习 25 分钟后短暂休息。\n- **控制咖啡因摄入**：避免临近睡觉时饮用能量饮料。\n- **保证充足睡眠**：优先建立规律作息，而不是依赖饮料提神。\n\n## 三、不同学习方式的比较\n\n| 学习方式 | 短期效果 | 潜在问题 |\n|---|---|---|\n| 饮用能量饮料 | 暂时提高警觉性 | 可能影响睡眠 |\n| 规律休息 | 缓解疲劳 | 需要时间管理 |\n| 充足睡眠 | 支持记忆与专注 | 需要稳定作息 |\n\n## 四、结论\n\n能量饮料可以作为偶尔提神的辅助工具，但不能替代睡眠、营养与科学的学习计划。长期而言，稳定的学习习惯比依赖咖啡因更可靠。\n\n**真正的学习效率来自持续的专注，而不是单纯延长清醒时间。**\n:::",
+      "start_idx": 63,
+      "end_idx": 663,
+      "safe_urls": [],
+      "refs": [],
+      "alt": null,
+      "prompt_text": null
+    }
+  ]
+}

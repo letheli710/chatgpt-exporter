@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.6';
+  const version='0.8.7';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -59,7 +59,7 @@
     return `![交互卡片](${path})${text}`;
   }).filter(Boolean).join('\n\n');}
   const blocksOf=m=>dilRender&&m.dil?dilRender.appBlocks(m.dil,m.contentReferences):[];
-  const widgetToken=/\u0000APPBLOCK:([^\u0000]*)\u0000/g;
+  const widgetToken=/\u0000APPBLOCK:([^\u0000]*)\u0000/g,sandboxLink=/\]\((sandbox:\/[^)\s]+)\)/g;
   async function send(message){const response=await chrome.runtime.sendMessage(message);if(response?.error)throw Error(response.error);return response;}
   async function captureData(){assertCurrent();await auto.pause(Math.max(0,720-(Date.now()-lastCapture)));controller.signal.throwIfAborted();const response=await send({type:'archive:capture'});lastCapture=Date.now();return response.data;}
   const captureOptions=()=>({doc:document,signal:controller.signal,capture:captureData,hide:()=>host.hidden=true,show:()=>host.hidden=false});
@@ -83,7 +83,7 @@
     }};
     if(visual?.withScrollRestore&&live)await visual.withScrollRestore(document,prepare);else await prepare();
     if(zip)await attachData(messages,assets,warnings);
-    else for(const m of messages)m.md=m.md.replace(/!\[[^\]]*\]\(asset:[\w-]+\)/g,'〔图片：下载 ZIP 可获取原图〕').replace(widgetToken,(_,id)=>`〔嵌入应用：${blocksOf(m).find(b=>b.invocationId===id)?.title||id}（下载 ZIP 可获取独立 HTML）〕`);
+    else for(const m of messages)m.md=m.md.replace(/!\[[^\]]*\]\(asset:[\w-]+\)/g,'〔图片：下载 ZIP 可获取原图〕').replace(/\[([^\]]*)\]\(sandbox:\/[^)\s]+\)/g,'$1（代码生成的文件：下载 ZIP 可获取）').replace(widgetToken,(_,id)=>`〔嵌入应用：${blocksOf(m).find(b=>b.invocationId===id)?.title||id}（下载 ZIP 可获取独立 HTML）〕`);
     const data={...state,messages,warnings:[...new Set([...state.warnings.filter(w=>selected.some(id=>w.startsWith(`${id}:`))&&![...completed].some(id=>w.startsWith(`${id}:`))),...warnings])]};
     const md=api.markdown(data,selected,state.url);state.timings.prepareMs=performance.now()-started;
     return {md,assets,warnings:data.warnings,messages:selected};
@@ -94,10 +94,17 @@
     const signal=controller.signal,request=window.fetch.bind(window),safe=id=>String(id).replace(/[^\w-]/g,'_');
     const fileIds=messages.flatMap(m=>(m.images||[]).map(i=>i.fileId));
     if(fileIds.length)$('status').textContent=`正在下载 ${fileIds.length} 张原图……`;
-    const [files,uiData]=await Promise.all([
-      api.downloadFiles({ids:fileIds,conversationId:location.pathname.match(/\/c\/([^/]+)/)?.[1],fetch:request,signal,onProgress:p=>$('status').textContent=`正在下载原图 ${p.done}/${p.total}……`}),
-      Promise.all(messages.filter(m=>m.dil).map(async m=>({m,images:await api.downloadUrls({urls:api.dilImageUrls(m.dil),fetch:request,signal,prefix:`assets/ui-${safe(m.id)}-`})})))
+    const conversationId=location.pathname.match(/\/c\/([^/]+)/)?.[1];
+    // Files the code interpreter wrote, linked as sandbox:/mnt/data/... in the answer.
+    const sandboxItems=conversationId?messages.flatMap(m=>[...new Set([...m.md.matchAll(sandboxLink)].map(x=>x[1]))].map(link=>({messageId:m.id,link,path:decodeURIComponent(link.slice(8))}))):[];
+    const [files,uiData,codeFiles]=await Promise.all([
+      api.downloadFiles({ids:fileIds,conversationId,fetch:request,signal,onProgress:p=>$('status').textContent=`正在下载原图 ${p.done}/${p.total}……`}),
+      Promise.all(messages.filter(m=>m.dil).map(async m=>({m,images:await api.downloadUrls({urls:api.dilImageUrls(m.dil),fetch:request,signal,prefix:`assets/ui-${safe(m.id)}-`})}))),
+      api.downloadSandboxFiles({items:sandboxItems,conversationId,fetch:request,signal})
     ]);
+    for(const f of codeFiles){const m=messages.find(x=>x.id===f.messageId),item=sandboxItems.find(x=>x.messageId===f.messageId&&x.path===f.path);
+      if(f.blob)assets.push({path:f.localPath,blob:f.blob,messageId:f.messageId,kind:'code-file'});else warnings.push(`${f.messageId}: 代码文件 ${f.path} 下载失败（${f.error}），已保留原链接`);
+      if(f.blob)m.md=m.md.split(`](${item.link})`).join(`](${f.localPath})`);}
     const byId=new Map(files.map(f=>[f.fileId,f]));
     for(const f of files)if(f.blob)assets.push({path:f.path,blob:f.blob,messageId:messages.find(m=>(m.images||[]).some(i=>i.fileId===f.fileId))?.id,kind:'original-image'});
     for(const m of messages)m.md=m.md.replace(/!\[([^\]]*)\]\(asset:([\w-]+)\)/g,(_,alt,id)=>{const f=byId.get(id);if(f?.blob)return `![${alt}](${f.path})`;warnings.push(`${m.id}: 原图 ${id} 下载失败（${f?.error||'未知错误'}）`);return `〔原图 ${id} 下载失败〕`;});
@@ -123,7 +130,7 @@
       zip.file('manifest.json',JSON.stringify(manifest,null,2));blob=await zip.generateAsync({type:'blob'});
     }else blob=new Blob([result.md],{type:'text/markdown;charset=utf-8'});
     assertCurrent();const url=URL.createObjectURL(blob);try{await send({type:'archive:download',url,filename:filename(mode==='zip'?'zip':'md'),saveAs:$('saveAs').checked});}finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}}
-    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>a.kind==='card-image').length} 张卡片图、${result.assets.filter(a=>a.kind==='appblock').length} 个嵌入应用、${result.assets.filter(a=>!['original-image','ui-data','ui-image','appblock','card-image'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
+    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>a.kind==='card-image').length} 张卡片图、${result.assets.filter(a=>a.kind==='appblock').length} 个嵌入应用、${result.assets.some(a=>a.kind==='code-file')?`${result.assets.filter(a=>a.kind==='code-file').length} 个代码文件、`:''}${result.assets.filter(a=>!['original-image','ui-data','ui-image','appblock','card-image','code-file'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
   }catch(e){$('status').textContent=e.message;}finally{host.hidden=false;busy(false);}}
   $('reload').onclick=load;
   // Debug: the unmodified API response, to inspect model_dil_v2 and image fields.

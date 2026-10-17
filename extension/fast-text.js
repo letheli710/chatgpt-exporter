@@ -86,11 +86,28 @@
     md+=prose(text.slice(last));
     return {md,needsUI:uiReasons.size>0,needsTableUI,uiReasons:[...uiReasons]};
   }
+  function toolImages(message) {
+    const title = message.metadata?.image_gen_title, plots = message.metadata?.ada_visualizations;
+    const parts = (message.content?.parts || []).filter(p => fileIdOf(p?.asset_pointer)).map(p => ({fileId:fileIdOf(p.asset_pointer), width:p.width, height:p.height, alt:title ? `生成图片：${title}` : '生成图片'}));
+    const outputs = (message.metadata?.aggregate_result?.messages || []).filter(m => m?.message_type === 'image' && fileIdOf(m.image_url)).map((m, i) => ({fileId:fileIdOf(m.image_url), width:m.width, height:m.height, alt:`代码运行图表${plots?.[i]?.title ? `：${plots[i].title}` : ''}`}));
+    return [...parts, ...outputs].map(i => ({...i, alt:i.alt.replace(/[[\]\r\n]/g, ' ')}));
+  }
   function records(messages) {
     const warnings = [], result = [], seen = new Set();
     for (const message of messages) {
       if (!message) continue;
       const role = message.author?.role;
+      // Tool output is plumbing, except the images it shows in the conversation:
+      // generated images and code-interpreter plots.
+      if (role === 'tool') {
+        if (message.metadata?.is_visually_hidden_from_conversation || !message.id || seen.has(message.id)) continue;
+        const images = toolImages(message);
+        if (!images.length) continue;
+        seen.add(message.id);
+        const md = images.map(i => `![${i.alt}](asset:${i.fileId})`).join('\n\n');
+        result.push({id:message.id, role:'assistant', md, needsUI:false, needsTableUI:false, uiReasons:[], needsAssets:false, images, summary:images.map(i => i.alt).join('、').slice(0,100)});
+        continue;
+      }
       if (!['user','assistant'].includes(role) || message.metadata?.is_visually_hidden_from_conversation) continue;
       // Analysis/tool plumbing is not the displayed answer.
       if (message.channel && !['final','commentary'].includes(message.channel)) continue;
@@ -251,8 +268,39 @@
       else if (Array.isArray(value)) value.forEach(item => walk(item, key));
       else if (value && typeof value === 'object') for (const [k, item] of Object.entries(value)) walk(item, k);
     };
-    walk(dil?.appData, '');walk(dil?.constants, '');
+    // Link and citation results point at web pages, not images.
+    const results = dil?.appData?.opGenui?.componentResults || {};
+    const appData = dil?.appData?.opGenui ? {...dil.appData, opGenui:{...dil.appData.opGenui, modelDataBindings:undefined, modelDataBindingSafeUrls:undefined, componentResults:Object.fromEntries(Object.entries(results).filter(([, r]) => !['Link','Cite'].includes(r?.componentName)))}} : dil?.appData;
+    walk(appData, '');walk(dil?.constants, '');
     return [...urls];
+  }
+  // Files the code interpreter wrote (sandbox:/mnt/data/...), linked from a message.
+  async function downloadSandboxFiles({items, conversationId, fetch:request, signal, concurrency = 4}) {
+    if (!items.length) return [];
+    const sessionResponse = await request('/api/auth/session',{credentials:'same-origin',signal});
+    if (!sessionResponse.ok) error(`登录状态读取失败（HTTP ${sessionResponse.status}）`);
+    const token = (await sessionResponse.json()).accessToken;
+    if (!token) error('未取得登录状态，请先登录 ChatGPT');
+    const headers = {Authorization:`Bearer ${token}`}, names = new Set();
+    return pool(items, concurrency, async ({messageId, path}) => {
+      try {
+        signal?.throwIfAborted();
+        const meta = await request(`/backend-api/conversation/${encodeURIComponent(conversationId)}/interpreter/download?message_id=${encodeURIComponent(messageId)}&sandbox_path=${encodeURIComponent(path)}`,{credentials:'same-origin',headers,signal});
+        if (!meta.ok) throw Error(`HTTP ${meta.status}`);
+        const url = (await meta.json()).download_url;
+        if (typeof url !== 'string' || !url) throw Error('接口未返回下载地址');
+        const sameOrigin = url.startsWith('/') || url.startsWith(root.location?.origin + '/');
+        const file = await request(url,{credentials:sameOrigin ? 'include' : 'omit',signal});
+        if (!file.ok) throw Error(`下载 HTTP ${file.status}`);
+        let name = (path.split('/').pop() || 'file').replace(/[^\w.\-一-鿿]/g, '_'), n = 1;
+        while (names.has(name)) name = name.replace(/(\.[^.]*)?$/, m => `-${++n}${m}`);
+        names.add(name);
+        return {messageId, path, blob:await file.blob(), localPath:`files/${name}`};
+      } catch (e) {
+        if (e?.name === 'AbortError') throw e;
+        return {messageId, path, error:e.message};
+      }
+    });
   }
   async function downloadUrls({urls, fetch:request, signal, concurrency = 6, prefix = 'assets/ui-'}) {
     return pool(urls, concurrency, async (url, index) => {
@@ -276,7 +324,7 @@
     const note=warnings.length ? `\n\n## 未包含的非文字内容\n\n${warnings.map(w=>`- ${w}`).join('\n')}\n` : '';
     return `# ${conversation.title.replace(/[\r\n]/g,' ')}\n\n来源：${url}\n\n${body}\n${note}`;
   }
-  const api = {fileIdOf,textOf,normalizeText,records,parseTree,loadConversation,downloadFiles,dilImageUrls,downloadUrls,markdown};
+  const api = {fileIdOf,textOf,normalizeText,toolImages,records,parseTree,loadConversation,downloadFiles,downloadSandboxFiles,dilImageUrls,downloadUrls,markdown};
   root.FastTextExporter = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

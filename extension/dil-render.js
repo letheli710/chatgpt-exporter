@@ -31,7 +31,17 @@
     };
     // Hooks this stub does not know yet still run instead of throwing.
     const DIL = new Proxy(known, {get:(target, key) => key in target ? target[key] : inert()});
-    execute(dil.code, {DIL, __dil:{jsx, Fragment}, GenUI:inert()});
+    // Server-resolved components (links, citations) carry their result in
+    // appData.opGenui.componentResults, keyed by __resolutionId.
+    const resolved = id => dil.appData?.opGenui?.componentResults?.[id]?.state || {};
+    const components = {
+      Link:props => {const s = resolved(props.__resolutionId), url = s.url || props.url, title = String(s.title || props.title || url || '');return typeof url === 'string' && url ? {type:'link', props:{url}, children:[title]} : title;},
+      Cite:props => ({type:'cite', props:{items:(Array.isArray(resolved(props.__resolutionId).items) ? resolved(props.__resolutionId).items : []).filter(i => typeof i?.url === 'string').map(i => ({url:i.url, label:String(i.source_label || i.title || i.url)}))}, children:[]})
+    };
+    const scope = {DIL, __dil:{jsx, Fragment}, GenUI:inert(), Link:components.Link, Cite:components.Cite};
+    // Other required components render their children rather than failing.
+    for (const name of [].concat(dil.requiredComponents || [])) if (typeof name === 'string' && /^[A-Z][\w$]*$/.test(name) && !(name in scope)) scope[name] = props => ({type:'Fragment', props:{}, children:[].concat(props.children ?? [])});
+    execute(dil.code, scope);
     if (!tree) throw Error('界面程序没有调用 DIL.render');
     return resolveWidgets(plain(tree), dil);
   }
@@ -42,6 +52,8 @@
     const ref = (Array.isArray(dil?.contentReferences) ? dil.contentReferences : [])[dil?.clientDefinedWidgets?.[invocationId]?.refIndex];
     const data = ref?.data, kind = data?.widget_type || ref?.category;
     if (kind === 'code_block' && typeof data?.content === 'string') return {type:'code-block', props:{language:typeof data.language === 'string' ? data.language : '', value:data.content}, children:[]};
+    // Writing blocks (the document view that replaced Canvas) hold Markdown.
+    if (kind === 'writing_block' && typeof data?.content === 'string') return {type:'writing-block', props:{value:data.content, variant:typeof data.variant === 'string' ? data.variant : ''}, children:[]};
     if ((ref?.category === 'visualization' || kind === 'visualization') && data?.content && typeof data.content === 'object') {
       const c = data.content, pie = c.chartType === 'pie', kids = [];
       if (c.meta?.title) kids.push({type:'text', props:{weight:'semibold'}, children:[String(c.meta.title)]});
@@ -59,7 +71,7 @@
     return {...node, children:(node.children || []).map(n => resolveWidgets(n, dil))};
   }
   // Markdown-native constructs stay text; everything else is UI drawn as an image.
-  const inlineTypes = new Set(['bold','italic','code','link','strike','math','badge','icon']);
+  const inlineTypes = new Set(['bold','italic','code','link','strike','math','badge','icon','cite']);
   const textOf = node => node == null || node === false || node === true ? '' : typeof node !== 'object' ? String(node) : Array.isArray(node) ? node.map(textOf).join('') : textOf(node.children);
   const isInlineNode = node => node != null && (typeof node !== 'object' || (!Array.isArray(node) && inlineTypes.has(node.type) && !(node.type === 'math' && node.props?.block)));
   const UI_CONTAINERS = new Set(['box','card','row','grid','grid-item']);
@@ -73,6 +85,8 @@
     if (!series.length && rows[0]) series = Object.keys(rows[0]).filter(k => k !== xKey && typeof rows[0][k] === 'number').map(dataKey => ({dataKey}));
     return {rows, xKey, series:pie ? series.slice(0, 1) : series};
   }
+  // Parentheses and spaces would end a Markdown link target early.
+  const mdUrl = url => String(url ?? '').replace(/[()\s<>]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`);
   function toMarkdown(tree, {widget = id => `〔嵌入应用 ${id}〕`} = {}) {
     const cell = s => s.replace(/\|/g, '\\|').replace(/\s*\n+\s*/g, '<br>').trim();
     function inline(node) {
@@ -85,7 +99,8 @@
         case 'italic': return `*${inline(node.children)}*`;
         case 'strike': return `~~${inline(node.children)}~~`;
         case 'code': return `\`${inline(node.children)}\``;
-        case 'link': return `[${inline(node.children)}](${p.href || p.url || ''})`;
+        case 'link': {const url = mdUrl(p.href || p.url), text = inline(node.children).replace(/([[\]])/g, '\\$1');return url ? `[${text || url}](${url})` : text;}
+        case 'cite': {const items = Array.isArray(p.items) ? p.items : [];return items.length ? `（${items.map(i => `[${String(i.label).replace(/([[\]])/g, '\\$1')}](${mdUrl(i.url)})`).join('、')}）` : '';}
         case 'math': return `$${p.value ?? inline(node.children)}$`;
         case 'badge': return `［${inline(node.children)}］`;
         case 'icon': case 'button': return '';
@@ -106,12 +121,14 @@
     function table(node) {
       const rows = (node.children || []).filter(r => r?.type === 'table-row').map(r => (r.children || []).filter(c => c?.type === 'table-cell'));
       if (!rows.length) return '';
-      const width = Math.max(...rows.map(r => r.length)), hasHeader = rows[0].some(c => c.props?.header);
+      // GFM needs a header row; without a marked one the first row serves (cards
+      // often style their header row as text instead of setting header).
+      const width = Math.max(...rows.map(r => r.length)), single = rows.length === 1 && !rows[0].some(c => c.props?.header);
       const fill = r => {const out = r.map(c => cell(blocks(c.children)));while (out.length < width) out.push('');return out;};
-      const body = hasHeader ? rows.slice(1) : rows;
+      const body = single ? rows : rows.slice(1);
       const aligns = Array.from({length:width}, (_, i) => (body.find(r => r[i]) || rows[0])[i]?.props?.align);
       const line = cells => `| ${cells.join(' | ')} |`;
-      return [line(hasHeader ? fill(rows[0]) : Array(width).fill(' ')), line(aligns.map(a => a === 'end' || a === 'right' ? '---:' : a === 'center' ? ':---:' : '---')), ...body.map(r => line(fill(r)))].join('\n');
+      return [line(single ? Array(width).fill(' ') : fill(rows[0])), line(aligns.map(a => a === 'end' || a === 'right' ? '---:' : a === 'center' ? ':---:' : '---')), ...body.map(r => line(fill(r)))].join('\n');
     }
     function list(node, depth) {
       const numbered = node.props?.marker === 'number';let n = 0;
@@ -142,6 +159,7 @@
         case 'math': return p.block ? `$$\n${p.value ?? ''}\n$$` : `$${p.value ?? ''}$`;
         case 'code-block': {const value = String(p.value ?? '').replace(/^\n+|\n+$/g, ''), fence = '`'.repeat(Math.max(3, ...Array.from(value.matchAll(/`+/g), m => m[0].length + 1)));return `${fence}${/^[\w+#.-]+$/.test(p.language) ? p.language : ''}\n${value}\n${fence}`;}
         case 'divider': return '---';
+        case 'writing-block': return String(p.value ?? '').trim();
         case 'table': return table(node);
         case 'list': return list(node, depth);
         case 'blockquote': return blocks(node.children, depth, ui).split('\n').map(l => l ? `> ${l}` : '>').join('\n');
@@ -163,7 +181,7 @@
   }
   // Top-level prose and Markdown constructs stay Markdown; every other
   // top-level component (box, card, grid, chart, ...) becomes a card image.
-  const proseTypes = new Set(['code-block','text','title','divider','bold','italic','strike','code','link','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
+  const proseTypes = new Set(['code-block','writing-block','text','title','divider','bold','italic','strike','code','link','cite','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
   function segments(tree) {
     const flat = [], out = [];
     const add = node => {
@@ -204,7 +222,7 @@
 .select{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 10px;border:1px solid rgba(13,13,13,.15);border-radius:8px;font-size:14px;background:#fff;white-space:nowrap}
 .codeblk{margin:0;padding:10px 12px;background:#f9f9f9;border-radius:10px;overflow:hidden;white-space:pre-wrap;font:13px/1.5 ui-monospace,Consolas,monospace}.codeblk code{background:none;padding:0;font-size:inherit}
 .math{font-family:"Cambria Math","Times New Roman",serif;font-style:italic}.math-block{display:block;text-align:center}
-code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:4px;padding:0 4px;font-size:.9em}.link{color:#2964aa;text-decoration:underline}
+code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:4px;padding:0 4px;font-size:.9em}.link{color:#2964aa;text-decoration:underline}.cite{display:inline-flex;margin-left:4px;padding:0 8px;border-radius:9999px;background:#f3f3f3;color:#5d5d5d;font-size:12px;line-height:20px;white-space:nowrap}
 .widget,.img{border:1px dashed #c9c9c9;border-radius:10px;padding:10px 12px;color:#5d5d5d;font-size:13px}`;
   const RADIUS = {none:'0', xs:'4px', sm:'6px', md:'8px', lg:'10px', xl:'16px', '2xl':'20px', full:'9999px'};
   const BACKGROUND = {surface:'#fff', 'surface-primary':'#fff', 'surface-secondary':'#f9f9f9', 'surface-tertiary':'#f3f3f3', 'surface-elevated':'#fff', success:'#def3e5', danger:'#fff0f0', warning:'#fdf5f1', info:'#e8f1fe'};
@@ -314,6 +332,8 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
         case 'strike': return `<s>${inline()}</s>`;
         case 'code': return `<code>${inline()}</code>`;
         case 'link': return `<span class="link">${inline()}</span>`;
+        case 'cite': return (Array.isArray(p.items) ? p.items : []).slice(0, 1).map(i => `<span class="cite">${escapeHtml(i.label)}${p.items.length > 1 ? ` +${p.items.length - 1}` : ''}</span>`).join('');
+        case 'writing-block': return `<pre class="codeblk">${escapeHtml(String(p.value ?? '').trim())}</pre>`;
         case 'math': return p.block ? `<div class="math math-block">${escapeHtml(p.value ?? '')}</div>` : `<span class="math">${escapeHtml(p.value ?? '')}${inline()}</span>`;
         case 'title': return `<div class="${textClasses(p, 'title')}"${textStyle(p)}>${inline()}</div>`;
         case 'text': return ctx.inline || p.inline ? `<span class="${textClasses(p, 't')}"${textStyle(p)}>${inline()}</span>` : `<p class="${textClasses(p, 't')}"${textStyle(p)}>${inline()}</p>`;
@@ -426,7 +446,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
       return new Promise((resolve, reject) => {
         const channel = new MessageChannel(), timer = setTimeout(() => {channel.port1.close();reject(Error('界面渲染超时'));}, timeout);
         channel.port1.onmessage = event => {clearTimeout(timer);channel.port1.close();event.data?.error ? reject(Error(event.data.error)) : resolve(event.data);};
-        frame.contentWindow.postMessage({type, dil:dil && {code:dil.code, constants:dil.constants, appData:dil.appData, clientDefinedWidgets:dil.clientDefinedWidgets, contentReferences:dil.contentReferences}}, '*', [channel.port2]);
+        frame.contentWindow.postMessage({type, dil:dil && {code:dil.code, constants:dil.constants, appData:dil.appData, requiredComponents:dil.requiredComponents, clientDefinedWidgets:dil.clientDefinedWidgets, contentReferences:dil.contentReferences}}, '*', [channel.port2]);
       });
     };
     const evaluateRemote = async dil => (await request('dil:evaluate', dil)).tree;
