@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.10';
+  const version='0.8.11';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -60,6 +60,8 @@
   }).filter(Boolean).join('\n\n');}
   const blocksOf=m=>dilRender&&m.dil?dilRender.appBlocks(m.dil,m.contentReferences):[];
   const widgetToken=/\u0000APPBLOCK:([^\u0000]*)\u0000/g,sandboxLink=/\]\((sandbox:\/[^)\s]+)\)/g;
+  // Search images (images.openai.com) are fetched by the background worker, which may cross origins.
+  async function fetchImage(url){const r=await send({type:'archive:image',url});const bytes=Uint8Array.from(atob(r.data),c=>c.charCodeAt(0));return new Blob([bytes],{type:r.type});}
   async function send(message){const response=await chrome.runtime.sendMessage(message);if(response?.error)throw Error(response.error);return response;}
   async function captureData(){assertCurrent();await auto.pause(Math.max(0,720-(Date.now()-lastCapture)));controller.signal.throwIfAborted();const response=await send({type:'archive:capture'});lastCapture=Date.now();return response.data;}
   const captureOptions=()=>({doc:document,signal:controller.signal,capture:captureData,hide:()=>host.hidden=true,show:()=>host.hidden=false});
@@ -101,7 +103,7 @@
     const sandboxItems=conversationId?messages.flatMap(m=>[...new Set([...m.md.matchAll(sandboxLink)].map(x=>x[1]))].map(link=>({messageId:m.id,link,path:decodeURIComponent(link.slice(8))}))):[];
     const [files,uiData,codeFiles]=await Promise.all([
       api.downloadFiles({ids:fileIds,conversationId,fetch:request,signal,onProgress:p=>$('status').textContent=`正在下载原图 ${p.done}/${p.total}……`}),
-      Promise.all(messages.filter(m=>m.dil).map(async m=>({m,images:await api.downloadUrls({urls:api.dilImageUrls(m.dil),fetch:request,signal,prefix:`assets/ui-${safe(m.id)}-`})}))),
+      Promise.all(messages.filter(m=>m.dil).map(async m=>({m,images:await api.downloadUrls({urls:api.dilImageUrls(m.dil),fetch:request,fetchImage,signal,prefix:`assets/ui-${safe(m.id)}-`})}))),
       api.downloadSandboxFiles({items:sandboxItems,conversationId,fetch:request,signal})
     ]);
     for(const f of codeFiles){const m=messages.find(x=>x.id===f.messageId),item=sandboxItems.find(x=>x.messageId===f.messageId&&x.path===f.path);
@@ -112,7 +114,7 @@
     for(const m of messages)m.md=m.md.replace(/!\[([^\]]*)\]\(asset:([\w-]+)\)/g,(_,alt,id)=>{const f=byId.get(id);if(f?.blob)return `![${alt}](${f.path})`;warnings.push(`${m.id}: 原图 ${id} 下载失败（${f?.error||'未知错误'}）`);return `〔原图 ${id} 下载失败〕`;});
     for(const {m,images} of uiData){
       const path=`ui/msg-${safe(m.id)}.json`,localAssets={};
-      for(const image of images){if(image.blob){localAssets[image.url]=image.path;assets.push({path:image.path,blob:image.blob,messageId:m.id,kind:'ui-image'});}else warnings.push(`${m.id}: 界面图片未下载（${image.error}），已保留原地址`);}
+      for(const image of images){if(image.blob){localAssets[image.url]=image.path;assets.push({path:image.path,blob:image.blob,messageId:m.id,kind:'ui-image'});m.md=m.md.split(`](${image.url})`).join(`](${image.path})`);}else warnings.push(`${m.id}: 界面图片未下载（${image.error}），已保留原地址`);}
       const blocks=blocksOf(m).map(b=>({...b,path:`ui/appblock-${safe(m.id)}-${safe(b.id)}.html`})),linked=new Set();
       for(const b of blocks)assets.push({path:b.path,blob:new Blob([dilRender.standaloneHtml(b)],{type:'text/html'}),messageId:m.id,kind:'appblock'});
       m.md=m.md.replace(widgetToken,(_,id)=>{const b=blocks.find(x=>x.invocationId===id);if(!b)return `〔嵌入应用 ${id} 未找到〕`;linked.add(b.path);return `> [!chatgpt-appblock] ${b.title}：[${b.path}](${b.path})`;});

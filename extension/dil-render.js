@@ -36,11 +36,38 @@
     const resolved = id => dil.appData?.opGenui?.componentResults?.[id]?.state || {};
     const components = {
       Link:props => {const s = resolved(props.__resolutionId), url = s.url || props.url, title = String(s.title || props.title || url || '');return typeof url === 'string' && url ? {type:'link', props:{url}, children:[title]} : title;},
-      Cite:props => ({type:'cite', props:{items:(Array.isArray(resolved(props.__resolutionId).items) ? resolved(props.__resolutionId).items : []).filter(i => typeof i?.url === 'string').map(i => ({url:i.url, label:String(i.source_label || i.title || i.url)}))}, children:[]})
+      Cite:props => ({type:'cite', props:{items:(Array.isArray(resolved(props.__resolutionId).items) ? resolved(props.__resolutionId).items : []).filter(i => typeof i?.url === 'string').map(i => ({url:i.url, label:String(i.source_label || i.title || i.url)}))}, children:[]}),
+      // Inline names that open a detail panel: the name is part of the sentence.
+      Entity:props => String(resolved(props.__resolutionId).value ?? props.value ?? ''),
+      AsyncImage:props => images(props, 1),
+      AsyncImageGroup:props => images(props, 8),
+      FileCite:props => {const s = resolved(props.__resolutionId), name = s.file_name || props.file_name;return name ? {type:'cite', props:{items:[], file:String(name)}, children:[]} : '';},
+      MemoryCite:() => '',
+      LearningQuiz:props => quiz(props, resolved(props.__resolutionId))
     };
-    const scope = {DIL, __dil:{jsx, Fragment}, GenUI:inert(), Link:components.Link, Cite:components.Cite};
-    // Other required components render their children rather than failing.
-    for (const name of [].concat(dil.requiredComponents || [])) if (typeof name === 'string' && /^[A-Z][\w$]*$/.test(name) && !(name in scope)) scope[name] = props => ({type:'Fragment', props:{}, children:[].concat(props.children ?? [])});
+    // Search images: the server resolved them to content URLs.
+    function images(props, max) {
+      const list = (Array.isArray(resolved(props.__resolutionId).images) ? resolved(props.__resolutionId).images : []).filter(i => typeof i?.content_url === 'string').slice(0, max);
+      const nodes = list.map(i => ({type:'image', props:{src:i.content_url, href:typeof i.url === 'string' ? i.url : '', alt:String(i.title || props.query || props.alt || '图片')}, children:[]}));
+      return nodes.length > 1 ? {type:'Fragment', props:{}, children:nodes} : nodes[0] || '';
+    }
+    function quiz(props, state) {
+      const questions = Array.isArray(state.questions) ? state.questions : Array.isArray(props.questions) ? props.questions : [];
+      const kids = [];
+      if (props.title || state.title) kids.push({type:'title', props:{size:'md'}, children:[String(props.title || state.title)]});
+      questions.forEach((q, n) => {
+        const options = Array.isArray(q?.options) ? q.options : [], correct = new Set([].concat(q?.correct_values || []).map(String));
+        kids.push({type:'text', props:{weight:'semibold'}, children:[`${n + 1}. ${q?.prompt ?? ''}`]});
+        kids.push({type:'radio-group', props:{}, children:options.map(o => ({type:'radio', props:{value:String(o?.value ?? '')}, children:[`${o?.value ? `${o.value}. ` : ''}${o?.label ?? ''}`]}))});
+        const right = options.filter(o => correct.has(String(o?.value)));
+        if (right.length) kids.push({type:'caption', props:{}, children:[`答案：${right.map(o => o.value ?? o.label).join('、')}${right[0]?.feedback ? `。${right[0].feedback}` : ''}`]});
+      });
+      return {type:'card', props:{}, children:kids};
+    }
+    const scope = {DIL, __dil:{jsx, Fragment}, GenUI:inert(), ...components};
+    // Other required components render their children; childless ones keep their main text.
+    const summary = props => ['title','label','text','value','summary','role_summary','name','query'].map(k => props[k]).find(v => typeof v === 'string' && v.trim());
+    for (const name of [].concat(dil.requiredComponents || [])) if (typeof name === 'string' && /^[A-Z][\w$]*$/.test(name) && !(name in scope)) scope[name] = props => {const kids = [].concat(props.children ?? []).filter(c => c != null && c !== false);return kids.length ? {type:'Fragment', props:{}, children:kids} : summary(props) ? {type:'text', props:{}, children:[`〔${name}：${summary(props)}〕`]} : '';};
     execute(dil.code, scope);
     if (!tree) throw Error('界面程序没有调用 DIL.render');
     return resolveWidgets(plain(tree), dil);
@@ -52,6 +79,11 @@
     const ref = (Array.isArray(dil?.contentReferences) ? dil.contentReferences : [])[dil?.clientDefinedWidgets?.[invocationId]?.refIndex];
     const data = ref?.data, kind = data?.widget_type || ref?.category;
     if (kind === 'code_block' && typeof data?.content === 'string') return {type:'code-block', props:{language:typeof data.language === 'string' ? data.language : '', value:data.content}, children:[]};
+    // Learning blocks show a formula as an interactive explainer; keep the formula and its description.
+    if (ref?.category === 'learning_block' && typeof data?.content === 'string') {
+      const about = String(ref.matched_text || '').split('\n')[0].trim();
+      return {type:'Fragment', props:{}, children:[{type:'math', props:{block:true, value:data.content}, children:[]}, ...(about ? [{type:'caption', props:{}, children:[about]}] : [])]};
+    }
     // Writing blocks (the document view that replaced Canvas) hold Markdown.
     if (kind === 'writing_block' && typeof data?.content === 'string') return {type:'writing-block', props:{value:data.content, variant:typeof data.variant === 'string' ? data.variant : ''}, children:[]};
     if ((ref?.category === 'visualization' || kind === 'visualization') && data?.content && typeof data.content === 'object') {
@@ -71,7 +103,7 @@
     return {...node, children:(node.children || []).map(n => resolveWidgets(n, dil))};
   }
   // Markdown-native constructs stay text; everything else is UI drawn as an image.
-  const inlineTypes = new Set(['bold','italic','code','link','strike','math','badge','icon','cite']);
+  const inlineTypes = new Set(['bold','italic','code','link','strike','math','badge','icon','cite','input','textarea','favicon','label']);
   const textOf = node => node == null || node === false || node === true ? '' : typeof node !== 'object' ? String(node) : Array.isArray(node) ? node.map(textOf).join('') : textOf(node.children);
   const isInlineNode = node => node != null && (typeof node !== 'object' || (!Array.isArray(node) && inlineTypes.has(node.type) && !(node.type === 'math' && node.props?.block)));
   const UI_CONTAINERS = new Set(['box','card','row','grid','grid-item']);
@@ -100,7 +132,8 @@
         case 'strike': return `~~${inline(node.children)}~~`;
         case 'code': return `\`${inline(node.children)}\``;
         case 'link': {const url = mdUrl(p.href || p.url), text = inline(node.children).replace(/([[\]])/g, '\\$1');return url ? `[${text || url}](${url})` : text;}
-        case 'cite': {const items = Array.isArray(p.items) ? p.items : [];return items.length ? `（${items.map(i => `[${String(i.label).replace(/([[\]])/g, '\\$1')}](${mdUrl(i.url)})`).join('、')}）` : '';}
+        case 'cite': {if (p.file) return `（文件：${p.file}）`;const items = Array.isArray(p.items) ? p.items : [];return items.length ? `（${items.map(i => `[${String(i.label).replace(/([[\]])/g, '\\$1')}](${mdUrl(i.url)})`).join('、')}）` : '';}
+        case 'input': case 'textarea': return `［输入框：${p.value || p.placeholder || ''}］`;
         case 'math': return `$${p.value ?? inline(node.children)}$`;
         case 'badge': return `［${inline(node.children)}］`;
         case 'icon': case 'button': return '';
@@ -181,7 +214,7 @@
   }
   // Top-level prose and Markdown constructs stay Markdown; every other
   // top-level component (box, card, grid, chart, ...) becomes a card image.
-  const proseTypes = new Set(['code-block','writing-block','text','title','divider','bold','italic','strike','code','link','cite','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
+  const proseTypes = new Set(['code-block','writing-block','image','text','title','divider','bold','italic','strike','code','link','cite','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
   function segments(tree) {
     const flat = [], out = [];
     const add = node => {
@@ -223,6 +256,7 @@
 .codeblk{margin:0;padding:10px 12px;background:#f9f9f9;border-radius:10px;overflow:hidden;white-space:pre-wrap;font:13px/1.5 ui-monospace,Consolas,monospace}.codeblk code{background:none;padding:0;font-size:inherit}
 .math{font-family:"Cambria Math","Times New Roman",serif;font-style:italic}.math-block{display:block;text-align:center}
 code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:4px;padding:0 4px;font-size:.9em}.link{color:#2964aa;text-decoration:underline}.cite{display:inline-flex;margin-left:4px;padding:0 8px;border-radius:9999px;background:#f3f3f3;color:#5d5d5d;font-size:12px;line-height:20px;white-space:nowrap}
+.input{display:flex;align-items:center;min-height:36px;width:100%;padding:6px 12px;border:1px solid rgba(13,13,13,.15);border-radius:10px;background:#fff;color:#8f8f8f;font-size:14px;line-height:20px}.input-area{min-height:80px;align-items:flex-start}
 .widget,.img{border:1px dashed #c9c9c9;border-radius:10px;padding:10px 12px;color:#5d5d5d;font-size:13px}`;
   const RADIUS = {none:'0', xs:'4px', sm:'6px', md:'8px', lg:'10px', xl:'16px', '2xl':'20px', full:'9999px'};
   const BACKGROUND = {surface:'#fff', 'surface-primary':'#fff', 'surface-secondary':'#f9f9f9', 'surface-tertiary':'#f3f3f3', 'surface-elevated':'#fff', success:'#def3e5', danger:'#fff0f0', warning:'#fdf5f1', info:'#e8f1fe'};
@@ -367,7 +401,11 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
         case 'strike': return `<s>${inline()}</s>`;
         case 'code': return `<code>${inline()}</code>`;
         case 'link': return `<span class="link">${inline()}</span>`;
-        case 'cite': return (Array.isArray(p.items) ? p.items : []).slice(0, 1).map(i => `<span class="cite">${escapeHtml(i.label)}${p.items.length > 1 ? ` +${p.items.length - 1}` : ''}</span>`).join('');
+        case 'input': case 'textarea': return `<span class="input${node.type === 'textarea' ? ' input-area' : ''}">${escapeHtml(p.value || p.placeholder || '')}</span>`;
+        case 'spacer': return '<div style="flex:1 1 auto"></div>';
+        case 'col': case 'form': return `<div class="box"${boxStyle(p)}>${kids({...ctx, inline:false})}</div>`;
+        case 'favicon': return '';
+        case 'cite': if (p.file) return `<span class="cite">${escapeHtml(p.file)}</span>`;return (Array.isArray(p.items) ? p.items : []).slice(0, 1).map(i => `<span class="cite">${escapeHtml(i.label)}${p.items.length > 1 ? ` +${p.items.length - 1}` : ''}</span>`).join('');
         case 'writing-block': return `<pre class="codeblk">${escapeHtml(String(p.value ?? '').trim())}</pre>`;
         case 'math': return p.block ? `<div class="math math-block">${texHtml(p.value ?? '')}</div>` : `<span class="math">${texHtml(p.value ?? '')}${inline()}</span>`;
         case 'title': return `<div class="${textClasses(p, 'title')}"${textStyle(p)}>${inline()}</div>`;

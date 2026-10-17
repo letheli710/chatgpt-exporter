@@ -86,6 +86,23 @@
     md+=prose(text.slice(last));
     return {md,needsUI:uiReasons.size>0,needsTableUI,uiReasons:[...uiReasons]};
   }
+  // Plain-text replies mark citations, entities and images inline with private-use
+  // markers (matched_text); content_references says what each one stands for.
+  function applyReferences(text, refs) {
+    if (!Array.isArray(refs) || !refs.length || typeof text !== 'string') return text;
+    const url = u => String(u).replace(/[()\s<>]/g, c => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`);
+    const link = (label, u) => `[${String(label).replace(/([[\]])/g, '\\$1')}](${url(u)})`;
+    const render = r => {
+      const items = Array.isArray(r.items) ? r.items.filter(i => typeof i?.url === 'string') : [];
+      if (items.length) return `（${items.map(i => link(i.attribution || i.title || i.url, i.url)).join('、')}）`;
+      if (typeof r.alt === 'string' && r.alt.trim()) return r.alt;
+      if (typeof r.name === 'string' && r.name.trim()) return r.name;
+      return '';
+    };
+    // Longest markers first, so a marker that contains another is replaced whole.
+    for (const r of refs.filter(r => typeof r?.matched_text === 'string' && r.matched_text.trim()).sort((a, b) => b.matched_text.length - a.matched_text.length)) text = text.split(r.matched_text).join(render(r));
+    return text;
+  }
   function toolImages(message) {
     const title = message.metadata?.image_gen_title, plots = message.metadata?.ada_visualizations;
     const parts = (message.content?.parts || []).filter(p => fileIdOf(p?.asset_pointer)).map(p => ({fileId:fileIdOf(p.asset_pointer), width:p.width, height:p.height, alt:title ? `生成图片：${title}` : '生成图片'}));
@@ -114,7 +131,8 @@
       if (message.recipient && message.recipient !== 'all') continue;
       if (!message.id || seen.has(message.id)) error('消息标识缺失或重复，无法确认正文完整性');
       seen.add(message.id);
-      const normalized = normalizeText(textOf(message, warnings));
+      const text = textOf(message, warnings);
+      const normalized = normalizeText(message.metadata?.model_dil_v2 ? text : applyReferences(text, message.metadata?.content_references));
       if (message.metadata?.model_dil_v2) {
         normalized.needsUI = true;
         if(!normalized.uiReasons.includes('model-dil'))normalized.uiReasons.push('model-dil');
@@ -281,9 +299,11 @@
       else if (Array.isArray(value)) value.forEach(item => walk(item, key));
       else if (value && typeof value === 'object') for (const [k, item] of Object.entries(value)) walk(item, k);
     };
-    // Link and citation results point at web pages, not images.
+    // Server-resolved components: only search images are images (content_url);
+    // links, citations and entities point at web pages.
     const results = dil?.appData?.opGenui?.componentResults || {};
-    const appData = dil?.appData?.opGenui ? {...dil.appData, opGenui:{...dil.appData.opGenui, modelDataBindings:undefined, modelDataBindingSafeUrls:undefined, componentResults:Object.fromEntries(Object.entries(results).filter(([, r]) => !['Link','Cite'].includes(r?.componentName)))}} : dil?.appData;
+    for (const r of Object.values(results)) if (/^AsyncImage/.test(r?.componentName || '')) for (const i of r.state?.images || []) if (typeof i?.content_url === 'string' && /^https:\/\//.test(i.content_url)) urls.add(i.content_url);
+    const appData = dil?.appData?.opGenui ? {...dil.appData, opGenui:{...dil.appData.opGenui, modelDataBindings:undefined, modelDataBindingSafeUrls:undefined, componentResults:undefined}} : dil?.appData;
     walk(appData, '');walk(dil?.constants, '');
     return [...urls];
   }
@@ -315,14 +335,21 @@
       }
     });
   }
-  async function downloadUrls({urls, fetch:request, signal, concurrency = 6, prefix = 'assets/ui-'}) {
+  // fetchImage (optional) downloads hosts the page cannot reach cross-origin.
+  async function downloadUrls({urls, fetch:request, fetchImage, signal, concurrency = 6, prefix = 'assets/ui-'}) {
     return pool(urls, concurrency, async (url, index) => {
       try {
         signal?.throwIfAborted();
-        const file = await request(url,{credentials:'omit',signal});
-        if (!file.ok) throw Error(`HTTP ${file.status}`);
-        const blob = await file.blob();
-        return {url, blob, path:`${prefix}${index + 1}.${extensionOf(blob.type || file.headers?.get?.('content-type'))}`};
+        let blob, type;
+        if (fetchImage && /^https:\/\/images\.openai\.com\//.test(url)) {blob = await fetchImage(url);type = blob.type;}
+        else {
+          const file = await request(url,{credentials:'omit',signal});
+          if (!file.ok) throw Error(`HTTP ${file.status}`);
+          blob = await file.blob();type = blob.type || file.headers?.get?.('content-type');
+        }
+        let ext = extensionOf(type);
+        if (ext === 'bin') ext = await sniffImage(blob);
+        return {url, blob, path:`${prefix}${index + 1}.${ext}`};
       } catch (e) {
         if (e?.name === 'AbortError') throw e;
         return {url, error:e.message};
@@ -337,7 +364,7 @@
     const note=warnings.length ? `\n\n## 未包含的非文字内容\n\n${warnings.map(w=>`- ${w}`).join('\n')}\n` : '';
     return `# ${conversation.title.replace(/[\r\n]/g,' ')}\n\n来源：${url}\n\n${body}\n${note}`;
   }
-  const api = {fileIdOf,textOf,normalizeText,toolImages,records,parseTree,loadConversation,downloadFiles,downloadSandboxFiles,dilImageUrls,downloadUrls,markdown};
+  const api = {fileIdOf,textOf,normalizeText,applyReferences,toolImages,records,parseTree,loadConversation,downloadFiles,downloadSandboxFiles,dilImageUrls,downloadUrls,markdown};
   root.FastTextExporter = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);
