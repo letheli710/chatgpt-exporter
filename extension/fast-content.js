@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.8';
+  const version='0.8.9';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -118,7 +118,8 @@
       const hidden=blocks.filter(b=>!linked.has(b.path)).map(b=>`\n> - 默认状态未显示的嵌入应用「${b.title}」：[${b.path}](${b.path})`).join('');
       const record={messageId:m.id,format:'model_dil_v2',source:m.dilSource,staticMarkdown:m.staticMd??null,renderError:m.renderError??null,appBlocks:blocks.map(({id,invocationId,title,path})=>({id,invocationId,title,path})),localAssets,dil:m.dil,contentReferences:m.contentReferences};
       assets.push({path,blob:new Blob([JSON.stringify(record,null,2)],{type:'application/json'}),messageId:m.id,kind:'ui-data'});
-      m.md+=`\n\n> [!chatgpt-ui] 交互界面原始数据：[${path}](${path})${hidden}\n`;
+      // Replies that compiled to plain prose need no pointer in the note; their JSON is still saved.
+      if(m.segments?.some(s=>s.kind==='card')||blocks.length||!m.staticMd)m.md+=`\n\n> [!chatgpt-ui] 交互界面原始数据：[${path}](${path})${hidden}\n`;
     }
   }
   function filename(ext){return `${state.title.replace(/[<>:"/\\|?*\x00-\x1f]/g,'_').slice(0,90)||'ChatGPT'}-swift-${version}.${ext}`;}

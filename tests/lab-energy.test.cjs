@@ -77,6 +77,8 @@ test('panel end to end: generated image, plot and sandbox CSV land in the ZIP',a
   assert.match(md,/!\[生成图片：Cozy Pink Energy Study Desk\]\(assets\/file_gen1\.png\)/);
   assert.match(md,/!\[代码运行图表：Simulated Daily Caffeine Intake \(Seed 42\)\]\(assets\/file_plot1\.png\)/);
   assert.match(md,/\[下载 caffeine\.csv\]\(files\/caffeine\.csv\)/);assert.doesNotMatch(md,/sandbox:/);
+  // The reply has cards, so it points at its UI data; the data itself is always saved.
+  assert.match(md,/\[!chatgpt-ui\] 交互界面原始数据：\[ui\/msg-b29947c1/);assert.ok(names.includes(`ui/msg-${code.messageId}.json`));
   assert.ok(names.includes('files/caffeine.csv')&&names.includes('files/caffeine_week.png')&&names.includes('assets/file_gen1.png'),names.join(','));
   assert.ok(requested.some(p=>p.includes(`interpreter/download?message_id=${code.messageId}&sandbox_path=%2Fmnt%2Fdata%2Fcaffeine.csv`)));
   dom.window.close();

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Fast Speed Exporter · Swift Archive",
-  "version": "0.8.8",
-  "version_name": "0.8.8 Swift Archive (card snapshot)",
+  "version": "0.8.9",
+  "version_name": "0.8.9 Swift Archive (card snapshot)",
   "description": "从会话接口快速导出正文、原图与交互界面数据；截图可选。",
   "permissions": [
     "activeTab",

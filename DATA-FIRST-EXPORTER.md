@@ -7,7 +7,7 @@
 - **ZIP 默认只走数据**：不滚动、不截图，也不要求标签页保持在前台。
   - 正文：会话接口，与之前相同。
   - 原图：`image_asset_pointer`（`file-service://` / `sediment://`）先调用 `/backend-api/files/download/{id}`，404 时改用 `/backend-api/files/{id}/download`，拿到 `download_url` 后并发下载，默认 6 路。
-  - Intelligent UI：消息上的 `model_dil_v2` 原样写入 `ui/msg-<id>.json`；正文使用 `fallbackMarkdown`，并附上 `[!chatgpt-ui]` 链接。`appData`/`constants` 里的图片 URL 一并下载，映射记录在 `localAssets` 中。
+  - Intelligent UI：消息上的 `model_dil_v2` 原样写入 `ui/msg-<id>.json`；正文使用 `fallbackMarkdown`，并附上 `[!chatgpt-ui]` 链接（0.8.9 起只有含卡片、嵌入应用或渲染失败的回答才附链接；纯文字回答的 JSON 照常保存在 `ui/`）。`appData`/`constants` 里的图片 URL 一并下载，映射记录在 `localAssets` 中。
 - **页面补充改为可选**：勾选“从页面补充当前状态与截图”后，走原来 0.6.3 的路径，包括 DOM 补全当前状态、截图和选框补截图。
 - **调试：导出原始 JSON**：原样下载会话接口的响应，用来核对 `model_dil_v2` 与图片字段。文件不含登录凭据，但包含对话全文。
 
