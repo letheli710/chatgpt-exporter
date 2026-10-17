@@ -44,6 +44,6 @@ test('panel: ZIP embeds one PNG per card with folded text, prose stays outside',
   assert.ok(md.includes(`复选开始\n\n![交互卡片](${card})\n\n> [!note]- 卡片文字\n> - [ ] 测试开关\n>\n> 当前值：**关**\n\n复选结束`),md);
   assert.match(md,/> 行30 — 这是用于验证滚动截图的测试内容。/);assert.ok(files.some(f=>f.name===card));assert.equal(files.filter(f=>f.name.startsWith('assets/card-')).length,3);
   const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.equal(manifest.assets.find(a=>a.path===card).width,300);assert.equal(manifest.timings.render.uiMessages,3);assert.deepEqual(manifest.timings.render.messages.map(m=>m.id),[CHECK,LONG,RESOURCE]);assert.ok(manifest.timings.render.wallMs>=0);
-  assert.match(s.getElementById('status').textContent,/3 张卡片图、1 个嵌入应用、0 张截图/);
+  assert.match(s.getElementById('status').textContent,/3 张卡片图、1 个嵌入应用。/);
   dom.window.close();
 });
