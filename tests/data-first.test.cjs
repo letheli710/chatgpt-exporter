@@ -51,6 +51,7 @@ test('default ZIP is data-first: no visual enrichment, original images, ui JSON,
   const uiJson=JSON.parse(await read(files.find(f=>f.name==='ui/msg-b.json').data));
   assert.equal(uiJson.dil.code,dil.code);assert.equal(uiJson.localAssets['https://cdn.example/p.png'],'assets/ui-b-1.png');
   const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.deepEqual(manifest.assets.map(a=>a.kind).sort(),['original-image','ui-data','ui-image']);
+  assert.deepEqual(manifest.options,{pageSupplement:false});assert.equal(typeof manifest.visibility.hiddenDuringExport,'boolean');
   s.getElementById('raw').click();await idle(s);await new Promise(r=>setTimeout(r,20));
   assert.equal(downloads.at(-1).filename,`sample-swift-${require('../extension/manifest.json').version}.raw.json`);
   const raw=JSON.parse(await read(downloads.blob));assert.equal(raw.mapping.b.message.metadata.model_dil_v2.code,dil.code);assert.ok(!JSON.stringify(raw).includes('Bearer'));

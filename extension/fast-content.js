@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.9';
+  const version='0.8.10';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -63,7 +63,9 @@
   async function send(message){const response=await chrome.runtime.sendMessage(message);if(response?.error)throw Error(response.error);return response;}
   async function captureData(){assertCurrent();await auto.pause(Math.max(0,720-(Date.now()-lastCapture)));controller.signal.throwIfAborted();const response=await send({type:'archive:capture'});lastCapture=Date.now();return response.data;}
   const captureOptions=()=>({doc:document,signal:controller.signal,capture:captureData,hide:()=>host.hidden=true,show:()=>host.hidden=false});
-  async function build(zip){assertCurrent();const selected=ids();const live=$('live').checked,screenshot=zip&&live;if(!selected.length)throw Error('请至少选择一条消息');const started=performance.now(),messages=[],assets=[],warnings=[],completed=new Set();
+  // Recorded in the manifest so an export shows whether the tab went to the background.
+  let hiddenDuringExport=false;document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')hiddenDuringExport=true;});
+  async function build(zip){assertCurrent();const selected=ids();const live=$('live').checked,screenshot=zip&&live;if(!selected.length)throw Error('请至少选择一条消息');hiddenDuringExport=document.visibilityState==='hidden';const started=performance.now(),messages=[],assets=[],warnings=[],completed=new Set();
     const prepare=async()=>{for(const original of state.messages){if(!selected.includes(original.id))continue;assertCurrent();let result=cache.get(original.id);const shots=manual.get(original.id)||[];
       const requiresVisual=live&&visual&&(original.needsUI||original.needsTableUI||(screenshot&&original.needsAssets)||visual.hasUI?.(original,document));
       const signature=requiresVisual?visual.signature?.(original,document):null;
@@ -127,7 +129,7 @@
     const result=await build(mode==='zip');$('output').value=result.md;$('output').hidden=false;
     if(mode!=='preview'){let blob;if(mode==='zip'){
       const zip=new JSZip();zip.file('conversation.md',result.md);for(const asset of result.assets)zip.file(asset.path,asset.blob);
-      const manifest={version,source:state.url,messages:result.messages,warnings:result.warnings,timings:{...state.timings,exportPrepareMs:performance.now()-started},assets:result.assets.map(({path,messageId,width,height,tiles,kind})=>({path,messageId,width,height,tiles,kind})),exportedAt:new Date().toISOString()};
+      const manifest={version,source:state.url,options:{pageSupplement:$('live').checked},visibility:{hiddenDuringExport,atEnd:document.visibilityState},messages:result.messages,warnings:result.warnings,timings:{...state.timings,exportPrepareMs:performance.now()-started},assets:result.assets.map(({path,messageId,width,height,tiles,kind})=>({path,messageId,width,height,tiles,kind})),exportedAt:new Date().toISOString()};
       zip.file('manifest.json',JSON.stringify(manifest,null,2));blob=await zip.generateAsync({type:'blob'});
     }else blob=new Blob([result.md],{type:'text/markdown;charset=utf-8'});
     assertCurrent();const url=URL.createObjectURL(blob);try{await send({type:'archive:download',url,filename:filename(mode==='zip'?'zip':'md'),saveAs:$('saveAs').checked});}finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}}
