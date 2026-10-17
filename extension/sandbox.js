@@ -42,6 +42,10 @@
     if (!port) return;
     if (event.data?.type === 'dil:evaluate') port.postMessage(handle(event.data));
     else if (event.data?.type === 'dil:warmup') port.postMessage(await warmup());
+    else if (event.data?.type === 'appblock:preview') {
+      try {const result = await root.ChatExportDilRender.appBlockPreview(event.data.block, root.document);port.postMessage(result, [result.png]);}
+      catch (e) {port.postMessage({error:String(e?.message || e)});}
+    }
     else if (event.data?.type === 'dil:snapshot') {
       const result = await snapshot(event.data);
       port.postMessage(result, (result.segments || []).map(s => s.png).filter(Boolean));
