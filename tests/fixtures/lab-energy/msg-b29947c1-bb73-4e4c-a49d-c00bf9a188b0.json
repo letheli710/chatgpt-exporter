@@ -1,0 +1,119 @@
+{
+  "messageId": "b29947c1-bb73-4e4c-a49d-c00bf9a188b0",
+  "format": "model_dil_v2",
+  "source": "✅ 已实际运行 Python，使用 `random.Random(42)` 生成模拟数据，并通过 Matplotlib 绘制了 7 天咖啡因摄入折线图。\n\n## 📊 模拟结果\n\n假设每天饮用 1–2 罐 Monster Ultra Strawberry Dreams，每罐含 150 mg 咖啡因。\n\n| 日期 | 饮用罐数 | 咖啡因摄入量 |\n|---|---:|---:|\n| 周一 | 2 | 300 mg |\n| 周二 | 1 | 150 mg |\n| 周三 | 1 | 150 mg |\n| 周四 | 1 | 150 mg |\n| 周五 | 2 | 300 mg |\n| 周六 | 2 | 300 mg |\n| 周日 | 2 | 300 mg |\n\n<grid columns={2} gap={3}>\n  <grid-item>\n    <box border radius=\"lg\" padding={3} gap={1}>\n      <text color=\"secondary\" size=\"xs\">7 天累计摄入量</text>\n      <title size=\"xl\" color=\"default\" tabularNums>1,650 mg</title>\n    </box>\n  </grid-item>\n  <grid-item>\n    <box border radius=\"lg\" padding={3} gap={1}>\n      <text color=\"secondary\" size=\"xs\">日均摄入量</text>\n      <title size=\"xl\" color=\"default\" tabularNums>235.7 mg</title>\n    </box>\n  </grid-item>\n</grid>\n\n## 📁 文件下载\n\n<box gap={3}>\n  <row align=\"center\" gap={3}>\n    <icon name=\"file-spreadsheet\" color=\"success\" size=\"lg\"/>\n    <box flex=\"1\" gap={1}>\n      **[下载 caffeine.csv](sandbox:/mnt/data/caffeine.csv)**\n      <text color=\"secondary\" size=\"xs\">包含日期、饮用罐数、咖啡因摄入量</text>\n    </box>\n  </row>\n  <divider color=\"subtle\"/>\n  <row align=\"center\" gap={3}>\n    <icon name=\"chart-line\" color=\"info\" size=\"lg\"/>\n    <box flex=\"1\" gap={1}>\n      **[下载折线图 PNG](sandbox:/mnt/data/caffeine_week.png)**\n      <text color=\"secondary\" size=\"xs\">Matplotlib 绘制，160 DPI</text>\n    </box>\n  </row>\n</box>\n\n由于使用固定随机种子 `42`，重复运行同一段代码会得到相同的模拟结果。数据仅用于测试，并不代表真实饮用记录。",
+  "staticMarkdown": "✅ 已实际运行 Python，使用 `random.Random(42)` 生成模拟数据，并通过 Matplotlib 绘制了 7 天咖啡因摄入折线图。\n\n## 📊 模拟结果\n\n假设每天饮用 1–2 罐 Monster Ultra Strawberry Dreams，每罐含 150 mg 咖啡因。\n\n| 日期 | 饮用罐数 | 咖啡因摄入量 |\n| --- | ---: | ---: |\n| 周一 | 2 | 300 mg |\n| 周二 | 1 | 150 mg |\n| 周三 | 1 | 150 mg |\n| 周四 | 1 | 150 mg |\n| 周五 | 2 | 300 mg |\n| 周六 | 2 | 300 mg |\n| 周日 | 2 | 300 mg |\n\n7 天累计摄入量\n\n**1,650 mg**\n\n日均摄入量\n\n**235.7 mg**\n\n## 📁 文件下载\n\n****\n\n包含日期、饮用罐数、咖啡因摄入量\n\n---\n\n****\n\nMatplotlib 绘制，160 DPI\n\n由于使用固定随机种子 `42`，重复运行同一段代码会得到相同的模拟结果。数据仅用于测试，并不代表真实饮用记录。",
+  "renderError": null,
+  "appBlocks": [],
+  "localAssets": {},
+  "dil": {
+    "code": "function __dilSafe(evaluate,failureValue){try{return evaluate()}catch{return failureValue}}\n\nDIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});return __dil.jsx(__dil.Fragment,null,__dil.jsx(\"text\",null,__dilConstants[\"0\"],__dil.jsx(\"code\",null,__dilConstants[\"1\"]),__dilConstants[\"2\"]),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"3\"]),__dil.jsx(\"text\",null,__dilConstants[\"4\"]),__dil.jsx(\"table\",null,__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"5\"])),__dil.jsx(\"table-cell\",{\"header\":true,\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"6\"])),__dil.jsx(\"table-cell\",{\"header\":true,\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"7\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"8\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"9\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"10\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"11\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"12\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"13\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"14\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"15\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"16\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"17\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"18\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"19\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"20\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"21\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"22\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"23\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"24\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"25\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"26\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"27\"])),__dil.jsx(\"table-cell\",{\"align\":\"end\"},__dil.jsx(\"text\",null,__dilConstants[\"28\"])))),__dil.jsx(\"grid\",{\"columns\":2,\"gap\":3},__dil.jsx(\"grid-item\",null,__dil.jsx(\"box\",{\"border\":true,\"radius\":\"lg\",\"padding\":3,\"gap\":1},__dil.jsx(\"text\",{\"color\":\"secondary\",\"size\":\"xs\"},__dilConstants[\"29\"]),__dil.jsx(\"title\",{\"size\":\"xl\",\"color\":\"default\",\"tabularNums\":true},__dilConstants[\"30\"]))),__dil.jsx(\"grid-item\",null,__dil.jsx(\"box\",{\"border\":true,\"radius\":\"lg\",\"padding\":3,\"gap\":1},__dil.jsx(\"text\",{\"color\":\"secondary\",\"size\":\"xs\"},__dilConstants[\"31\"]),__dil.jsx(\"title\",{\"size\":\"xl\",\"color\":\"default\",\"tabularNums\":true},__dilConstants[\"32\"])))),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"33\"]),__dil.jsx(\"box\",{\"gap\":3},__dil.jsx(\"row\",{\"align\":\"center\",\"gap\":3},__dil.jsx(\"icon\",{\"name\":\"file-spreadsheet\",\"color\":\"success\",\"size\":\"lg\"}),__dil.jsx(\"box\",{\"flex\":\"1\",\"gap\":1},__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"sandbox:/mnt/data/caffeine.csv\",\"title\":__dilConstants[\"34\"],\"__resolutionId\":__dilConstants[\"35\"]})),null))),__dil.jsx(\"text\",{\"color\":\"secondary\",\"size\":\"xs\"},__dilConstants[\"36\"]))),__dil.jsx(\"divider\",{\"color\":\"subtle\"}),__dil.jsx(\"row\",{\"align\":\"center\",\"gap\":3},__dil.jsx(\"icon\",{\"name\":\"chart-line\",\"color\":\"info\",\"size\":\"lg\"}),__dil.jsx(\"box\",{\"flex\":\"1\",\"gap\":1},__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilSafe(()=>(__dil.jsx(Link,{\"url\":\"sandbox:/mnt/data/caffeine_week.png\",\"title\":__dilConstants[\"37\"],\"__resolutionId\":__dilConstants[\"38\"]})),null))),__dil.jsx(\"text\",{\"color\":\"secondary\",\"size\":\"xs\"},__dilConstants[\"39\"])))),__dil.jsx(\"text\",null,__dilConstants[\"40\"],__dil.jsx(\"code\",null,__dilConstants[\"41\"]),__dilConstants[\"42\"]));},{\"key\":\"body:0\"}));",
+    "constants": {
+      "0": "✅ 已实际运行 Python，使用 ",
+      "1": "random.Random(42)",
+      "2": " 生成模拟数据，并通过 Matplotlib 绘制了 7 天咖啡因摄入折线图。",
+      "3": "📊 模拟结果",
+      "4": "假设每天饮用 1–2 罐 Monster Ultra Strawberry Dreams，每罐含 150 mg 咖啡因。",
+      "5": "日期",
+      "6": "饮用罐数",
+      "7": "咖啡因摄入量",
+      "8": "周一",
+      "9": "2",
+      "10": "300 mg",
+      "11": "周二",
+      "12": "1",
+      "13": "150 mg",
+      "14": "周三",
+      "15": "1",
+      "16": "150 mg",
+      "17": "周四",
+      "18": "1",
+      "19": "150 mg",
+      "20": "周五",
+      "21": "2",
+      "22": "300 mg",
+      "23": "周六",
+      "24": "2",
+      "25": "300 mg",
+      "26": "周日",
+      "27": "2",
+      "28": "300 mg",
+      "29": "7 天累计摄入量",
+      "30": "1,650 mg",
+      "31": "日均摄入量",
+      "32": "235.7 mg",
+      "33": "📁 文件下载",
+      "34": "下载 caffeine.csv",
+      "35": "25bfac6e-fbcd-5e68-a028-1e13eb99de53",
+      "36": "包含日期、饮用罐数、咖啡因摄入量",
+      "37": "下载折线图 PNG",
+      "38": "dedf923e-efb9-5796-821d-1bd07d4a9183",
+      "39": "Matplotlib 绘制，160 DPI",
+      "40": "由于使用固定随机种子 ",
+      "41": "42",
+      "42": "，重复运行同一段代码会得到相同的模拟结果。数据仅用于测试，并不代表真实饮用记录。"
+    },
+    "fallbackMarkdown": "✅ 已实际运行 Python，使用 `random.Random(42)` 生成模拟数据，并通过 Matplotlib 绘制了 7 天咖啡因摄入折线图。\n\n## 📊 模拟结果\n\n假设每天饮用 1–2 罐 Monster Ultra Strawberry Dreams，每罐含 150 mg 咖啡因。\n\n| 日期 | 饮用罐数 | 咖啡因摄入量 |\n|--------|--------|--------|\n| 周一 | 2 | 300 mg |\n| 周二 | 1 | 150 mg |\n| 周三 | 1 | 150 mg |\n| 周四 | 1 | 150 mg |\n| 周五 | 2 | 300 mg |\n| 周六 | 2 | 300 mg |\n| 周日 | 2 | 300 mg |\n\n7 天累计摄入量\n\n# 1,650 mg\n\n日均摄入量\n\n# 235.7 mg\n\n## 📁 文件下载\n\n**[下载 caffeine.csv](sandbox:/mnt/data/caffeine.csv)**\n\n包含日期、饮用罐数、咖啡因摄入量\n\n---\n\n**[下载折线图 PNG](sandbox:/mnt/data/caffeine_week.png)**\n\nMatplotlib 绘制，160 DPI\n\n由于使用固定随机种子 `42`，重复运行同一段代码会得到相同的模拟结果。数据仅用于测试，并不代表真实饮用记录。",
+    "fallbackMarkdownVersion": 1,
+    "validationWarnings": [
+      {
+        "code": "sandbox_download_unverified",
+        "reason": "missing_context",
+        "message": "sandbox_download_unverified at line 38, column 9: File existence has not been established; this is not proof of a missing file. Source: \"[下载 caffeine.csv](sandbox:/mnt/data/caffeine.csv)\"",
+        "removed": false,
+        "line": 38,
+        "column": 9
+      },
+      {
+        "code": "sandbox_download_unverified",
+        "reason": "missing_context",
+        "message": "sandbox_download_unverified at line 46, column 9: File existence has not been established; this is not proof of a missing file. Source: \"[下载折线图 PNG](sandbox:/mnt/data/caffeine_week.png)\"",
+        "removed": false,
+        "line": 46,
+        "column": 9
+      }
+    ],
+    "requiredComponents": [
+      "Link"
+    ],
+    "appData": {
+      "opGenui": {
+        "componentResults": {
+          "25bfac6e-fbcd-5e68-a028-1e13eb99de53": {
+            "status": "resolved",
+            "state": {
+              "url": "sandbox:/mnt/data/caffeine.csv",
+              "title": "下载 caffeine.csv",
+              "source_label": "sandbox:/mnt/data/caffeine.csv",
+              "domain": null,
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "下载",
+              "title_last_word": "caffeine.csv"
+            },
+            "componentName": "Link"
+          },
+          "dedf923e-efb9-5796-821d-1bd07d4a9183": {
+            "status": "resolved",
+            "state": {
+              "url": "sandbox:/mnt/data/caffeine_week.png",
+              "title": "下载折线图 PNG",
+              "source_label": "sandbox:/mnt/data/caffeine_week.png",
+              "domain": null,
+              "snippet": null,
+              "metadata_label": null,
+              "refid": null,
+              "title_before_last_word": "下载折线图",
+              "title_last_word": "PNG"
+            },
+            "componentName": "Link"
+          }
+        },
+        "interactionSurface": "mainline",
+        "modelDataBindings": {}
+      }
+    }
+  },
+  "contentReferences": []
+}

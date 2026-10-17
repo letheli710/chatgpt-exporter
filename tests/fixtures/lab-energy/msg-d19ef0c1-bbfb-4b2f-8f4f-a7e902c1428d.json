@@ -1,0 +1,62 @@
+{
+  "messageId": "d19ef0c1-bbfb-4b2f-8f4f-a7e902c1428d",
+  "format": "model_dil_v2",
+  "source": "这张图片展示的是一罐 **Monster Energy（魔爪能量饮料）**，具体产品为 **Monster Ultra Strawberry Dreams（超极草莓梦幻口味）**。\n\n产品采用细长的铝制易拉罐包装，以粉红色为主色调，搭配黑色品牌标志、红色罐顶，以及银白色的底部装饰。整体设计偏甜美、梦幻，同时保留了 Monster 品牌标志性的视觉风格。\n\n## 包装主要信息\n\n| 项目 | 图片中显示的信息 |\n|---|---|\n| 品牌名称 | Monster Energy |\n| 产品系列 | Monster Ultra |\n| 产品口味 | Ultra Strawberry Dreams |\n| 顶部文字 | ZERO SUGAR（零糖） |\n| 正面品牌标志 | 黑色 Monster 三道爪痕标志 |\n| 品牌文字 | MONSTER ENERGY |\n| 口味文字 | ULTRA STRAWBERRY DREAMS |\n| 包装类型 | 细长型铝制易拉罐 |\n| 主色调 | 浅粉色、玫瑰粉色 |\n| 辅助配色 | 黑色、银白色、红色 |\n| 装饰图案 | 粉色花纹、曲线及细密的装饰性图案 |\n\n## 视觉设计特点\n\n**包装最突出的特点是粉红色与黑色的强烈对比。** 罐身大面积使用浅粉色，表面布满更深的粉红色装饰纹理。中央的黑色三道爪痕标志占据视觉中心，使消费者能够迅速识别 Monster 品牌。\n\n罐体顶部采用红色金属设计，靠近上方的位置印有黑色的 “ZERO SUGAR”。下方则依次排列 Monster Energy 品牌名称和 Ultra Strawberry Dreams 产品名称。\n\n**整体视觉风格：** 粉色梦幻主题、精细花纹、强烈品牌识别度，兼具甜美感与能量饮料的个性化设计。\n\n需要注意，图片仅展示包装正面，因此无法从中确认饮料的具体容量、咖啡因含量及完整营养成分。",
+  "staticMarkdown": "这张图片展示的是一罐 **Monster Energy（魔爪能量饮料）**，具体产品为 **Monster Ultra Strawberry Dreams（超极草莓梦幻口味）**。\n\n产品采用细长的铝制易拉罐包装，以粉红色为主色调，搭配黑色品牌标志、红色罐顶，以及银白色的底部装饰。整体设计偏甜美、梦幻，同时保留了 Monster 品牌标志性的视觉风格。\n\n## 包装主要信息\n\n| 项目 | 图片中显示的信息 |\n| --- | --- |\n| 品牌名称 | Monster Energy |\n| 产品系列 | Monster Ultra |\n| 产品口味 | Ultra Strawberry Dreams |\n| 顶部文字 | ZERO SUGAR（零糖） |\n| 正面品牌标志 | 黑色 Monster 三道爪痕标志 |\n| 品牌文字 | MONSTER ENERGY |\n| 口味文字 | ULTRA STRAWBERRY DREAMS |\n| 包装类型 | 细长型铝制易拉罐 |\n| 主色调 | 浅粉色、玫瑰粉色 |\n| 辅助配色 | 黑色、银白色、红色 |\n| 装饰图案 | 粉色花纹、曲线及细密的装饰性图案 |\n\n## 视觉设计特点\n\n**包装最突出的特点是粉红色与黑色的强烈对比。** 罐身大面积使用浅粉色，表面布满更深的粉红色装饰纹理。中央的黑色三道爪痕标志占据视觉中心，使消费者能够迅速识别 Monster 品牌。\n\n罐体顶部采用红色金属设计，靠近上方的位置印有黑色的 “ZERO SUGAR”。下方则依次排列 Monster Energy 品牌名称和 Ultra Strawberry Dreams 产品名称。\n\n**整体视觉风格：** 粉色梦幻主题、精细花纹、强烈品牌识别度，兼具甜美感与能量饮料的个性化设计。\n\n需要注意，图片仅展示包装正面，因此无法从中确认饮料的具体容量、咖啡因含量及完整营养成分。",
+  "renderError": null,
+  "appBlocks": [],
+  "localAssets": {},
+  "dil": {
+    "code": "DIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});return __dil.jsx(__dil.Fragment,null,__dil.jsx(\"text\",null,__dilConstants[\"0\"],__dil.jsx(\"bold\",null,__dilConstants[\"1\"]),__dilConstants[\"2\"],__dil.jsx(\"bold\",null,__dilConstants[\"3\"]),__dilConstants[\"4\"]),__dil.jsx(\"text\",null,__dilConstants[\"5\"]),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"6\"]),__dil.jsx(\"table\",null,__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"7\"])),__dil.jsx(\"table-cell\",{\"header\":true},__dil.jsx(\"text\",null,__dilConstants[\"8\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"9\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"10\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"11\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"12\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"13\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"14\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"15\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"16\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"17\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"18\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"19\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"20\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"21\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"22\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"23\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"24\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"25\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"26\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"27\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"28\"]))),__dil.jsx(\"table-row\",null,__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"29\"])),__dil.jsx(\"table-cell\",null,__dil.jsx(\"text\",null,__dilConstants[\"30\"])))),__dil.jsx(\"title\",{\"size\":\"lg\"},__dilConstants[\"31\"]),__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"32\"]),__dilConstants[\"33\"]),__dil.jsx(\"text\",null,__dilConstants[\"34\"]),__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"35\"]),__dilConstants[\"36\"]),__dil.jsx(\"text\",null,__dilConstants[\"37\"]));},{\"key\":\"body:0\"}));",
+    "constants": {
+      "0": "这张图片展示的是一罐 ",
+      "1": "Monster Energy（魔爪能量饮料）",
+      "2": "，具体产品为 ",
+      "3": "Monster Ultra Strawberry Dreams（超极草莓梦幻口味）",
+      "4": "。",
+      "5": "产品采用细长的铝制易拉罐包装，以粉红色为主色调，搭配黑色品牌标志、红色罐顶，以及银白色的底部装饰。整体设计偏甜美、梦幻，同时保留了 Monster 品牌标志性的视觉风格。",
+      "6": "包装主要信息",
+      "7": "项目",
+      "8": "图片中显示的信息",
+      "9": "品牌名称",
+      "10": "Monster Energy",
+      "11": "产品系列",
+      "12": "Monster Ultra",
+      "13": "产品口味",
+      "14": "Ultra Strawberry Dreams",
+      "15": "顶部文字",
+      "16": "ZERO SUGAR（零糖）",
+      "17": "正面品牌标志",
+      "18": "黑色 Monster 三道爪痕标志",
+      "19": "品牌文字",
+      "20": "MONSTER ENERGY",
+      "21": "口味文字",
+      "22": "ULTRA STRAWBERRY DREAMS",
+      "23": "包装类型",
+      "24": "细长型铝制易拉罐",
+      "25": "主色调",
+      "26": "浅粉色、玫瑰粉色",
+      "27": "辅助配色",
+      "28": "黑色、银白色、红色",
+      "29": "装饰图案",
+      "30": "粉色花纹、曲线及细密的装饰性图案",
+      "31": "视觉设计特点",
+      "32": "包装最突出的特点是粉红色与黑色的强烈对比。",
+      "33": " 罐身大面积使用浅粉色，表面布满更深的粉红色装饰纹理。中央的黑色三道爪痕标志占据视觉中心，使消费者能够迅速识别 Monster 品牌。",
+      "34": "罐体顶部采用红色金属设计，靠近上方的位置印有黑色的 “ZERO SUGAR”。下方则依次排列 Monster Energy 品牌名称和 Ultra Strawberry Dreams 产品名称。",
+      "35": "整体视觉风格：",
+      "36": " 粉色梦幻主题、精细花纹、强烈品牌识别度，兼具甜美感与能量饮料的个性化设计。",
+      "37": "需要注意，图片仅展示包装正面，因此无法从中确认饮料的具体容量、咖啡因含量及完整营养成分。"
+    },
+    "fallbackMarkdown": "这张图片展示的是一罐 **Monster Energy（魔爪能量饮料）**，具体产品为 **Monster Ultra Strawberry Dreams（超极草莓梦幻口味）**。\n\n产品采用细长的铝制易拉罐包装，以粉红色为主色调，搭配黑色品牌标志、红色罐顶，以及银白色的底部装饰。整体设计偏甜美、梦幻，同时保留了 Monster 品牌标志性的视觉风格。\n\n## 包装主要信息\n\n| 项目 | 图片中显示的信息 |\n|--------|--------|\n| 品牌名称 | Monster Energy |\n| 产品系列 | Monster Ultra |\n| 产品口味 | Ultra Strawberry Dreams |\n| 顶部文字 | ZERO SUGAR（零糖） |\n| 正面品牌标志 | 黑色 Monster 三道爪痕标志 |\n| 品牌文字 | MONSTER ENERGY |\n| 口味文字 | ULTRA STRAWBERRY DREAMS |\n| 包装类型 | 细长型铝制易拉罐 |\n| 主色调 | 浅粉色、玫瑰粉色 |\n| 辅助配色 | 黑色、银白色、红色 |\n| 装饰图案 | 粉色花纹、曲线及细密的装饰性图案 |\n\n## 视觉设计特点\n\n**包装最突出的特点是粉红色与黑色的强烈对比。** 罐身大面积使用浅粉色，表面布满更深的粉红色装饰纹理。中央的黑色三道爪痕标志占据视觉中心，使消费者能够迅速识别 Monster 品牌。\n\n罐体顶部采用红色金属设计，靠近上方的位置印有黑色的 “ZERO SUGAR”。下方则依次排列 Monster Energy 品牌名称和 Ultra Strawberry Dreams 产品名称。\n\n**整体视觉风格：** 粉色梦幻主题、精细花纹、强烈品牌识别度，兼具甜美感与能量饮料的个性化设计。\n\n需要注意，图片仅展示包装正面，因此无法从中确认饮料的具体容量、咖啡因含量及完整营养成分。",
+    "fallbackMarkdownVersion": 1,
+    "appData": {
+      "opGenui": {
+        "componentResults": {},
+        "interactionSurface": "mainline",
+        "modelDataBindings": {}
+      }
+    }
+  },
+  "contentReferences": []
+}
