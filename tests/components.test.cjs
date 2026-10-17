@@ -4,7 +4,7 @@ const render=require('../extension/dil-render');
 const dir='tests/fixtures/mainlab',files=fs.readdirSync(dir).sort();
 const load=id=>JSON.parse(fs.readFileSync(`${dir}/${files.find(f=>f.includes(id))}`,'utf8'));
 const exec=(code,scope)=>vm.runInNewContext(code,{...scope},{timeout:1000});
-const segs=id=>render.segments(render.evaluate(load(id).dil,exec));
+const segs=id=>{const j=load(id);return render.segments(render.evaluate({...j.dil,contentReferences:j.contentReferences},exec));};
 const cards=id=>segs(id).filter(s=>s.kind==='card');
 const mdOf=id=>segs(id).map(s=>render.toMarkdown(s.tree)).join('\n\n');
 const parser=new (new JSDOM('').window.DOMParser)();
@@ -49,6 +49,17 @@ test('card HTML is well-formed and draws each component kind',()=>{
   const [flow]=html['9a3073ce'];
   assert.match(flow,/<svg viewBox="0 0 350 440" width="100%" xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);assert.match(flow,/<marker id="r03arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">/);
   assert.match(flow,/marker-end="url\(#r03arrow\)"/);assert.match(flow,/<text x="175" y="22" text-anchor="middle" font-size="13"/);
+});
+test('client-defined widgets: code blocks become fenced Markdown, visualizations become charts',()=>{
+  const md=mdOf('c807990b');assert.doesNotMatch(md,/嵌入应用/);
+  assert.match(md,/^```python\nfrom dataclasses import dataclass\n\n@dataclass\nclass SolarConfig:/m);
+  assert.match(md,/^```text\nDay 1: battery=1\.12 kWh, unserved=0\.00 kWh, curtailed=0\.00 kWh\n/m);assert.match(md,/^```json\n\{\n  "project": "Campus Solar Learning Corner",/m);
+  const card=cards('7fe02b34')[1];assert.match(render.toMarkdown(card.tree),/不同日照情景下的每日发电量\n\n概率分别为20%、50%、30%。\n\n\| hours \| 发电量 \|\n\| --- \| ---: \|\n\| 2 h · 20% \| 640 Wh \|/);
+  assert.equal((render.toHtml(card.tree).match(/<rect [^>]*rx="2" fill="#3a83f7"/g)||[]).length,4);
+  assert.match(render.toHtml({type:'code-block',props:{value:'\na < b\n'},children:[]}),/^<pre class="codeblk"><code>a &lt; b<\/code><\/pre>$/);
+});
+test('a checkbox inside a list item is a task-list item',()=>{
+  assert.match(mdOf('22172b7f'),/^- \[ \] \*\*参数版本：\*\* 展示屏已改为每天6小时/m);assert.doesNotMatch(mdOf('22172b7f'),/^- - \[/m);
 });
 test('pie charts, unsafe style values and unknown icons degrade safely',()=>{
   const pie=render.toHtml({type:'pie-chart',props:{data:[{n:'A',v:3},{n:'B',v:1}],series:[{dataKey:'v'}],xAxis:'n'},children:[]});

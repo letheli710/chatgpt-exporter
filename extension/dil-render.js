@@ -33,7 +33,30 @@
     const DIL = new Proxy(known, {get:(target, key) => key in target ? target[key] : inert()});
     execute(dil.code, {DIL, __dil:{jsx, Fragment}, GenUI:inert()});
     if (!tree) throw Error('界面程序没有调用 DIL.render');
-    return plain(tree);
+    return resolveWidgets(plain(tree), dil);
+  }
+  // Code blocks and some charts are client-defined widgets whose content lives
+  // in content_references (linked by clientDefinedWidgets[id].refIndex).
+  // AppBlocks stay as widget nodes; they are exported as standalone HTML.
+  function widgetNode(invocationId, dil) {
+    const ref = (Array.isArray(dil?.contentReferences) ? dil.contentReferences : [])[dil?.clientDefinedWidgets?.[invocationId]?.refIndex];
+    const data = ref?.data, kind = data?.widget_type || ref?.category;
+    if (kind === 'code_block' && typeof data?.content === 'string') return {type:'code-block', props:{language:typeof data.language === 'string' ? data.language : '', value:data.content}, children:[]};
+    if ((ref?.category === 'visualization' || kind === 'visualization') && data?.content && typeof data.content === 'object') {
+      const c = data.content, pie = c.chartType === 'pie', kids = [];
+      if (c.meta?.title) kids.push({type:'text', props:{weight:'semibold'}, children:[String(c.meta.title)]});
+      if (c.meta?.description) kids.push({type:'text', props:{size:'sm', color:'secondary'}, children:[String(c.meta.description)]});
+      kids.push({type:pie ? 'pie-chart' : 'chart', props:{data:c.data, series:c.series, xAxis:pie ? c.nameKey || c.xKey : {dataKey:c.xKey}, showDots:c.chartType === 'line', height:280}, children:[]});
+      if (c.meta?.footer) kids.push({type:'text', props:{size:'sm', color:'tertiary'}, children:[String(c.meta.footer)]});
+      return {type:'box', props:{border:true, radius:'xl', padding:3, gap:2}, children:kids};
+    }
+    return null;
+  }
+  function resolveWidgets(node, dil) {
+    if (!node || typeof node !== 'object') return node;
+    if (Array.isArray(node)) return node.map(n => resolveWidgets(n, dil));
+    if (node.type === '__chatgptClientDefinedWidget') return widgetNode(node.props?.invocationId, dil) || node;
+    return {...node, children:(node.children || []).map(n => resolveWidgets(n, dil))};
   }
   // Markdown-native constructs stay text; everything else is UI drawn as an image.
   const inlineTypes = new Set(['bold','italic','code','link','strike','math','badge','icon']);
@@ -96,7 +119,9 @@
         const marker = numbered ? `${++n}.` : '-', pad = ' '.repeat(marker.length + 1);
         const kids = item.children || [], own = blocks(kids.filter(c => c?.type !== 'list'), depth).replace(/\n\n+/g, '\n');
         const nested = kids.filter(c => c?.type === 'list').map(l => list(l, depth + 1).split('\n').map(x => pad + x).join('\n'));
-        return [`${marker} ${own.split('\n').join(`\n${pad}`)}`, ...nested].join('\n');
+        // A checkbox item is a task-list item, not a bullet holding a checkbox.
+        const first = `${marker} ${own.split('\n').join(`\n${pad}`)}`.replace(/^(-|\d+\.) - \[( |x)\] /, (_, m, x) => `${m} [${x}] `);
+        return [first, ...nested].join('\n');
       }).join('\n');
     }
     function chartTable(p, pie) {
@@ -115,6 +140,7 @@
         case 'text': case 'caption': return inline(node.children);
         case 'title': return ui ? `**${inline(node.children)}**` : `${'#'.repeat(headingLevel[p.size] || 3)} ${inline(node.children)}`;
         case 'math': return p.block ? `$$\n${p.value ?? ''}\n$$` : `$${p.value ?? ''}$`;
+        case 'code-block': {const value = String(p.value ?? '').replace(/^\n+|\n+$/g, ''), fence = '`'.repeat(Math.max(3, ...Array.from(value.matchAll(/`+/g), m => m[0].length + 1)));return `${fence}${/^[\w+#.-]+$/.test(p.language) ? p.language : ''}\n${value}\n${fence}`;}
         case 'divider': return '---';
         case 'table': return table(node);
         case 'list': return list(node, depth);
@@ -137,7 +163,7 @@
   }
   // Top-level prose and Markdown constructs stay Markdown; every other
   // top-level component (box, card, grid, chart, ...) becomes a card image.
-  const proseTypes = new Set(['text','title','divider','bold','italic','strike','code','link','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
+  const proseTypes = new Set(['code-block','text','title','divider','bold','italic','strike','code','link','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
   function segments(tree) {
     const flat = [], out = [];
     const add = node => {
@@ -176,6 +202,7 @@
 .slider{position:relative;height:20px;width:100%}.slider-track{position:absolute;left:0;right:0;top:8px;height:4px;border-radius:9999px;background:#e3e3e3}.slider-fill{position:absolute;left:0;top:8px;height:4px;border-radius:9999px;background:#0d0d0d}.slider-thumb{position:absolute;top:2px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#fff;border:1px solid rgba(13,13,13,.15);box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .seg{display:inline-flex;gap:2px;padding:2px 0}.seg-block{display:flex;width:100%}.seg-block .seg-opt{flex:1;text-align:center}.seg-opt{padding:6px 16px;border-radius:9999px;font-size:14px;line-height:20px;font-weight:500;color:#5d5d5d;white-space:nowrap}.seg-opt.on{background:#f3f3f3;color:#0d0d0d}
 .select{display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 10px;border:1px solid rgba(13,13,13,.15);border-radius:8px;font-size:14px;background:#fff;white-space:nowrap}
+.codeblk{margin:0;padding:10px 12px;background:#f9f9f9;border-radius:10px;overflow:hidden;white-space:pre-wrap;font:13px/1.5 ui-monospace,Consolas,monospace}.codeblk code{background:none;padding:0;font-size:inherit}
 .math{font-family:"Cambria Math","Times New Roman",serif;font-style:italic}.math-block{display:block;text-align:center}
 code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:4px;padding:0 4px;font-size:.9em}.link{color:#2964aa;text-decoration:underline}
 .widget,.img{border:1px dashed #c9c9c9;border-radius:10px;padding:10px 12px;color:#5d5d5d;font-size:13px}`;
@@ -295,6 +322,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
         case 'radio-group': return `<div class="radios${p.direction === 'row' ? ' dir-row' : ''}">${kids({...ctx, radio:String(p.value ?? '')})}</div>`;
         case 'radio': {const on = ctx.radio !== undefined && String(p.value) === ctx.radio;return `<div class="cb"><span class="rb${on ? ' on' : ''}">${on ? '<span class="rb-dot"></span>' : ''}</span><span>${inline()}</span></div>`;}
         case 'divider': return '<hr class="hr"/>';
+        case 'code-block': return `<pre class="codeblk"><code>${escapeHtml(String(p.value ?? '').replace(/^\n+|\n+$/g, ''))}</code></pre>`;
         case 'card': return `<div class="card"${boxStyle(p)}>${kids()}</div>`;
         case 'box': case 'row': case 'grid': case 'grid-item': {
           // An empty box is a bar segment or swatch: fill the row's height.
@@ -398,7 +426,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
       return new Promise((resolve, reject) => {
         const channel = new MessageChannel(), timer = setTimeout(() => {channel.port1.close();reject(Error('界面渲染超时'));}, timeout);
         channel.port1.onmessage = event => {clearTimeout(timer);channel.port1.close();event.data?.error ? reject(Error(event.data.error)) : resolve(event.data);};
-        frame.contentWindow.postMessage({type, dil:dil && {code:dil.code, constants:dil.constants, appData:dil.appData}}, '*', [channel.port2]);
+        frame.contentWindow.postMessage({type, dil:dil && {code:dil.code, constants:dil.constants, appData:dil.appData, clientDefinedWidgets:dil.clientDefinedWidgets, contentReferences:dil.contentReferences}}, '*', [channel.port2]);
       });
     };
     const evaluateRemote = async dil => (await request('dil:evaluate', dil)).tree;
