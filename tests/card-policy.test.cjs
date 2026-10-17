@@ -1,4 +1,4 @@
-const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {test}=require('./private-fixtures.cjs'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {JSDOM}=require('jsdom'),core=require('../extension/core');
 function fixture(k){const d=new JSDOM(JSON.parse(fs.readFileSync(`research/2026-10-12/LONG-R${k}.json`)).html).window.document;return {id:k,role:'assistant',roots:[[...d.querySelectorAll('[data-dil-message-id]')].at(-1)]};}
 test('bordered checklist is one complete screenshot including all 24 choices',async()=>{const m=fixture('06'),blocks=core.planBlocks(m);assert.equal(blocks.length,1);assert.equal(blocks[0].el.querySelectorAll('[role=checkbox]').length,24);const md=await core.convert(m,{warnings:[],asset:async()=> 'x',replacements:new Map([[blocks[0].el,'card.png']])});assert.match(md,/card.png/);assert.doesNotMatch(md,/- \[[ x]\]/);assert.match(md,/24项/);});

@@ -1,4 +1,4 @@
-const {test}=require('node:test');
+const {test}=require('./private-fixtures.cjs');
 const assert=require('node:assert/strict');
 const {JSDOM}=require('jsdom');
 const visual=require('../extension/fast-visual');

@@ -1,4 +1,4 @@
-const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {test}=require('./private-fixtures.cjs'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {JSDOM}=require('jsdom'),core=require('../extension/core');
 function fixture(){const d=new JSDOM(JSON.parse(fs.readFileSync('research/2026-10-12/LONG-R02.json')).html).window.document;return {id:'r03',role:'assistant',roots:[[...d.querySelectorAll('[data-dil-message-id]')].at(-1)]};}
 test('ratio screenshot includes title and both aligned captions, excludes following prose',async()=>{
