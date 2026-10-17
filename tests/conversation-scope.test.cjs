@@ -28,8 +28,8 @@ test('remote conversation mismatch stops instead of exporting the previous page'
   assert.throws(()=>core.discover(d),/不匹配/);
 });
 test('real active DOM plus cached foreign DOM preserves actual turn order',()=>{
-  const active=JSON.parse(fs.readFileSync('research/2026-10-12/V2-ACTIVE-CONVERSATION.json'));
-  const foreign=JSON.parse(fs.readFileSync('research/2026-10-12/USER-SHARE-TEST1.json'));
+  const active=JSON.parse(fs.readFileSync('archive/research/2026-10-12/V2-ACTIVE-CONVERSATION.json'));
+  const foreign=JSON.parse(fs.readFileSync('archive/research/2026-10-12/USER-SHARE-TEST1.json'));
   const d=new JSDOM(`<div style="display:none">${foreign.html}</div>${active.html}`,{url:active.url}).window.document;
   const store=new RecordStore();store.observe(core.discover(d));
   assert.equal(store.values().length,18);

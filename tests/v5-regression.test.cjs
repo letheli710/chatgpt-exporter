@@ -1,6 +1,6 @@
 const {test}=require('./private-fixtures.cjs'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {JSDOM}=require('jsdom'),core=require('../extension/core');
-function fixture(k){const f=JSON.parse(fs.readFileSync(`research/2026-10-12/LONG-R${k}.json`));const d=new JSDOM(f.html).window.document;const el=[...d.querySelectorAll('[data-dil-message-id]')].at(-1);return {id:'r'+k,role:'assistant',roots:[el]};}
+function fixture(k){const f=JSON.parse(fs.readFileSync(`archive/research/2026-10-12/LONG-R${k}.json`));const d=new JSDOM(f.html).window.document;const el=[...d.querySelectorAll('[data-dil-message-id]')].at(-1);return {id:'r'+k,role:'assistant',roots:[el]};}
 async function convert(m,extra={}){return core.convert(m,{warnings:[],asset:async()=> 'icon.svg',...extra});}
 test('E04 cumulative three-part metrics retain units in one table',async()=>{const md=await convert(fixture('05'));assert.match(md,/\| 8.32 kWh \| 3.36 kWh \| \+4.96 kWh \|/);});
 test('E05 explicit metadata line breaks survive rendering',async()=>{const md=await convert(fixture('01'));assert.match(md,/项目名称[\s\S]*?<br>\n\*\*项目性质/);});

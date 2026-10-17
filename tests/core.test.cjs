@@ -32,7 +32,7 @@ test('SVG has namespace, strips executable attributes, rejects foreignObject', (
   assert.throws(()=>core.serializeSVG(documentOf('<svg><foreignObject/></svg>').querySelector('svg')),/截图/);
 });
 test('saved real conversation fixtures yield nonempty ordered messages', async () => {
-  const dir='research/2026-10-12'; let checked=0;
+  const dir='archive/research/2026-10-12'; let checked=0;
   for(const name of fs.readdirSync(dir).filter(n=>/^I0[16].*\.json$/.test(n))){
     const data=JSON.parse(fs.readFileSync(`${dir}/${name}`)); if(!data.html) continue;
     const messages=core.discover(new JSDOM(data.html,{url:data.url || 'https://chatgpt.com/'}).window.document); assert.ok(messages.length>=2,name);

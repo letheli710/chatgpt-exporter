@@ -1,6 +1,6 @@
 const {test}=require('./private-fixtures.cjs'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {JSDOM}=require('jsdom'),core=require('../extension/core');
-function fixture(){const d=new JSDOM(JSON.parse(fs.readFileSync('research/2026-10-12/LONG-R02.json')).html).window.document;return {id:'r03',role:'assistant',roots:[[...d.querySelectorAll('[data-dil-message-id]')].at(-1)]};}
+function fixture(){const d=new JSDOM(JSON.parse(fs.readFileSync('archive/research/2026-10-12/LONG-R02.json')).html).window.document;return {id:'r03',role:'assistant',roots:[[...d.querySelectorAll('[data-dil-message-id]')].at(-1)]};}
 test('ratio screenshot includes title and both aligned captions, excludes following prose',async()=>{
  const m=fixture(),b=core.planBlocks(m).find(b=>b.reason==='CSS 比例或进度图');
  assert.match(b.el.textContent,/典型日能量分配/);assert.match(b.el.textContent,/负载 480 Wh · 30%/);assert.match(b.el.textContent,/净余量 1,120 Wh · 70%/);assert.doesNotMatch(b.el.textContent,/不必然全部进入电池/);

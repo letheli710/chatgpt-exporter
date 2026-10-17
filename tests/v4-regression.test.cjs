@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const {JSDOM}=require('jsdom');
 const core=require('../extension/core');
-function fixture(round){const f=JSON.parse(fs.readFileSync(`research/2026-10-12/LONG-R${round}.json`));const d=new JSDOM(f.html,{url:f.url}).window.document;const el=[...d.querySelectorAll('[data-dil-message-id]')].at(-1);return {id:round,role:'assistant',roots:[el],el};}
+function fixture(round){const f=JSON.parse(fs.readFileSync(`archive/research/2026-10-12/LONG-R${round}.json`));const d=new JSDOM(f.html,{url:f.url}).window.document;const el=[...d.querySelectorAll('[data-dil-message-id]')].at(-1);return {id:round,role:'assistant',roots:[el],el};}
 const convert=m=>core.convert(m,{warnings:[],asset:async()=> 'assets/test.svg'});
 test('v4 metric cards become a parallel Markdown table',async()=>{const md=await convert(fixture('02'));assert.match(md,/\| 期望发电量 \| 标准差 \|\n\| --- \| --- \|\n\| 1,344 Wh \| 448 Wh \|/);});
 test('v4 automatic chart capture leaves adjacent metrics as searchable table',async()=>{const m=fixture('02');const replacements=new Map(core.planBlocks(m).map(b=>[b.el,'assets/chart.png']));const md=await core.convert(m,{warnings:[],replacements,asset:async()=> 'assets/test.svg'});assert.match(md,/\| 1,344 Wh \| 448 Wh \|/);assert.match(md,/chart.png/);});

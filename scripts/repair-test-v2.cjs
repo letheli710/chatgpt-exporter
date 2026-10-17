@@ -5,7 +5,7 @@ const source='archive/Output - test 1/早期归档版本/v2/conversation-archive
 const manifest=JSON.parse(fs.readFileSync(path.join(source,'manifest.json')));
 const known=new Map();
 for(const file of ['M02-t1.json','V2-ACTIVE-CONVERSATION.json']){
-  const fixture=JSON.parse(fs.readFileSync('research/2026-10-12/'+file));assert.equal(fixture.url,manifest.url);
+  const fixture=JSON.parse(fs.readFileSync('archive/research/2026-10-12/'+file));assert.equal(fixture.url,manifest.url);
   for(const m of core.discover(new JSDOM(fixture.html).window.document))known.set(m.id,m);
 }
 const md=fs.readFileSync(path.join(source,'conversation.md'),'utf8');

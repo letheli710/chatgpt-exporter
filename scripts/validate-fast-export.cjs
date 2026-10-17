@@ -90,7 +90,7 @@ async function validate(input, options = {}) {
   const t01 = [...renderedR07.querySelectorAll('tr')].find(row => row.cells[0]?.textContent.trim() === 'T01');
   const cells = t01 ? [...t01.cells].map(c => c.textContent) : [];
   check('R07 T01 renders three intact cells', cells.length === 3 && cells[1].includes('竖线字符') && /Solar\s*\\?\|\s*Battery/.test(cells[2]), cells);
-  const fixture = JSON.parse(fs.readFileSync(path.join(root, 'research/2026-10-12/LONG-R06.json')));
+  const fixture = JSON.parse(fs.readFileSync(path.join(root, 'archive/research/2026-10-12/LONG-R06.json')));
   if (fixture.url !== sourceUrl) throw new Error('Wrong R06 fixture source');
   const doc = new JSDOM(fixture.html, { url: fixture.url }).window.document;
   const reply = core.discover(doc).filter(m => m.role === 'assistant').at(-1);

@@ -15,7 +15,7 @@ const sourceUrl = 'https://chatgpt.com/c/6acd9282-acbc-83e9-bbb4-51aace07323c';
     const text = blocks[i].body.replace(/\n---\s*$/, '').trim();
     const normalized = fast.normalizeText(text);
     if (i % 2) {
-      const fixture = JSON.parse(fs.readFileSync(path.join(root, `research/2026-10-12/LONG-${round}.json`)));
+      const fixture = JSON.parse(fs.readFileSync(path.join(root, `archive/research/2026-10-12/LONG-${round}.json`)));
       if (fixture.url !== sourceUrl) throw Error('Wrong source fixture ' + round);
       const dom = new JSDOM(fixture.html, { url: fixture.url });
       const target = core.discover(dom.window.document).filter(m => m.role === 'assistant').at(-1);
@@ -36,6 +36,6 @@ const sourceUrl = 'https://chatgpt.com/c/6acd9282-acbc-83e9-bbb4-51aace07323c';
   report.generationElapsedMs = Math.round(performance.now()-started-report.elapsedMs);
   report.rounds = rounds;
   report.textChecksPassed = report.checks.filter(c => !c.name.includes('screenshot in correct assistant message')).every(c => c.passed);
-  fs.writeFileSync(path.join(root, 'research/2026-10-14/SWIFT-OFFLINE-TEXT-VALIDATION.json'), JSON.stringify(report, null, 2));
+  fs.writeFileSync(path.join(root, 'archive/research/2026-10-14/SWIFT-OFFLINE-TEXT-VALIDATION.json'), JSON.stringify(report, null, 2));
   console.log(JSON.stringify({ output, mode: report.mode, textChecksPassed: report.textChecksPassed, fullAcceptancePassed: report.passed, generationElapsedMs: report.generationElapsedMs, verificationElapsedMs: report.elapsedMs, failures: report.checks.filter(c => !c.passed).map(c => c.name), rounds }, null, 2));
 })().catch(error => { console.error(error.stack); process.exitCode = 1; });

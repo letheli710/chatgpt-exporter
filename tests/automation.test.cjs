@@ -14,7 +14,7 @@ test('multiple widgets keep prose and independent cards separate',async()=>{
   for(const b of blocks)assert.equal(core.resolvePath(m,b.path),b.el);
 });
 test('real shared conversation identifies seven widgets and preserves text-only replies',()=>{
-  const data=JSON.parse(fs.readFileSync('research/2026-10-12/USER-SHARE-TEST1.json'));
+  const data=JSON.parse(fs.readFileSync('archive/research/2026-10-12/USER-SHARE-TEST1.json'));
   const messages=core.discover(doc(data.html));assert.equal(messages.length,20);
   const replies=messages.filter(m=>m.role==='assistant');
   assert.deepEqual(replies.map(m=>core.planBlocks(m).length),[1,1,1,0,1,1,0,1,0,1]);
@@ -22,7 +22,7 @@ test('real shared conversation identifies seven widgets and preserves text-only 
   assert.equal(new Set(messages.map(m=>m.id)).size,20);assert.ok(messages.every(m=>m.stable));
 });
 test('stored solar classroom separates calculator, quiz, and diagram with outside caption',()=>{
-  const data=JSON.parse(fs.readFileSync('research/2026-10-12/I06-final.json'));
+  const data=JSON.parse(fs.readFileSync('archive/research/2026-10-12/I06-final.json'));
   const m=core.discover(doc(data.html)).find(m=>m.role==='assistant');
   const blocks=core.planBlocks(m);assert.equal(blocks.length,3);
   assert.ok(blocks.every(b=>!b.el.textContent.includes('太阳能电池板（Solar')));

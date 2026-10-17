@@ -1,5 +1,5 @@
 const fs=require('node:fs'),{JSDOM}=require('jsdom'),core=require('../extension/core');
-const dir='research/2026-10-12';
+const dir='archive/research/2026-10-12';
 const rounds=[];
 for(let i=1;i<=9;i++){
   const tag='R'+String(i).padStart(2,'0'),file=`${dir}/LONG-${tag}.json`;if(!fs.existsSync(file))continue;

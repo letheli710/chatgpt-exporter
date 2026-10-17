@@ -4,9 +4,9 @@ const {JSDOM}=require('jsdom');
 const visual=require('../extension/fast-visual');
 const fs=require('node:fs');
 const core=require('../extension/core');
-// Real conversation captures stay private under ignored research/. These local
+// Real conversation captures stay private under ignored archive/research/. These local
 // regression checks intentionally require the owner's existing evidence files.
-const fixture=name=>{const data=JSON.parse(fs.readFileSync(`research/2026-10-12/${name}.json`,'utf8'));return new JSDOM(data.html,{url:data.url}).window.document;};
+const fixture=name=>{const data=JSON.parse(fs.readFileSync(`archive/research/2026-10-12/${name}.json`,'utf8'));return new JSDOM(data.html,{url:data.url}).window.document;};
 const docOf=html=>new JSDOM(html,{url:'https://chatgpt.com/c/test'}).window.document;
 const turn=(id,html)=>`<article data-message-author-role="assistant" data-chatgpt-search-message-ids="${id}"><div class="markdown">${html}</div></article>`;
 test('stable API id matches a token within merged DOM message ids, not a substring',()=>{

@@ -1,25 +1,62 @@
 # ChatGPT Exporter
 
-当前版本为 0.8.13（数据优先导出）：正文、原图、代码解释器文件和 Intelligent UI 数据直接从会话接口读取，界面卡片和 AppBlock 在沙箱中画成 PNG，正文保持为 Markdown。在 Chrome 中“加载已解压的扩展程序”选择 `extension/` 即可使用；待办见 [TODO](TODO.md)。
+把 ChatGPT 对话导出为 Markdown 和本地资源包的 Chrome 扩展（Manifest V3），方便归档到 Obsidian 等笔记软件。当前版本 **0.8.13**。
 
-各阶段的设计与验收记录在 [docs/history](docs/history/)：[数据优先导出 0.7](docs/history/DATA-FIRST-EXPORTER.md)、[Swift Archive 0.6](docs/history/FAST-SPEED-EXPORTER.md)、[融合实现](docs/history/MERGED-EXPORTER.md)、[运行记录](docs/history/RUN-LOG.md)。以下为 0.4.x 视觉归档原型的历史说明。
+全程在浏览器本地运行，不调用任何 AI 服务，也不把对话上传到第三方。正文、原图和界面数据直接从 ChatGPT 的会话接口读取，不需要滚动页面或截图，长对话通常一秒内导出完，标签页在后台也能完成。
 
-本项目开发适配 ChatGPT 新界面的 Chrome 导出插件，重点保存对话中有价值的讨论及上下文。用户选择消息或内容片段后，导出 Markdown 与本地资产包；正文保留为可检索文字，普通图片与 SVG 优先保存原始资产，其他可视化和少见的自生成工具用截图保存当前画面。
+## 能导出什么
 
-当前为可本地加载的 Manifest V3 原型 0.4.0，位于 `extension/`。在消息多选、Markdown 与图片/SVG 打包基础上，新增独立交互卡片自动识别、跨屏截图拼接和从顶部到底部的长对话滚动收集，缓存消息可在 DOM 卸载后继续导出。安装与限制见[本地试用说明](INSTALL.md)，执行范围以[项目计划](docs/history/PLAN.md)为准。0.1 手动截图已获用户实测；0.2 新流程已通过离线回归和模拟截图源的浏览器布局验证，仍需更新扩展后进行真实 ChatGPT 验收。
+- **正文**：保留为可编辑的 Markdown，包括表格、代码块、公式、引用来源链接。
+- **图片**：上传的图片、生成的图片、搜索结果插图，均下载原图到 `assets/`。
+- **代码解释器**：输出的图表和生成的文件下载到本地，文件放在 `files/`，正文中的链接改为本地路径。
+- **界面卡片**（Intelligent UI）：在扩展的沙箱页里离屏画成 PNG，卡片里的文字同时保留在可折叠的引用块中。
+- **嵌入应用**（AppBlock，如 WebGL、canvas、动画演示）：运行约 1 秒后截一张预览图，并保留打开原应用的链接。
 
-实现上优先复用有明确许可证的开源 Exporter，保留可用的正文转换和打包能力，将新增开发集中在内容块选区、图片与 SVG 保存以及截图混排。选型需经过源码检查和现有样本验证，不直接假定用户已安装的同名扩展就是某个开源项目。
+可以导出整段对话，也可以只勾选部分消息。
 
-此前两批实测累计 30 个普通 Chat、63 轮请求，记录保留供回归使用，见[第一批报告](research/2026-10-12/REPORT.md)、[第二批报告](research/2026-10-12/BATCH2.md)和[能力矩阵](research/2026-10-12/CAPABILITY-MATRIX.md)。历史报告中的继续穷举建议已被当前项目计划取代。
+## 安装
 
-0.3.0 针对 v4 实测修复：统计卡片表格、单选与清单的 Markdown 语义、现代代码块、SVG 序列化与外部图例边界，以及截图中的悬浮提示和输入框遮挡。验证记录见 `research/2026-10-12/FIX-0.3.0.md`。
+1. Chrome 地址栏输入 `chrome://extensions`，打开右上角“开发者模式”。
+2. 点击“加载已解压的扩展程序”，选择本项目的 `extension` 文件夹。
+3. 打开 ChatGPT 的一个对话，点击扩展图标，页面上出现导出面板。
 
-0.4.0 根据 v5 审查补充虚拟化代码滚动采集、就近缺失提示、真实渲染验证的表格转义、三元素指标卡片、显式换行、任务说明归属、标题层级、装饰图标过滤和CSS图形截图。详细处理状态见 `research/2026-10-13/FIX-0.4.0.md`。
+**更新代码后**，要在 `chrome://extensions` 里点该扩展的“重新加载”，再刷新 ChatGPT 页面。面板每次点击都会从磁盘读取最新代码，但后台脚本和权限只在重新加载后才更新；两者版本不一致时，面板会提示。
 
-0.4.1 将比例条、标题及左右图例合并截图，保留图表标题加粗；原始 DOM 样本回归共 51 项通过。
+## 使用
 
-0.4.2：带外框的清单和测验整体截图（包括未作答状态）；无外框的选项使用任务列表并保留局部加粗。53 项回归通过，真实 ChatGPT 截图待复验。
+- **全选 / 清空 / 勾选**：选择要导出的消息。
+- **预览文字**：先看导出的 Markdown。
+- **下载 Markdown**：只要正文。
+- **下载 ZIP（原图 + 界面数据）**：完整导出，推荐。
+- **从页面补充当前状态与截图**：旧版的页面截图路径，较慢，需保持标签页在前台，一般不需要勾选（计划移除）。
 
-## Git 仓库中的测试资料
+ZIP 解压后：
 
-仓库保留扩展源码、构建脚本和测试代码。真实聊天 DOM、截图、导出包及研究过程资料仅保留本地，不提交到 GitHub，因此完整 `npm test` 需要本地 `research/2026-10-12` 样本。新克隆可执行 `npm ci`、`npm run package`；不依赖私人页面样本的检查可运行 `node --test tests/capture.test.cjs tests/code-collection.test.cjs tests/panel.test.cjs`。历史文档中的 research 链接指向本地资料。
+```
+<对话标题>-swift-0.8.13/
+├── conversation.md    正文
+├── assets/            图片、卡片 PNG、AppBlock 预览图
+├── files/             代码解释器生成的文件
+├── ui/                每条消息的界面原始数据（JSON）
+└── manifest.json      导出版本、消息列表、耗时与警告
+```
+
+保持 `conversation.md` 和 `assets/` 相邻，图片才能正常显示。
+
+## 尚不支持
+
+非图片附件、其他回答分支等，见 [TODO](TODO.md)。
+
+## 开发
+
+```bash
+npm install
+npm test
+```
+
+- `extension/`：扩展本体。改动扩展时，同步提升 `manifest.json`、`extension/fast-content.js` 和 `package.json` 中的版本号，`tests/version.test.cjs` 会检查三者一致。
+- `tests/`：测试。`tests/fixtures/` 是已检查过不含 token 的 Lab 测试对话数据；另有一部分测试读取本地私有样本（`archive/` 下，不提交），缺少时自动跳过。
+- `scripts/package.cjs`：`npm run package` 打包到 `releases/`。
+- `archive/`：本地归档（旧版本导出、研究记录、历史文档），已加入 `.gitignore`，不会推送。
+
+请勿提交 HAR、cookie、Authorization 头、token、原始会话 JSON 或私人对话截图。
