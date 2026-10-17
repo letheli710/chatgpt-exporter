@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.5';
+  const version='0.8.6';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -41,9 +41,11 @@
     const client=sandbox?.client,evaluate=globalThis.ChatExportDilEvaluate||client,snapshot=globalThis.ChatExportDilSnapshot||client?.snapshot,toMd=tree=>dilRender.toMarkdown(tree,{widget:id=>`\u0000APPBLOCK:${id}\u0000`});
     // All messages go to the sandbox at once; cards within a message are also drawn in parallel.
     await Promise.all(targets.map(async m=>{const sent=performance.now();
+      // Widgets (code blocks, charts) resolve from the message's content references.
+      const dil={...m.dil,contentReferences:m.contentReferences};
       // Cards are drawn to PNG in the sandbox; if that fails, text alone is kept.
-      try{const result=await snapshot(m.dil);m.segments=result.segments.map(s=>({kind:s.kind,md:toMd(s.tree),png:s.png,width:s.width,height:s.height,error:s.error}));m.staticMd=m.segments.map(s=>s.md).filter(Boolean).join('\n\n');m.renderTimings={...result.timings,roundTripMs:round(performance.now()-sent)};}
-      catch{try{m.staticMd=toMd(await evaluate(m.dil));}catch(e){m.renderError=e.message;}}
+      try{const result=await snapshot(dil);m.segments=result.segments.map(s=>({kind:s.kind,md:toMd(s.tree),png:s.png,width:s.width,height:s.height,error:s.error}));m.staticMd=m.segments.map(s=>s.md).filter(Boolean).join('\n\n');m.renderTimings={...result.timings,roundTripMs:round(performance.now()-sent)};}
+      catch{try{m.staticMd=toMd(await evaluate(dil));}catch(e){m.renderError=e.message;}}
     }));
     return {uiMessages:targets.length,wallMs:round(performance.now()-started),sandboxLoadMs:client?.stats.loadMs??null,warmup:sandbox?await sandbox.warm:null,
       messages:targets.map(m=>({id:m.id,...(m.renderTimings||{}),...(m.renderError?{error:m.renderError}:{})}))};}

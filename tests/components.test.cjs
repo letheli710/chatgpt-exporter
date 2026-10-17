@@ -68,3 +68,23 @@ test('pie charts, unsafe style values and unknown icons degrade safely',()=>{
   assert.doesNotMatch(render.toHtml({type:'box',props:{background:'red;position:fixed',width:'1px"/><script>'},children:['x']}),/position|script/);
   assert.match(render.toHtml({type:'icon',props:{name:'never-seen'},children:[]}),/•/);
 });
+test('panel end to end: ZIP Markdown keeps widget code blocks and draws the widget chart',async()=>{
+  // Two real messages: code blocks (c807990b) and a chart widget inside a card (7fe02b34).
+  const [code,chart]=['c807990b','7fe02b34'].map(load),mapping={root:{parent:null,children:['u'],message:null},u:{parent:'root',children:[code.messageId],message:{id:'u',author:{role:'user'},content:{content_type:'text',parts:['问题']}}}};
+  [code,chart].forEach((j,i,all)=>{mapping[j.messageId]={parent:i?all[i-1].messageId:'u',children:all[i+1]?[all[i+1].messageId]:[],message:{id:j.messageId,author:{role:'assistant'},channel:'final',recipient:'all',content:{content_type:'text',parts:[j.source]},metadata:{model_dil_v2:j.dil,content_references:j.contentReferences}}};});
+  const conversation={conversation_id:'chat',title:'mainlab',current_node:chart.messageId,mapping};
+  const dom=new JSDOM(`<div data-message-id="${chart.messageId}">x</div>`,{url:'https://chatgpt.com/c/chat',runScripts:'outside-only'}),w=dom.window,files=[];
+  w.fetch=async path=>path==='/api/auth/session'?{ok:true,json:async()=>({accessToken:'t'})}:{ok:true,json:async()=>conversation};
+  // The sandbox stand-in only sees what the panel sends it, like the real sandbox page.
+  w.ChatExportDilEvaluate=async dil=>render.evaluate(JSON.parse(JSON.stringify(dil)),exec);
+  w.ChatExportDilSnapshot=async dil=>({segments:render.segments(render.evaluate(JSON.parse(JSON.stringify(dil)),exec)).map(s=>s.kind==='card'?{...s,png:new Uint8Array([137,80,78,71]).buffer,width:10,height:10}:s)});
+  w.chrome={runtime:{sendMessage:async()=>({id:1})}};w.URL.createObjectURL=()=> 'blob:https://chatgpt.com/t';w.URL.revokeObjectURL=()=>{};
+  w.JSZip=class{file(name,data){files.push({name,data});}async generateAsync(){return new w.Blob(['zip']);}};
+  w.ChatExportDilRender=render;w.eval(fs.readFileSync('extension/fast-text.js','utf8'));w.eval(fs.readFileSync('extension/fast-content.js','utf8'));
+  const s=w.document.querySelector('[data-archive-owned]').shadowRoot,idle=async()=>{for(let i=0;i<300&&s.getElementById('preview').disabled;i++)await new Promise(r=>setTimeout(r,5));};
+  await idle();s.getElementById('archive').click();await idle();
+  const md=files.find(f=>f.name==='conversation.md')?.data||s.getElementById('status').textContent;
+  assert.doesNotMatch(md,/嵌入应用/);assert.match(md,/^```python\nfrom dataclasses import dataclass/m);assert.match(md,/^```text\nDay 1: battery=1\.12 kWh/m);
+  assert.match(md,/> 不同日照情景下的每日发电量\n>\n> 概率分别为20%、50%、30%。\n>\n> \| hours \| 发电量 \|/);
+  dom.window.close();
+});
