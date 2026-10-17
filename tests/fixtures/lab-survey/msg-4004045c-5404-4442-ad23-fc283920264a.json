@@ -1,0 +1,80 @@
+{
+  "messageId": "4004045c-5404-4442-ad23-fc283920264a",
+  "format": "model_dil_v2",
+  "source": "# 单摆运动交互实验\n\n调整摆长，观察摆球如何运动、速度如何变化，以及摆动周期的变化。\n\n<LearningViz type_id=\"SIMPLE_PENDULUM\" initial_values={{\"lengthMeters\":1,\"startingAngleDegrees\":35}} locale_override=\"zh-CN\"/>\n\n以初始摆长 \\(L=1\\,\\text{m}\\)、地球重力加速度 \\(g=9.8\\,\\text{m/s}^2\\) 计算：\n\n<box gap={1}>\n  <text color=\"secondary\" weight=\"medium\" size=\"xs\">理论周期（小角度近似）</text>\n  <title size=\"2xl\" color=\"default\" tabularNums={true}>2.01 秒</title>\n</box>\n\n\\[\nT\\approx2\\pi\\sqrt{\\frac{L}{g}}\n\\]\n\n**观察重点：** 摆长越长，周期越大；重力越强，周期越短。摆球经过最低点时速度最大，到达两端时瞬时速度为零。\n\n上方交互模型支持调整摆长与释放角度，但不支持直接修改重力。下面可以单独调整重力并实时计算对应的理论周期。\n\n{@body const [l,setL] = DIL.useState(1)}\n{@body const [g,setG] = DIL.useState(9.8)}\n{@body const t = 2*Math.PI*Math.sqrt(l/g)}\n<box border radius=\"xl\" padding={3} gap={3}>\n  <row align=\"center\" justify=\"between\">\n    **周期参数实验**\n    <button size=\"xs\" variant=\"outline\" color=\"secondary\" onClick={()=>{setL(1);setG(9.8)}}><icon name=\"rotate-ccw\" size=\"xs\"/> 重置</button>\n  </row>\n  <row justify=\"between\" align=\"center\">\n    <text weight=\"medium\" size=\"sm\">摆长 L</text>\n    <text weight=\"medium\" tabularNums>{l.toFixed(1)} m</text>\n  </row>\n  <slider min={0.5} max={3} step={0.1} value={l} onChange={setL}/>\n  <row justify=\"between\" align=\"center\">\n    <text weight=\"medium\" size=\"sm\">重力加速度 g</text>\n    <text weight=\"medium\" tabularNums>{g.toFixed(1)} m/s²</text>\n  </row>\n  <slider min={1} max={20} step={0.1} value={g} onChange={setG}/>\n  <box background=\"surface-secondary\" padding={3} radius=\"lg\" align=\"center\" gap={1}>\n    <text color=\"secondary\" size=\"xs\">计算周期</text>\n    <title size=\"xl\" color=\"default\" tabularNums>{t.toFixed(2)} 秒</title>\n    <text size=\"xs\" color=\"secondary\">相对初始周期：{((t/ (2*Math.PI/Math.sqrt(9.8))-1)*100).toFixed(1)}%</text>\n  </box>\n</box>\n\n",
+  "staticMarkdown": "# 单摆运动交互实验\n\n调整摆长，观察摆球如何运动、速度如何变化，以及摆动周期的变化。\n\n$$\nT \\approx 2\\pi\\sqrt{\\frac{L}{g}}\n$$\n\nShows an ideal pendulum swinging from a selected release angle, with a tangent velocity arrow that changes direction and length as the bob moves. Learners can adjust pendulum length and release angle to compare the period and speed during the swing.\n\n以初始摆长 $L=1\\,\\text{m}$、地球重力加速度 $g=9.8\\,\\text{m/s}^2$ 计算：\n\n理论周期（小角度近似）\n\n**2.01 秒**\n\n$$\nT\\approx2\\pi\\sqrt{\\frac{L}{g}}\n$$\n\n**观察重点：** 摆长越长，周期越大；重力越强，周期越短。摆球经过最低点时速度最大，到达两端时瞬时速度为零。\n\n上方交互模型支持调整摆长与释放角度，但不支持直接修改重力。下面可以单独调整重力并实时计算对应的理论周期。\n\n**周期参数实验** · 重置\n\n摆长 L · 1.0 m\n\n滑块：1（0.5–3）\n\n重力加速度 g · 9.8 m/s²\n\n滑块：9.8（1–20）\n\n计算周期\n\n**2.01 秒**\n\n相对初始周期：0.0%",
+  "renderError": null,
+  "appBlocks": [],
+  "localAssets": {},
+  "dil": {
+    "code": "function __dilSafe(evaluate,failureValue){try{return evaluate()}catch{return failureValue}}\n\nDIL.render(__dil.jsx(()=>{const __dilConstants=DIL.useConstants();const __dilModelDataBindings=DIL.useAppData((appData)=>appData.opGenui?.modelDataBindings??{});const [l,setL] = DIL.useState(1,{key:\"l\"})\nconst [g,setG] = DIL.useState(9.8,{key:\"g\"})\nconst t = __dilSafe(()=>(2*Math.PI*Math.sqrt(l/g)),undefined)\nreturn __dil.jsx(__dil.Fragment,null,__dil.jsx(\"title\",{\"size\":\"xl\"},__dilConstants[\"0\"]),__dil.jsx(\"text\",null,__dilConstants[\"1\"]),(__dilConstants[\"3\"]==null?__dil.jsx(\"__chatgptClientDefinedWidget\",{\"key\":\"cdw:0\",\"invocationId\":__dilConstants[\"2\"]}):__dilConstants[\"3\"].type===\"math\"?__dil.jsx(\"math\",{\"key\":\"cdw:0\",\"value\":__dilConstants[\"3\"].value}):__dilConstants[\"3\"].type===\"text\"?__dil.jsx(\"text\",{\"key\":\"cdw:0\"},__dilConstants[\"3\"].value):null),__dil.jsx(\"text\",null,__dilConstants[\"4\"],__dil.jsx(\"math\",{\"value\":__dilConstants[\"5\"]}),__dilConstants[\"6\"],__dil.jsx(\"math\",{\"value\":__dilConstants[\"7\"]}),__dilConstants[\"8\"]),__dil.jsx(\"box\",{\"gap\":1},__dil.jsx(\"text\",{\"color\":\"secondary\",\"weight\":\"medium\",\"size\":\"xs\"},__dilConstants[\"9\"]),__dil.jsx(\"title\",{\"size\":\"2xl\",\"color\":\"default\",\"tabularNums\":true},__dilConstants[\"10\"])),__dil.jsx(\"math\",{\"block\":true,\"value\":__dilConstants[\"11\"]}),__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"12\"]),__dilConstants[\"13\"]),__dil.jsx(\"text\",null,__dilConstants[\"14\"]),__dil.jsx(\"box\",{\"border\":true,\"radius\":\"xl\",\"padding\":3,\"gap\":3},__dil.jsx(\"row\",{\"align\":\"center\",\"justify\":\"between\"},__dil.jsx(\"text\",null,__dil.jsx(\"bold\",null,__dilConstants[\"15\"])),__dilSafe(()=>(__dil.jsx(\"button\",{\"size\":\"xs\",\"variant\":\"outline\",\"color\":\"secondary\",\"onClick\":()=>{setL(1);setG(9.8)}},__dil.jsx(\"icon\",{\"name\":\"rotate-ccw\",\"size\":\"xs\"}),__dilConstants[\"16\"])),null)),__dil.jsx(\"row\",{\"justify\":\"between\",\"align\":\"center\"},__dil.jsx(\"text\",{\"weight\":\"medium\",\"size\":\"sm\"},__dilConstants[\"17\"]),__dil.jsx(\"text\",{\"weight\":\"medium\",\"tabularNums\":true},__dilSafe(()=>(l.toFixed(1)),null),__dilConstants[\"18\"])),__dilSafe(()=>(__dil.jsx(\"slider\",{\"min\":0.5,\"max\":3,\"step\":0.1,\"value\":l,\"onChange\":setL})),null),__dil.jsx(\"row\",{\"justify\":\"between\",\"align\":\"center\"},__dil.jsx(\"text\",{\"weight\":\"medium\",\"size\":\"sm\"},__dilConstants[\"19\"]),__dil.jsx(\"text\",{\"weight\":\"medium\",\"tabularNums\":true},__dilSafe(()=>(g.toFixed(1)),null),__dilConstants[\"20\"])),__dilSafe(()=>(__dil.jsx(\"slider\",{\"min\":1,\"max\":20,\"step\":0.1,\"value\":g,\"onChange\":setG})),null),__dil.jsx(\"box\",{\"background\":\"surface-secondary\",\"padding\":3,\"radius\":\"lg\",\"align\":\"center\",\"gap\":1},__dil.jsx(\"text\",{\"color\":\"secondary\",\"size\":\"xs\"},__dilConstants[\"21\"]),__dil.jsx(\"title\",{\"size\":\"xl\",\"color\":\"default\",\"tabularNums\":true},__dilSafe(()=>(t.toFixed(2)),null),__dilConstants[\"22\"]),__dil.jsx(\"text\",{\"size\":\"xs\",\"color\":\"secondary\"},__dilConstants[\"23\"],__dilSafe(()=>(((t/ (2*Math.PI/Math.sqrt(9.8))-1)*100).toFixed(1)),null),__dilConstants[\"24\"]))));},{\"key\":\"body:3\"}));",
+    "constants": {
+      "0": "单摆运动交互实验",
+      "1": "调整摆长，观察摆球如何运动、速度如何变化，以及摆动周期的变化。",
+      "2": "030e347b-6bb6-52fa-ba82-d085c6edff05",
+      "3": null,
+      "4": "以初始摆长 ",
+      "5": "L=1\\,\\text{m}",
+      "6": "、地球重力加速度 ",
+      "7": "g=9.8\\,\\text{m/s}^2",
+      "8": " 计算：",
+      "9": "理论周期（小角度近似）",
+      "10": "2.01 秒",
+      "11": "T\\approx2\\pi\\sqrt{\\frac{L}{g}}",
+      "12": "观察重点：",
+      "13": " 摆长越长，周期越大；重力越强，周期越短。摆球经过最低点时速度最大，到达两端时瞬时速度为零。",
+      "14": "上方交互模型支持调整摆长与释放角度，但不支持直接修改重力。下面可以单独调整重力并实时计算对应的理论周期。",
+      "15": "周期参数实验",
+      "16": " 重置",
+      "17": "摆长 L",
+      "18": " m",
+      "19": "重力加速度 g",
+      "20": " m/s²",
+      "21": "计算周期",
+      "22": " 秒",
+      "23": "相对初始周期：",
+      "24": "%"
+    },
+    "fallbackMarkdown": "# 单摆运动交互实验\n\n调整摆长，观察摆球如何运动、速度如何变化，以及摆动周期的变化。\n\nShows an ideal pendulum swinging from a selected release angle, with a tangent velocity arrow that changes direction and length as the bob moves. Learners can adjust pendulum length and release angle to compare the period and speed during the swing.\n\nInitial values:\n- lengthMeters: 1\n- startingAngleDegrees: 35\n\n以初始摆长 \\(L=1\\,\\text{m}\\)、地球重力加速度 \\(g=9.8\\,\\text{m/s}^2\\) 计算：\n\n理论周期（小角度近似）\n\n# 2.01 秒\n\n\\[\nT\\approx2\\pi\\sqrt{\\frac{L}{g}}\n\\]\n\n**观察重点：** 摆长越长，周期越大；重力越强，周期越短。摆球经过最低点时速度最大，到达两端时瞬时速度为零。\n\n上方交互模型支持调整摆长与释放角度，但不支持直接修改重力。下面可以单独调整重力并实时计算对应的理论周期。\n\n**周期参数实验** [重置]\n\n摆长 L  m\n\n> **Slider**\n>\n> Current value unavailable.\n>\n> **Range:** 0.5 to 3\n>\n> **Step:** 0.1\n\n重力加速度 g  m/s²\n\n> **Slider**\n>\n> Current value unavailable.\n>\n> **Range:** 1 to 20\n>\n> **Step:** 0.1\n\n计算周期\n\n# 秒\n\n相对初始周期：%",
+    "fallbackMarkdownVersion": 1,
+    "clientDefinedWidgets": {
+      "030e347b-6bb6-52fa-ba82-d085c6edff05": {
+        "status": "resolved",
+        "refIndex": 0,
+        "isStreaming": false
+      }
+    },
+    "appData": {
+      "opGenui": {
+        "componentResults": {},
+        "interactionSurface": "mainline",
+        "modelDataBindings": {}
+      }
+    }
+  },
+  "contentReferences": [
+    {
+      "type": "client_defined_widget",
+      "category": "learning_block",
+      "data": {
+        "content": "T \\approx 2\\pi\\sqrt{\\frac{L}{g}}",
+        "encoded_content": "VCBcYXBwcm94IDJccGlcc3FydHtcZnJhY3tMfXtnfX0=",
+        "content_type": "canonical_formula",
+        "matched_type": "SIMPLE_PENDULUM",
+        "server_learning_block_version": 1,
+        "thumbnail_asset_key": null,
+        "encoded_initial_values": "eyJsZW5ndGhNZXRlcnMiOjEuMCwic3RhcnRpbmdBbmdsZURlZ3JlZXMiOjM1LjB9",
+        "widget_type": "learning_viz",
+        "locale": "zh-CN",
+        "source": "CHATGPT_MATH_BLOCK_RENDER_SOURCE_GENUI_LEARNING_BLOCK"
+      },
+      "matched_text": "Shows an ideal pendulum swinging from a selected release angle, with a tangent velocity arrow that changes direction and length as the bob moves. Learners can adjust pendulum length and release angle to compare the period and speed during the swing.\n\nInitial values:\n- lengthMeters: 1\n- startingAngleDegrees: 35",
+      "start_idx": 45,
+      "end_idx": 356,
+      "safe_urls": [],
+      "refs": [],
+      "alt": null,
+      "prompt_text": null
+    }
+  ]
+}

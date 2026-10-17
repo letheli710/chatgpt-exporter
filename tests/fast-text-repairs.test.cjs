@@ -1,11 +1,11 @@
-const {test}=require('node:test');
+const {test,readPrivate,needPrivate}=require('./private-fixtures.cjs');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const api=require('../extension/fast-text');
-const sample=fs.readFileSync('Output - test 1/V0.5-1-项目分析撰写.md','utf8');
+const SAMPLE='Output - test 1/V0.5-1-项目分析撰写.md',sampleText=readPrivate(SAMPLE,'utf8'),privateSample=()=>needPrivate(sampleText,SAMPLE);
 const record=text=>api.records([{id:'sample',author:{role:'assistant'},content:{content_type:'text',parts:[text]}}]).messages[0];
 test('actual T01 inline pipe stays in one cell without losing backslashes',()=>{
- const line=sample.split('\n').find(s=>s.startsWith('| T01 |'));
+ const line=privateSample().split('\n').find(s=>s.startsWith('| T01 |'));
  const m=record('| ID | 内容 | 值 |\n| --- | --- | --- |\n'+line);
  const literal=line.match(/`([^`]+)`/)[1];
  assert.ok(m.md.includes('<code>'+literal.replace('|','&#124;')+'</code>'));
@@ -13,7 +13,7 @@ test('actual T01 inline pipe stays in one cell without losing backslashes',()=>{
  assert.equal((m.md.split('\n')[2].match(/\|/g)||[]).length,4);
 });
 test('actual genui chart becomes readable structured data with UI metadata',()=>{
- const line=sample.split('\n').find(s=>s.includes('\uE200genui'));
+ const line=privateSample().split('\n').find(s=>s.includes('\uE200genui'));
  const m=record('before\n'+line+'\nafter');
  assert.doesNotMatch(m.md,/[\uE200-\uE2FF]/);
  assert.match(m.md,/不同日照情景下的每日发电量/);

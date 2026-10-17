@@ -35,12 +35,41 @@
     // appData.opGenui.componentResults, keyed by __resolutionId.
     const resolved = id => dil.appData?.opGenui?.componentResults?.[id]?.state || {};
     const components = {
-      Link:props => {const s = resolved(props.__resolutionId), url = s.url || props.url, title = String(s.title || props.title || url || '');return typeof url === 'string' && url ? {type:'link', props:{url}, children:[title]} : title;},
-      Cite:props => ({type:'cite', props:{items:(Array.isArray(resolved(props.__resolutionId).items) ? resolved(props.__resolutionId).items : []).filter(i => typeof i?.url === 'string').map(i => ({url:i.url, label:String(i.source_label || i.title || i.url)}))}, children:[]})
+      // Link text: what the model wrote between the tags, else its title, else the resolved page title.
+      Link:props => {const s = resolved(props.__resolutionId), url = s.url || props.url, kids = [].concat(props.children ?? []).filter(c => c != null && c !== false && c !== ''), label = kids.length ? kids : [String(props.title || s.title || url || '')];return typeof url === 'string' && url ? {type:'link', props:{url}, children:label} : {type:'Fragment', props:{}, children:label};},
+      Cite:props => ({type:'cite', props:{items:(Array.isArray(resolved(props.__resolutionId).items) ? resolved(props.__resolutionId).items : []).filter(i => typeof i?.url === 'string').map(i => ({url:i.url, label:String(i.source_label || i.title || i.url)}))}, children:[]}),
+      // Inline names that open a detail panel: the name is part of the sentence.
+      Entity:props => String(resolved(props.__resolutionId).value ?? props.value ?? ''),
+      AsyncImage:props => images(props, 1),
+      AsyncImageGroup:props => images(props, 8),
+      FileCite:props => {const s = resolved(props.__resolutionId), name = s.file_name || props.file_name;return name ? {type:'cite', props:{items:[], file:String(name)}, children:[]} : '';},
+      MemoryCite:() => '',
+      LearningQuiz:props => quiz(props, resolved(props.__resolutionId))
     };
-    const scope = {DIL, __dil:{jsx, Fragment}, GenUI:inert(), Link:components.Link, Cite:components.Cite};
-    // Other required components render their children rather than failing.
-    for (const name of [].concat(dil.requiredComponents || [])) if (typeof name === 'string' && /^[A-Z][\w$]*$/.test(name) && !(name in scope)) scope[name] = props => ({type:'Fragment', props:{}, children:[].concat(props.children ?? [])});
+    // Search images: the server resolved them to content URLs.
+    function images(props, max) {
+      const list = (Array.isArray(resolved(props.__resolutionId).images) ? resolved(props.__resolutionId).images : []).filter(i => typeof i?.content_url === 'string').slice(0, max);
+      const s = resolved(props.__resolutionId), ratio = String(s.frame_aspect_ratio || s.aspect_ratio || props.aspectRatio || '4:3'), width = s.frame_max_width || s.item_width || props.maxWidth || '180px';
+      const nodes = list.map(i => ({type:'image', props:{src:i.content_url, href:typeof i.url === 'string' ? i.url : '', alt:String(i.title || props.query || props.alt || '图片'), width, ratio}, children:[]}));
+      return nodes.length > 1 ? {type:'Fragment', props:{}, children:nodes} : nodes[0] || '';
+    }
+    function quiz(props, state) {
+      const questions = Array.isArray(state.questions) ? state.questions : Array.isArray(props.questions) ? props.questions : [];
+      const kids = [];
+      if (props.title || state.title) kids.push({type:'title', props:{size:'md'}, children:[String(props.title || state.title)]});
+      questions.forEach((q, n) => {
+        const options = Array.isArray(q?.options) ? q.options : [], correct = new Set([].concat(q?.correct_values || []).map(String));
+        kids.push({type:'text', props:{weight:'semibold'}, children:[`${n + 1}. ${q?.prompt ?? ''}`]});
+        kids.push({type:'radio-group', props:{}, children:options.map(o => ({type:'radio', props:{value:String(o?.value ?? '')}, children:[`${o?.value ? `${o.value}. ` : ''}${o?.label ?? ''}`]}))});
+        const right = options.filter(o => correct.has(String(o?.value)));
+        if (right.length) kids.push({type:'caption', props:{}, children:[`答案：${right.map(o => o.value ?? o.label).join('、')}${right[0]?.feedback ? `。${right[0].feedback}` : ''}`]});
+      });
+      return {type:'card', props:{}, children:kids};
+    }
+    const scope = {DIL, __dil:{jsx, Fragment}, GenUI:inert(), ...components};
+    // Other required components render their children; childless ones keep their main text.
+    const summary = props => ['title','label','text','value','summary','role_summary','name','query'].map(k => props[k]).find(v => typeof v === 'string' && v.trim());
+    for (const name of [].concat(dil.requiredComponents || [])) if (typeof name === 'string' && /^[A-Z][\w$]*$/.test(name) && !(name in scope)) scope[name] = props => {const kids = [].concat(props.children ?? []).filter(c => c != null && c !== false);return kids.length ? {type:'Fragment', props:{}, children:kids} : summary(props) ? {type:'text', props:{}, children:[`〔${name}：${summary(props)}〕`]} : '';};
     execute(dil.code, scope);
     if (!tree) throw Error('界面程序没有调用 DIL.render');
     return resolveWidgets(plain(tree), dil);
@@ -52,6 +81,11 @@
     const ref = (Array.isArray(dil?.contentReferences) ? dil.contentReferences : [])[dil?.clientDefinedWidgets?.[invocationId]?.refIndex];
     const data = ref?.data, kind = data?.widget_type || ref?.category;
     if (kind === 'code_block' && typeof data?.content === 'string') return {type:'code-block', props:{language:typeof data.language === 'string' ? data.language : '', value:data.content}, children:[]};
+    // Learning blocks show a formula as an interactive explainer; keep the formula and its description.
+    if (ref?.category === 'learning_block' && typeof data?.content === 'string') {
+      const about = String(ref.matched_text || '').split('\n')[0].trim();
+      return {type:'Fragment', props:{}, children:[{type:'math', props:{block:true, value:data.content}, children:[]}, ...(about ? [{type:'caption', props:{}, children:[about]}] : [])]};
+    }
     // Writing blocks (the document view that replaced Canvas) hold Markdown.
     if (kind === 'writing_block' && typeof data?.content === 'string') return {type:'writing-block', props:{value:data.content, variant:typeof data.variant === 'string' ? data.variant : ''}, children:[]};
     if ((ref?.category === 'visualization' || kind === 'visualization') && data?.content && typeof data.content === 'object') {
@@ -71,7 +105,7 @@
     return {...node, children:(node.children || []).map(n => resolveWidgets(n, dil))};
   }
   // Markdown-native constructs stay text; everything else is UI drawn as an image.
-  const inlineTypes = new Set(['bold','italic','code','link','strike','math','badge','icon','cite']);
+  const inlineTypes = new Set(['bold','italic','code','link','strike','math','badge','icon','cite','input','textarea','favicon','label']);
   const textOf = node => node == null || node === false || node === true ? '' : typeof node !== 'object' ? String(node) : Array.isArray(node) ? node.map(textOf).join('') : textOf(node.children);
   const isInlineNode = node => node != null && (typeof node !== 'object' || (!Array.isArray(node) && inlineTypes.has(node.type) && !(node.type === 'math' && node.props?.block)));
   const UI_CONTAINERS = new Set(['box','card','row','grid','grid-item']);
@@ -100,7 +134,8 @@
         case 'strike': return `~~${inline(node.children)}~~`;
         case 'code': return `\`${inline(node.children)}\``;
         case 'link': {const url = mdUrl(p.href || p.url), text = inline(node.children).replace(/([[\]])/g, '\\$1');return url ? `[${text || url}](${url})` : text;}
-        case 'cite': {const items = Array.isArray(p.items) ? p.items : [];return items.length ? `（${items.map(i => `[${String(i.label).replace(/([[\]])/g, '\\$1')}](${mdUrl(i.url)})`).join('、')}）` : '';}
+        case 'cite': {if (p.file) return `（文件：${p.file}）`;const items = Array.isArray(p.items) ? p.items : [];return items.length ? `（${items.map(i => `[${String(i.label).replace(/([[\]])/g, '\\$1')}](${mdUrl(i.url)})`).join('、')}）` : '';}
+        case 'input': case 'textarea': return `［输入框：${p.value || p.placeholder || ''}］`;
         case 'math': return `$${p.value ?? inline(node.children)}$`;
         case 'badge': return `［${inline(node.children)}］`;
         case 'icon': case 'button': return '';
@@ -181,7 +216,7 @@
   }
   // Top-level prose and Markdown constructs stay Markdown; every other
   // top-level component (box, card, grid, chart, ...) becomes a card image.
-  const proseTypes = new Set(['code-block','writing-block','text','title','divider','bold','italic','strike','code','link','cite','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
+  const proseTypes = new Set(['code-block','writing-block','image','text','title','divider','bold','italic','strike','code','link','cite','math','caption','table','list','blockquote','__chatgptClientDefinedWidget']);
   function segments(tree) {
     const flat = [], out = [];
     const add = node => {
@@ -223,6 +258,8 @@
 .codeblk{margin:0;padding:10px 12px;background:#f9f9f9;border-radius:10px;overflow:hidden;white-space:pre-wrap;font:13px/1.5 ui-monospace,Consolas,monospace}.codeblk code{background:none;padding:0;font-size:inherit}
 .math{font-family:"Cambria Math","Times New Roman",serif;font-style:italic}.math-block{display:block;text-align:center}
 code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radius:4px;padding:0 4px;font-size:.9em}.link{color:#2964aa;text-decoration:underline}.cite{display:inline-flex;margin-left:4px;padding:0 8px;border-radius:9999px;background:#f3f3f3;color:#5d5d5d;font-size:12px;line-height:20px;white-space:nowrap}
+.input{display:flex;align-items:center;min-height:36px;width:100%;padding:6px 12px;border:1px solid rgba(13,13,13,.15);border-radius:10px;background:#fff;color:#8f8f8f;font-size:14px;line-height:20px}.input-area{min-height:80px;align-items:flex-start}
+.img-ph{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;background:#f3f3f3;text-align:center}.img-alt{font-size:11px;line-height:14px;max-height:42px;overflow:hidden;padding:0 6px}
 .widget,.img{border:1px dashed #c9c9c9;border-radius:10px;padding:10px 12px;color:#5d5d5d;font-size:13px}`;
   const RADIUS = {none:'0', xs:'4px', sm:'6px', md:'8px', lg:'10px', xl:'16px', '2xl':'20px', full:'9999px'};
   const BACKGROUND = {surface:'#fff', 'surface-primary':'#fff', 'surface-secondary':'#f9f9f9', 'surface-tertiary':'#f3f3f3', 'surface-elevated':'#fff', success:'#def3e5', danger:'#fff0f0', warning:'#fdf5f1', info:'#e8f1fe'};
@@ -293,6 +330,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
     return seq(false);
   }
   const ICONS = {coffee:'☕', clock:'◷', 'trending-up':'↗', 'trending-down':'↘', 'chart-line':'↗', 'line-chart':'↗', 'chart-bar':'▥', 'bar-chart':'▥', 'bar-chart-2':'▥', 'chart-pie':'◔', 'pie-chart':'◔', file:'▤', 'file-text':'▤', 'file-spreadsheet':'▦', 'file-code':'▤', download:'⤓', upload:'⤒', 'external-link':'↗', link:'⛓', search:'⌕', settings:'⚙', calendar:'▦', 'map-pin':'⌖', heart:'♥', flame:'♨', droplet:'◖', thermometer:'🌡', 'lightbulb':'✦', sparkles:'✦', target:'◎', flag:'⚑', bookmark:'⚑', book:'▯', 'graduation-cap':'🎓', user:'◯', users:'◯◯', mail:'✉', phone:'✆', lock:'⚿', 'shield':'⛨', 'shield-check':'⛨', 'help-circle':'?', 'circle-help':'?', 'alert-octagon':'!', 'circle-alert':'!', 'triangle-alert':'⚠', 'chevron-right':'›', 'chevron-left':'‹', 'chevron-down':'⌄', 'chevron-up':'⌃', play:'▶', pause:'❚❚', square:'□', circle:'○', moon:'☾', cloud:'☁', 'cloud-rain':'☂', leaf:'❦', home:'⌂', timer:'◷', hourglass:'⧗', activity:'∿', percent:'%', hash:'#', calculator:'▦',
+    'arrow-up-right':'↗', 'arrow-down-right':'↘', trash:'🗑', 'trash-2':'🗑', eraser:'⌫', brush:'🖌', pencil:'✎', palette:'🎨', image:'🖼', video:'▶', music:'♪', copy:'⧉', edit:'✎', 'circle-dot':'◉', 'dot':'•',
     'rotate-ccw':'↺', 'refresh-cw':'↻', check:'✓', 'check-circle':'✓', 'circle-check':'✓', x:'✕', 'x-circle':'✕', 'circle-x':'✕', 'alert-triangle':'⚠', 'alert-circle':'!', info:'ⓘ', 'arrow-right':'→', 'arrow-left':'←', 'arrow-up':'↑', 'arrow-down':'↓', plus:'+', minus:'−', star:'★', sun:'☀', zap:'⚡', battery:'▭', clock:'◷'};
   // SVG elements and attributes that are written camelCase in SVG itself.
   const SVG_TAGS = new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','text','tspan','defs','marker','linearGradient','radialGradient','stop','clipPath','pattern','use','title']);
@@ -367,7 +405,11 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
         case 'strike': return `<s>${inline()}</s>`;
         case 'code': return `<code>${inline()}</code>`;
         case 'link': return `<span class="link">${inline()}</span>`;
-        case 'cite': return (Array.isArray(p.items) ? p.items : []).slice(0, 1).map(i => `<span class="cite">${escapeHtml(i.label)}${p.items.length > 1 ? ` +${p.items.length - 1}` : ''}</span>`).join('');
+        case 'input': case 'textarea': return `<span class="input${node.type === 'textarea' ? ' input-area' : ''}">${escapeHtml(p.value || p.placeholder || '')}</span>`;
+        case 'spacer': return '<div style="flex:1 1 auto"></div>';
+        case 'col': case 'form': return `<div class="box"${boxStyle(p)}>${kids({...ctx, inline:false})}</div>`;
+        case 'favicon': return '';
+        case 'cite': if (p.file) return `<span class="cite">${escapeHtml(p.file)}</span>`;return (Array.isArray(p.items) ? p.items : []).slice(0, 1).map(i => `<span class="cite">${escapeHtml(i.label)}${p.items.length > 1 ? ` +${p.items.length - 1}` : ''}</span>`).join('');
         case 'writing-block': return `<pre class="codeblk">${escapeHtml(String(p.value ?? '').trim())}</pre>`;
         case 'math': return p.block ? `<div class="math math-block">${texHtml(p.value ?? '')}</div>` : `<span class="math">${texHtml(p.value ?? '')}${inline()}</span>`;
         case 'title': return `<div class="${textClasses(p, 'title')}"${textStyle(p)}>${inline()}</div>`;
@@ -398,7 +440,12 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
         case 'select': return `<span class="select"><span>${escapeHtml(optionLabel(p.options, p.value))}</span><span class="c-secondary">▾</span></span>`;
         case 'chart': return chartSvg(p, false);
         case 'pie-chart': return chartSvg(p, true);
-        case 'image': return `<div class="img">图片${p.alt ? `：${escapeHtml(p.alt)}` : ''}</div>`;
+        case 'image': {
+          // Remote images cannot be drawn offscreen; a placeholder of the image's own size keeps the layout.
+          const width = /^\d+(\.\d+)?px$/.test(String(p.width)) ? String(p.width) : '180px', [rw, rh] = String(p.ratio || '4:3').split(':').map(Number);
+          const height = rw > 0 && rh > 0 ? `${Math.round(parseFloat(width) * rh / rw)}px` : '135px';
+          return `<div class="img img-ph" style="width:${width};height:${height}"><span>🖼</span><span class="img-alt">${escapeHtml(String(p.alt || '图片').slice(0, 60))}</span></div>`;
+        }
         case '__chatgptClientDefinedWidget': return '<div class="widget">嵌入应用（已另存为独立 HTML）</div>';
         default: return ctx.inline || inlineTypes.has(node.type) ? inline() : `<div>${kids()}</div>`;
       }
@@ -459,29 +506,124 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
     }).filter(Boolean);
   }
   const escapeHtml = text => String(text).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+  // AppBlocks are written against ChatGPT's Tailwind utilities; outside ChatGPT a
+  // small subset of the common ones keeps their layout and spacing.
+  const TAILWIND_LITE = (() => {
+    const rem = n => `${n / 4}rem`, out = [];
+    const esc = s => s.replace(/[./:]/g, c => `\\${c}`);
+    const rule = (cls, css) => out.push(`.${esc(cls)}{${css}}`);
+    for (const n of [0, 0.5, 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10, 12]) {
+      const k = String(n);
+      rule(`gap-${k}`, `gap:${rem(n)}`);rule(`gap-x-${k}`, `column-gap:${rem(n)}`);rule(`gap-y-${k}`, `row-gap:${rem(n)}`);
+      for (const [p, props] of [['p', ['padding']], ['px', ['padding-left', 'padding-right']], ['py', ['padding-top', 'padding-bottom']], ['pt', ['padding-top']], ['pb', ['padding-bottom']], ['pl', ['padding-left']], ['pr', ['padding-right']], ['m', ['margin']], ['mx', ['margin-left', 'margin-right']], ['my', ['margin-top', 'margin-bottom']], ['mt', ['margin-top']], ['mb', ['margin-bottom']], ['ml', ['margin-left']], ['mr', ['margin-right']]]) rule(`${p}-${k}`, props.map(x => `${x}:${rem(n)}`).join(';'));
+      rule(`space-y-${k}`, `display:block`);out.push(`.${esc(`space-y-${k}`)}>*+*{margin-top:${rem(n)}}`);out.push(`.${esc(`space-x-${k}`)}>*+*{margin-left:${rem(n)}}`);
+      rule(`w-${k}`, `width:${rem(n)}`);rule(`h-${k}`, `height:${rem(n)}`);
+    }
+    for (let n = 1; n <= 12; n++) {rule(`grid-cols-${n}`, `grid-template-columns:repeat(${n},minmax(0,1fr))`);rule(`col-span-${n}`, `grid-column:span ${n}/span ${n}`);}
+    const sizes = {xs:['.75rem', '1rem'], sm:['.875rem', '1.25rem'], base:['1rem', '1.5rem'], lg:['1.125rem', '1.75rem'], xl:['1.25rem', '1.75rem'], '2xl':['1.5rem', '2rem'], '3xl':['1.875rem', '2.25rem']};
+    for (const [k, [f, l]] of Object.entries(sizes)) rule(`text-${k}`, `font-size:${f};line-height:${l}`);
+    const gray = {50:'#f9fafb', 100:'#f3f4f6', 200:'#e5e7eb', 300:'#d1d5db', 400:'#9ca3af', 500:'#6b7280', 600:'#4b5563', 700:'#374151', 800:'#1f2937', 900:'#111827'};
+    for (const [k, v] of Object.entries(gray)) for (const c of ['gray', 'slate', 'zinc', 'neutral']) {rule(`text-${c}-${k}`, `color:${v}`);rule(`bg-${c}-${k}`, `background-color:${v}`);rule(`border-${c}-${k}`, `border-color:${v}`);}
+    const radius = {'':'.25rem', sm:'.125rem', md:'.375rem', lg:'.5rem', xl:'.75rem', '2xl':'1rem', '3xl':'1.5rem', full:'9999px', none:'0'};
+    for (const [k, v] of Object.entries(radius)) rule(k ? `rounded-${k}` : 'rounded', `border-radius:${v}`);
+    const fixed = {flex:'display:flex', 'inline-flex':'display:inline-flex', grid:'display:grid', block:'display:block', 'inline-block':'display:inline-block', hidden:'display:none', 'flex-col':'flex-direction:column', 'flex-row':'flex-direction:row', 'flex-wrap':'flex-wrap:wrap', 'flex-1':'flex:1 1 0%', 'flex-none':'flex:none', 'shrink-0':'flex-shrink:0', grow:'flex-grow:1',
+      'items-center':'align-items:center', 'items-start':'align-items:flex-start', 'items-end':'align-items:flex-end', 'items-baseline':'align-items:baseline', 'items-stretch':'align-items:stretch', 'justify-center':'justify-content:center', 'justify-between':'justify-content:space-between', 'justify-start':'justify-content:flex-start', 'justify-end':'justify-content:flex-end', 'justify-around':'justify-content:space-around',
+      'w-full':'width:100%', 'h-full':'height:100%', 'w-auto':'width:auto', 'h-auto':'height:auto', 'min-w-0':'min-width:0', 'max-w-full':'max-width:100%', relative:'position:relative', absolute:'position:absolute', fixed:'position:fixed', 'inset-0':'inset:0', 'top-0':'top:0', 'left-0':'left:0', 'right-0':'right:0', 'bottom-0':'bottom:0',
+      'overflow-hidden':'overflow:hidden', 'overflow-auto':'overflow:auto', 'pointer-events-none':'pointer-events:none', 'select-none':'user-select:none', 'cursor-pointer':'cursor:pointer', 'text-center':'text-align:center', 'text-left':'text-align:left', 'text-right':'text-align:right', truncate:'overflow:hidden;text-overflow:ellipsis;white-space:nowrap', 'whitespace-nowrap':'white-space:nowrap', 'tabular-nums':'font-variant-numeric:tabular-nums',
+      'font-normal':'font-weight:400', 'font-medium':'font-weight:500', 'font-semibold':'font-weight:600', 'font-bold':'font-weight:700', 'font-mono':'font-family:ui-monospace,Consolas,monospace', 'leading-tight':'line-height:1.25', 'leading-none':'line-height:1', uppercase:'text-transform:uppercase', 'tracking-wide':'letter-spacing:.025em',
+      border:'border:1px solid #e5e7eb', 'border-0':'border-width:0', 'border-2':'border:2px solid #e5e7eb', 'border-t':'border-top:1px solid #e5e7eb', 'border-b':'border-bottom:1px solid #e5e7eb', 'border-black/10':'border-color:rgba(0,0,0,.1)', 'border-black/5':'border-color:rgba(0,0,0,.05)',
+      'bg-white':'background-color:#fff', 'bg-black':'background-color:#000', 'bg-transparent':'background-color:transparent', 'text-white':'color:#fff', 'text-black':'color:#000', shadow:'box-shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06)', 'shadow-sm':'box-shadow:0 1px 2px rgba(0,0,0,.05)', 'opacity-50':'opacity:.5', 'opacity-60':'opacity:.6', 'opacity-70':'opacity:.7', 'opacity-80':'opacity:.8'};
+    for (const [k, v] of Object.entries(fixed)) rule(k, v);
+    // ChatGPT supplies --viz-* colors to AppBlocks; light-theme approximations (an app's own values win).
+    const viz = `--viz-text:#0d0d0d;--viz-sub:#5d5d5d;--viz-muted:#8f8f8f;--viz-border:rgba(13,13,13,.15);--viz-card:#fff;--viz-bg:#fff;--viz-accent:#3a83f7;--viz-accent-bg:#e8f1fe;${PALETTE.map((c, i) => `--viz-series-${i + 1}:${c}`).join(';')}`;
+    return `:root{${viz}}*,::before,::after{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;color:#0d0d0d}${out.join('')}`;
+  })();
   function standaloneHtml(block) {
-    if (/<html[\s>]/i.test(block.content)) return block.content;
-    return `<!doctype html>\n<html lang="zh">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${escapeHtml(block.title)}</title>\n</head>\n<body>\n${block.content}\n</body>\n</html>\n`;
+    const style = `<style data-exporter="tailwind-lite">${TAILWIND_LITE}</style>`;
+    if (/<html[\s>]/i.test(block.content)) return /<head[^>]*>/i.test(block.content) ? block.content.replace(/<head[^>]*>/i, m => m + style) : block.content;
+    return `<!doctype html>\n<html lang="zh">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>${escapeHtml(block.title)}</title>\n${style}\n</head>\n<body>\n${block.content}\n</body>\n</html>\n`;
+  }
+  // AppBlock preview: runs inside the AppBlock's own frame before its scripts.
+  // WebGL keeps its frames readable; after a short wait the page is drawn into a
+  // PNG (canvases swapped for their pixels) and posted to the parent with a nonce.
+  const APPBLOCK_CAPTURE = String(function capture(nonce, wait, maxWidth, maxHeight) {
+    const getContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type, options) {
+      return getContext.call(this, type, /webgl/i.test(String(type)) ? Object.assign({}, options, {preserveDrawingBuffer:true}) : options);
+    };
+    const send = data => parent.postMessage(Object.assign({nonce}, data), '*');
+    // Two animation frames let WebGL finish drawing; a timeout covers throttled frames.
+    const frames = () => new Promise(done => {const t = setTimeout(done, 300);requestAnimationFrame(() => requestAnimationFrame(() => {clearTimeout(t);done();}));});
+    addEventListener('load', () => setTimeout(async () => {
+      try {
+        await frames();
+        // Crop to where the content ends, not to the frame: full-height elements would otherwise pad the image.
+        const doc = document.documentElement, bottom = Math.max(0, ...[...document.body.querySelectorAll('*')].map(e => {const r = e.getBoundingClientRect();return r.width && r.height ? r.bottom : 0;}));
+        const width = Math.min(maxWidth, Math.max(320, doc.scrollWidth)), height = Math.min(maxHeight, Math.max(40, Math.ceil(bottom) + 8));
+        const live = [...document.querySelectorAll('canvas')].map(c => {let url = null;try {url = c.toDataURL('image/png');} catch {}const r = c.getBoundingClientRect();return {url:url && url.length > 30 ? url : null, w:r.width || c.width, h:r.height || c.height};});
+        const clone = document.body.cloneNode(true);
+        clone.querySelectorAll('script').forEach(s => s.remove());
+        // Canvases become images of their pixels; one that cannot be read keeps its box, empty.
+        [...clone.querySelectorAll('canvas')].forEach((c, i) => {const img = document.createElement(live[i]?.url ? 'img' : 'div');if (live[i]?.url) img.setAttribute('src', live[i].url);img.setAttribute('style', `${c.getAttribute('style') || ''};display:block;width:${live[i]?.w}px;height:${live[i]?.h}px`);c.replaceWith(img);});
+        const fields = [...document.querySelectorAll('input,textarea,select')], copies = [...clone.querySelectorAll('input,textarea,select')];
+        copies.forEach((el, i) => {const o = fields[i];if (!o) return;if (o.type === 'checkbox' || o.type === 'radio') o.checked ? el.setAttribute('checked', '') : el.removeAttribute('checked');else if (el.tagName === 'TEXTAREA') el.textContent = o.value;else if (el.tagName !== 'SELECT') el.setAttribute('value', o.value);});
+        const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n').replace(/(^|[\s,}])html(?=[\s,{.:#[])/g, '$1.ab-html').replace(/(^|[\s,}])body(?=[\s,{.:#[])/g, '$1.ab-body');
+        const bg = getComputedStyle(document.body).backgroundColor, body = new XMLSerializer().serializeToString(clone).replace(/^<body/, '<div').replace(/<\/body>$/, '</div>');
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" class="ab-html" style="width:${width}px;font-family:system-ui,sans-serif"><style>${css.replace(/<\/style/gi, '')}</style>${body.replace(/^<div/, '<div class="ab-body"')}</div></foreignObject></svg>`;
+        const image = new Image();
+        await new Promise((ok, no) => {image.onload = ok;image.onerror = () => no(Error('预览 SVG 无法加载'));image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;});
+        const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
+        canvas.width = width * 2;canvas.height = height * 2;ctx.scale(2, 2);ctx.fillStyle = bg && bg !== 'rgba(0, 0, 0, 0)' ? bg : '#fff';ctx.fillRect(0, 0, width, height);ctx.drawImage(image, 0, 0);
+        send({png:canvas.toDataURL('image/png'), width, height});
+      } catch (e) {send({error:String(e && e.message || e)});}
+    }, wait));
+  });
+  // The AppBlock page with the capture script placed before any of its own scripts.
+  function appBlockCaptureHtml(block, nonce, {wait = 900, maxWidth = 700, maxHeight = 1400} = {}) {
+    const script = `<script>(${APPBLOCK_CAPTURE})(${JSON.stringify(nonce)},${Number(wait)},${Number(maxWidth)},${Number(maxHeight)});</script>`;
+    const html = standaloneHtml(block);
+    return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, m => m + script) : script + html;
+  }
+  // Sandbox side: renders the AppBlock in a nested sandboxed frame and returns its PNG.
+  function appBlockPreview(block, doc, {timeout = 5000, wait = 900, frameHeight = 480} = {}) {
+    const view = doc.defaultView, nonce = `ab-${Math.random().toString(36).slice(2)}`;
+    const frame = doc.createElement('iframe');
+    frame.setAttribute('sandbox', 'allow-scripts');
+    frame.style.cssText = `position:absolute;left:0;top:0;width:700px;height:${Number(frameHeight)}px;border:0`;
+    return new Promise((resolve, reject) => {
+      const finish = (fn, value) => {view.removeEventListener('message', onMessage);clearTimeout(timer);frame.remove();fn(value);};
+      const onMessage = event => {if (event.source !== frame.contentWindow || event.data?.nonce !== nonce) return;event.data.error ? finish(reject, Error(event.data.error)) : finish(resolve, event.data);};
+      const timer = setTimeout(() => finish(reject, Error('嵌入应用预览超时')), timeout);
+      view.addEventListener('message', onMessage);
+      frame.srcdoc = appBlockCaptureHtml(block, nonce, {wait});
+      doc.body.append(frame);
+    }).then(({png, width, height}) => {
+      const binary = view.atob(String(png).split(',')[1] || ''), bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      if (!bytes.length) throw Error('嵌入应用预览为空');
+      return {png:bytes.buffer, width, height};
+    });
   }
   // Content-script side: evaluates through the sandbox page over a private port.
   function sandboxClient(doc, src, {timeout = 8000} = {}) {
     const frame = doc.createElement('iframe'), created = performance.now(), stats = {loadMs:null};
-    // Offscreen at full size rather than hidden or tiny: cards need real layout
-    // to be measured.
+    // Full size and inside the viewport, but transparent and click-through: cards
+    // need real layout, and Chrome throttles animation frames of cross-origin
+    // frames placed off screen, which left WebGL AppBlocks undrawn.
     frame.src = src;frame.dataset.archiveOwned = 'dil-sandbox';frame.setAttribute('aria-hidden', 'true');frame.tabIndex = -1;
-    frame.style.cssText = 'position:fixed;left:-10000px;top:0;width:760px;height:600px;border:0;opacity:0;pointer-events:none';
+    frame.style.cssText = 'position:fixed;left:0;top:0;width:760px;height:600px;border:0;opacity:0;pointer-events:none;z-index:-1';
     const ready = new Promise((resolve, reject) => {
       frame.addEventListener('load', () => {stats.loadMs = Math.round(performance.now() - created);resolve();}, {once:true});
       setTimeout(() => reject(Error('界面渲染沙箱未能加载')), timeout);
     });
     ready.catch(noop);
     doc.documentElement.append(frame);
-    const request = async (type, dil) => {
+    const request = async (type, dil, extra = {}) => {
       await ready;
       return new Promise((resolve, reject) => {
         const channel = new MessageChannel(), timer = setTimeout(() => {channel.port1.close();reject(Error('界面渲染超时'));}, timeout);
         channel.port1.onmessage = event => {clearTimeout(timer);channel.port1.close();event.data?.error ? reject(Error(event.data.error)) : resolve(event.data);};
-        frame.contentWindow.postMessage({type, dil:dil && {code:dil.code, constants:dil.constants, appData:dil.appData, requiredComponents:dil.requiredComponents, clientDefinedWidgets:dil.clientDefinedWidgets, contentReferences:dil.contentReferences}}, '*', [channel.port2]);
+        frame.contentWindow.postMessage({type, ...extra, dil:dil && {code:dil.code, constants:dil.constants, appData:dil.appData, requiredComponents:dil.requiredComponents, clientDefinedWidgets:dil.clientDefinedWidgets, contentReferences:dil.contentReferences}}, '*', [channel.port2]);
       });
     };
     const evaluateRemote = async dil => (await request('dil:evaluate', dil)).tree;
@@ -489,11 +631,13 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
     evaluateRemote.snapshot = dil => request('dil:snapshot', dil);
     // Loads fonts and draws a tiny card once, while the conversation is still being read.
     evaluateRemote.warmup = () => request('dil:warmup', null);
+    // Returns {png, width, height} for one AppBlock, drawn after it has run briefly.
+    evaluateRemote.appblock = block => request('appblock:preview', null, {block:{id:block.id, title:block.title, content:block.content}});
     evaluateRemote.stats = stats;
     evaluateRemote.close = () => frame.remove();
     return evaluateRemote;
   }
-  const api = {evaluate, toMarkdown, segments, toHtml, CARD_CSS, snapshotPng, appBlocks, standaloneHtml, sandboxClient};
+  const api = {evaluate, toMarkdown, segments, toHtml, CARD_CSS, snapshotPng, appBlocks, standaloneHtml, appBlockCaptureHtml, appBlockPreview, sandboxClient};
   root.ChatExportDilRender = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(globalThis);

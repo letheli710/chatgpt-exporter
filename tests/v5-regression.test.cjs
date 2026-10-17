@@ -1,4 +1,4 @@
-const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs');
+const {test}=require('./private-fixtures.cjs'),assert=require('node:assert/strict'),fs=require('node:fs');
 const {JSDOM}=require('jsdom'),core=require('../extension/core');
 function fixture(k){const f=JSON.parse(fs.readFileSync(`research/2026-10-12/LONG-R${k}.json`));const d=new JSDOM(f.html).window.document;const el=[...d.querySelectorAll('[data-dil-message-id]')].at(-1);return {id:'r'+k,role:'assistant',roots:[el]};}
 async function convert(m,extra={}){return core.convert(m,{warnings:[],asset:async()=> 'icon.svg',...extra});}

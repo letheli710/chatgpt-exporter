@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.10';
+  const version='0.8.13';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old
@@ -25,7 +25,7 @@
     state={...data,url,leaf,timings:{readMs:performance.now()-start}};
     state.timings.render=await renderStatic(data.messages,sandbox);state.timings.renderMs=performance.now()-start-state.timings.readMs;
     for(const m of data.messages){const label=document.createElement('label'),box=document.createElement('input');box.type='checkbox';box.checked=true;box.dataset.messageId=m.id;label.append(box,` ${m.role==='user'?'我':'ChatGPT'} · ${m.summary}`);$('list').append(label);}
-    $('status').textContent=`已读取 ${data.messages.length} 条正文，耗时 ${(state.timings.readMs/1000).toFixed(2)} 秒。预览可补齐交互文字，ZIP 可自动保存画面。`;
+    $('status').textContent=`已读取 ${data.messages.length} 条正文，耗时 ${(state.timings.readMs/1000).toFixed(2)} 秒。预览可补齐交互文字，ZIP 可自动保存画面。${staleNotice()}`;
   }catch(e){if(current===generation)$('status').textContent=e.message;}finally{sandbox?.client.close();if(current===generation)busy(false);}}
   // Created before the conversation is read so the sandbox page, fonts and
   // canvas are ready by the time the cards are drawn.
@@ -38,14 +38,18 @@
   async function renderStatic(messages,sandbox){const started=performance.now(),targets=messages.filter(m=>m.dil?.code),round=v=>Math.round(v);
     if(!targets.length||!dilRender)return {uiMessages:targets.length};
     $('status').textContent=`正在渲染 ${targets.length} 个交互界面……`;
-    const client=sandbox?.client,evaluate=globalThis.ChatExportDilEvaluate||client,snapshot=globalThis.ChatExportDilSnapshot||client?.snapshot,toMd=tree=>dilRender.toMarkdown(tree,{widget:id=>`\u0000APPBLOCK:${id}\u0000`});
+    const client=sandbox?.client,evaluate=globalThis.ChatExportDilEvaluate||client,snapshot=globalThis.ChatExportDilSnapshot||client?.snapshot,preview=globalThis.ChatExportAppBlockPreview||client?.appblock,toMd=tree=>dilRender.toMarkdown(tree,{widget:id=>`\u0000APPBLOCK:${id}\u0000`});
     // All messages go to the sandbox at once; cards within a message are also drawn in parallel.
     await Promise.all(targets.map(async m=>{const sent=performance.now();
       // Widgets (code blocks, charts) resolve from the message's content references.
       const dil={...m.dil,contentReferences:m.contentReferences};
       // Cards are drawn to PNG in the sandbox; if that fails, text alone is kept.
-      try{const result=await snapshot(dil);m.segments=result.segments.map(s=>({kind:s.kind,md:toMd(s.tree),png:s.png,width:s.width,height:s.height,error:s.error}));m.staticMd=m.segments.map(s=>s.md).filter(Boolean).join('\n\n');m.renderTimings={...result.timings,roundTripMs:round(performance.now()-sent)};}
-      catch{try{m.staticMd=toMd(await evaluate(dil));}catch(e){m.renderError=e.message;}}
+      const cards=(async()=>{try{const result=await snapshot(dil);m.segments=result.segments.map(s=>({kind:s.kind,md:toMd(s.tree),png:s.png,width:s.width,height:s.height,error:s.error}));m.staticMd=m.segments.map(s=>s.md).filter(Boolean).join('\n\n');m.renderTimings={...result.timings,roundTripMs:round(performance.now()-sent)};}
+      catch{try{m.staticMd=toMd(await evaluate(dil));}catch(e){m.renderError=e.message;}}})();
+      // Each AppBlock runs briefly in its own sandboxed frame and is drawn to a preview PNG.
+      const shots=Promise.all((preview?dilRender.appBlocks(m.dil,m.contentReferences):[]).map(async b=>{const t=performance.now();try{return [b.invocationId,{...await preview(b),ms:round(performance.now()-t)}];}catch(e){return [b.invocationId,{error:e.message,ms:round(performance.now()-t)}];}}));
+      const [,previews]=await Promise.all([cards,shots]);m.appPreviews=Object.fromEntries(previews);
+      if(previews.length&&m.renderTimings)m.renderTimings.appBlocks=previews.map(([id,p])=>({id,ms:p.ms,...(p.error?{error:p.error}:{width:p.width,height:p.height})}));
     }));
     return {uiMessages:targets.length,wallMs:round(performance.now()-started),sandboxLoadMs:client?.stats.loadMs??null,warmup:sandbox?await sandbox.warm:null,
       messages:targets.map(m=>({id:m.id,...(m.renderTimings||{}),...(m.renderError?{error:m.renderError}:{})}))};}
@@ -60,6 +64,11 @@
   }).filter(Boolean).join('\n\n');}
   const blocksOf=m=>dilRender&&m.dil?dilRender.appBlocks(m.dil,m.contentReferences):[];
   const widgetToken=/\u0000APPBLOCK:([^\u0000]*)\u0000/g,sandboxLink=/\]\((sandbox:\/[^)\s]+)\)/g;
+  // The panel is injected from the files on disk at every click, but the background worker and
+  // permissions only change when the extension is reloaded; a version mismatch means it was not.
+  function staleNotice(){let loaded=null;try{loaded=chrome.runtime.getManifest?.().version;}catch{}return loaded&&loaded!==version?`\n⚠ 插件后台仍是 ${loaded}，面板是 ${version}：请在 chrome://extensions 点击本插件的“重新加载”，否则部分功能（如搜索图片下载）不可用。`:'';}
+  // Search images (images.openai.com) are fetched by the background worker, which may cross origins.
+  async function fetchImage(url){const r=await send({type:'archive:image',url});const bytes=Uint8Array.from(atob(r.data),c=>c.charCodeAt(0));return new Blob([bytes],{type:r.type});}
   async function send(message){const response=await chrome.runtime.sendMessage(message);if(response?.error)throw Error(response.error);return response;}
   async function captureData(){assertCurrent();await auto.pause(Math.max(0,720-(Date.now()-lastCapture)));controller.signal.throwIfAborted();const response=await send({type:'archive:capture'});lastCapture=Date.now();return response.data;}
   const captureOptions=()=>({doc:document,signal:controller.signal,capture:captureData,hide:()=>host.hidden=true,show:()=>host.hidden=false});
@@ -101,7 +110,7 @@
     const sandboxItems=conversationId?messages.flatMap(m=>[...new Set([...m.md.matchAll(sandboxLink)].map(x=>x[1]))].map(link=>({messageId:m.id,link,path:decodeURIComponent(link.slice(8))}))):[];
     const [files,uiData,codeFiles]=await Promise.all([
       api.downloadFiles({ids:fileIds,conversationId,fetch:request,signal,onProgress:p=>$('status').textContent=`正在下载原图 ${p.done}/${p.total}……`}),
-      Promise.all(messages.filter(m=>m.dil).map(async m=>({m,images:await api.downloadUrls({urls:api.dilImageUrls(m.dil),fetch:request,signal,prefix:`assets/ui-${safe(m.id)}-`})}))),
+      Promise.all(messages.filter(m=>m.dil).map(async m=>({m,images:await api.downloadUrls({urls:api.dilImageUrls(m.dil),fetch:request,fetchImage,signal,prefix:`assets/ui-${safe(m.id)}-`})}))),
       api.downloadSandboxFiles({items:sandboxItems,conversationId,fetch:request,signal})
     ]);
     for(const f of codeFiles){const m=messages.find(x=>x.id===f.messageId),item=sandboxItems.find(x=>x.messageId===f.messageId&&x.path===f.path);
@@ -112,10 +121,16 @@
     for(const m of messages)m.md=m.md.replace(/!\[([^\]]*)\]\(asset:([\w-]+)\)/g,(_,alt,id)=>{const f=byId.get(id);if(f?.blob)return `![${alt}](${f.path})`;warnings.push(`${m.id}: 原图 ${id} 下载失败（${f?.error||'未知错误'}）`);return `〔原图 ${id} 下载失败〕`;});
     for(const {m,images} of uiData){
       const path=`ui/msg-${safe(m.id)}.json`,localAssets={};
-      for(const image of images){if(image.blob){localAssets[image.url]=image.path;assets.push({path:image.path,blob:image.blob,messageId:m.id,kind:'ui-image'});}else warnings.push(`${m.id}: 界面图片未下载（${image.error}），已保留原地址`);}
+      for(const image of images){if(image.blob){localAssets[image.url]=image.path;assets.push({path:image.path,blob:image.blob,messageId:m.id,kind:'ui-image'});m.md=m.md.split(`](${image.url})`).join(`](${image.path})`);}else warnings.push(`${m.id}: 界面图片未下载（${image.error}），已保留原地址`);}
       const blocks=blocksOf(m).map(b=>({...b,path:`ui/appblock-${safe(m.id)}-${safe(b.id)}.html`})),linked=new Set();
       for(const b of blocks)assets.push({path:b.path,blob:new Blob([dilRender.standaloneHtml(b)],{type:'text/html'}),messageId:m.id,kind:'appblock'});
-      m.md=m.md.replace(widgetToken,(_,id)=>{const b=blocks.find(x=>x.invocationId===id);if(!b)return `〔嵌入应用 ${id} 未找到〕`;linked.add(b.path);return `> [!chatgpt-appblock] ${b.title}：[${b.path}](${b.path})`;});
+      // The preview image goes above the link; inside a folded card note each new line keeps the quote prefix.
+      m.md=m.md.replace(/^([> ]*)(.*?)\u0000APPBLOCK:([^\u0000]*)\u0000/gm,(_,quote,before,id)=>{const b=blocks.find(x=>x.invocationId===id);if(!b)return `${quote}${before}〔嵌入应用 ${id} 未找到〕`;linked.add(b.path);
+        const shot=m.appPreviews?.[id],lines=[];
+        if(shot?.png){const png=b.path.replace(/^ui\//,'assets/').replace(/\.html$/,'.png');assets.push({path:png,blob:new Blob([shot.png],{type:'image/png'}),messageId:m.id,width:shot.width,height:shot.height,kind:'appblock-preview'});lines.push(`![嵌入应用预览：${b.title}](${png})`,'');}
+        else if(shot?.error)warnings.push(`${m.id}: 嵌入应用「${b.title}」预览未生成（${shot.error}），已保留独立 HTML`);
+        lines.push(`> [!chatgpt-appblock] ${b.title}：[${b.path}](${b.path})`);
+        return `${quote}${before}${lines.join(`\n${quote}`)}`;});
       // AppBlocks hidden in the default state (e.g. behind a checkbox) are still listed.
       const hidden=blocks.filter(b=>!linked.has(b.path)).map(b=>`\n> - 默认状态未显示的嵌入应用「${b.title}」：[${b.path}](${b.path})`).join('');
       const record={messageId:m.id,format:'model_dil_v2',source:m.dilSource,staticMarkdown:m.staticMd??null,renderError:m.renderError??null,appBlocks:blocks.map(({id,invocationId,title,path})=>({id,invocationId,title,path})),localAssets,dil:m.dil,contentReferences:m.contentReferences};
@@ -129,11 +144,11 @@
     const result=await build(mode==='zip');$('output').value=result.md;$('output').hidden=false;
     if(mode!=='preview'){let blob;if(mode==='zip'){
       const zip=new JSZip();zip.file('conversation.md',result.md);for(const asset of result.assets)zip.file(asset.path,asset.blob);
-      const manifest={version,source:state.url,options:{pageSupplement:$('live').checked},visibility:{hiddenDuringExport,atEnd:document.visibilityState},messages:result.messages,warnings:result.warnings,timings:{...state.timings,exportPrepareMs:performance.now()-started},assets:result.assets.map(({path,messageId,width,height,tiles,kind})=>({path,messageId,width,height,tiles,kind})),exportedAt:new Date().toISOString()};
+      const manifest={version,loadedVersion:(()=>{try{return chrome.runtime.getManifest?.().version??null;}catch{return null;}})(),source:state.url,options:{pageSupplement:$('live').checked},visibility:{hiddenDuringExport,atEnd:document.visibilityState},messages:result.messages,warnings:result.warnings,timings:{...state.timings,exportPrepareMs:performance.now()-started},assets:result.assets.map(({path,messageId,width,height,tiles,kind})=>({path,messageId,width,height,tiles,kind})),exportedAt:new Date().toISOString()};
       zip.file('manifest.json',JSON.stringify(manifest,null,2));blob=await zip.generateAsync({type:'blob'});
     }else blob=new Blob([result.md],{type:'text/markdown;charset=utf-8'});
     assertCurrent();const url=URL.createObjectURL(blob);try{await send({type:'archive:download',url,filename:filename(mode==='zip'?'zip':'md'),saveAs:$('saveAs').checked});}finally{setTimeout(()=>URL.revokeObjectURL(url),60000);}}
-    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>a.kind==='card-image').length} 张卡片图、${result.assets.filter(a=>a.kind==='appblock').length} 个嵌入应用、${result.assets.some(a=>a.kind==='code-file')?`${result.assets.filter(a=>a.kind==='code-file').length} 个代码文件、`:''}${result.assets.filter(a=>!['original-image','ui-data','ui-image','appblock','card-image','code-file'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
+    $('status').textContent=`读取 ${(state.timings.readMs/1000).toFixed(2)} 秒；本次${mode==='preview'?'预览':'导出'}处理 ${((performance.now()-started)/1000).toFixed(2)} 秒。保存 ${result.assets.filter(a=>a.kind==='original-image').length} 张原图、${result.assets.filter(a=>a.kind==='ui-data').length} 份界面数据、${result.assets.filter(a=>a.kind==='card-image').length} 张卡片图、${result.assets.filter(a=>a.kind==='appblock').length} 个嵌入应用${result.assets.some(a=>a.kind==='appblock-preview')?`（${result.assets.filter(a=>a.kind==='appblock-preview').length} 张预览）`:''}、${result.assets.some(a=>a.kind==='code-file')?`${result.assets.filter(a=>a.kind==='code-file').length} 个代码文件、`:''}${result.assets.filter(a=>!['original-image','ui-data','ui-image','appblock','appblock-preview','card-image','code-file'].includes(a.kind)).length} 张截图。${result.warnings.length?`\n还有 ${result.warnings.length} 处提示，请检查导出文末。`:''}`;
   }catch(e){$('status').textContent=e.message;}finally{host.hidden=false;busy(false);}}
   $('reload').onclick=load;
   // Debug: the unmodified API response, to inspect model_dil_v2 and image fields.
