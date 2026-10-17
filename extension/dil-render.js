@@ -258,7 +258,42 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
     return c.filter(Boolean).join(' ');
   };
   const textStyle = p => {const s = [];if (p.color && !/^[a-z-]+$/.test(p.color) && safeCss(p.color)) s.push(`color:${p.color}`);if (p.textAlign && ['left','right','center','start','end'].includes(p.textAlign)) s.push(`text-align:${p.textAlign}`);if (p.preserveWhitespace) s.push('white-space:pre-wrap');return s.length ? ` style="${s.join(';')}"` : '';};
-  const ICONS = {'rotate-ccw':'↺', 'refresh-cw':'↻', check:'✓', 'check-circle':'✓', 'circle-check':'✓', x:'✕', 'x-circle':'✕', 'circle-x':'✕', 'alert-triangle':'⚠', 'alert-circle':'!', info:'ⓘ', 'arrow-right':'→', 'arrow-left':'←', 'arrow-up':'↑', 'arrow-down':'↓', plus:'+', minus:'−', star:'★', sun:'☀', zap:'⚡', battery:'▭', clock:'◷'};
+  // Common LaTeX as readable text with sup/sub, so card images show formulas, not source.
+  const TEX = {alpha:'α', beta:'β', gamma:'γ', delta:'δ', epsilon:'ε', varepsilon:'ε', eta:'η', theta:'θ', lambda:'λ', mu:'μ', pi:'π', rho:'ρ', sigma:'σ', tau:'τ', phi:'φ', varphi:'φ', omega:'ω', Delta:'Δ', Sigma:'Σ', Omega:'Ω', Pi:'Π', Phi:'Φ',
+    cdot:'·', times:'×', div:'÷', pm:'±', mp:'∓', le:'≤', leq:'≤', ge:'≥', geq:'≥', neq:'≠', ne:'≠', approx:'≈', equiv:'≡', propto:'∝', infty:'∞', to:'→', rightarrow:'→', leftarrow:'←', Rightarrow:'⇒', sum:'∑', prod:'∏', int:'∫', partial:'∂', nabla:'∇', circ:'°', degree:'°', ldots:'…', cdots:'⋯', dots:'…', quad:' ', qquad:'  ', ',':' ', ';':' ', ':':' ', ' ':' ', '%':'%', '{':'{', '}':'}', '\\':' ', '_':'_', '$':'$'};
+  const TEX_TEXT = new Set(['mathrm','text','mathbf','mathit','mathsf','textbf','textit','operatorname','boldsymbol']);
+  const TEX_DROP = new Set(['left','right','big','Big','bigl','bigr','Bigl','Bigr','displaystyle','textstyle']);
+  function texHtml(source) {
+    const s = String(source);let i = 0;
+    const command = () => {
+      i++;const name = /[a-zA-Z]/.test(s[i] || '') ? s.slice(i).match(/^[a-zA-Z]+/)[0] : s[i] || '';i += name.length;
+      if (['frac','dfrac','tfrac'].includes(name)) {const a = arg(), b = arg();return `<sup>${a}</sup>⁄<sub>${b}</sub>`;}
+      if (name === 'sqrt') return `√(${arg()})`;
+      if (TEX_TEXT.has(name)) return arg();
+      if (TEX_DROP.has(name)) return '';
+      return escapeHtml(TEX[name] ?? name);
+    };
+    const arg = () => {
+      while (s[i] === ' ') i++;
+      if (s[i] === '{') {i++;const out = seq(true);i++;return out;}
+      if (s[i] === '\\') return command();
+      return i < s.length ? escapeHtml(s[i++]) : '';
+    };
+    const seq = nested => {
+      let out = '';
+      while (i < s.length && !(nested && s[i] === '}')) {
+        const ch = s[i];
+        if (ch === '\\') out += command();
+        else if (ch === '^' || ch === '_') {i++;const g = arg();out += ch === '^' ? `<sup>${g}</sup>` : `<sub>${g}</sub>`;}
+        else if (ch === '{') {i++;out += seq(true);i++;}
+        else {out += escapeHtml(ch);i++;}
+      }
+      return out;
+    };
+    return seq(false);
+  }
+  const ICONS = {coffee:'☕', clock:'◷', 'trending-up':'↗', 'trending-down':'↘', 'chart-line':'↗', 'line-chart':'↗', 'chart-bar':'▥', 'bar-chart':'▥', 'bar-chart-2':'▥', 'chart-pie':'◔', 'pie-chart':'◔', file:'▤', 'file-text':'▤', 'file-spreadsheet':'▦', 'file-code':'▤', download:'⤓', upload:'⤒', 'external-link':'↗', link:'⛓', search:'⌕', settings:'⚙', calendar:'▦', 'map-pin':'⌖', heart:'♥', flame:'♨', droplet:'◖', thermometer:'🌡', 'lightbulb':'✦', sparkles:'✦', target:'◎', flag:'⚑', bookmark:'⚑', book:'▯', 'graduation-cap':'🎓', user:'◯', users:'◯◯', mail:'✉', phone:'✆', lock:'⚿', 'shield':'⛨', 'shield-check':'⛨', 'help-circle':'?', 'circle-help':'?', 'alert-octagon':'!', 'circle-alert':'!', 'triangle-alert':'⚠', 'chevron-right':'›', 'chevron-left':'‹', 'chevron-down':'⌄', 'chevron-up':'⌃', play:'▶', pause:'❚❚', square:'□', circle:'○', moon:'☾', cloud:'☁', 'cloud-rain':'☂', leaf:'❦', home:'⌂', timer:'◷', hourglass:'⧗', activity:'∿', percent:'%', hash:'#', calculator:'▦',
+    'rotate-ccw':'↺', 'refresh-cw':'↻', check:'✓', 'check-circle':'✓', 'circle-check':'✓', x:'✕', 'x-circle':'✕', 'circle-x':'✕', 'alert-triangle':'⚠', 'alert-circle':'!', info:'ⓘ', 'arrow-right':'→', 'arrow-left':'←', 'arrow-up':'↑', 'arrow-down':'↓', plus:'+', minus:'−', star:'★', sun:'☀', zap:'⚡', battery:'▭', clock:'◷'};
   // SVG elements and attributes that are written camelCase in SVG itself.
   const SVG_TAGS = new Set(['svg','g','path','rect','circle','ellipse','line','polyline','polygon','text','tspan','defs','marker','linearGradient','radialGradient','stop','clipPath','pattern','use','title']);
   const SVG_CAMEL = new Set(['viewBox','markerWidth','markerHeight','refX','refY','preserveAspectRatio','gradientUnits','gradientTransform','patternUnits','patternContentUnits','markerUnits','startOffset','textLength','lengthAdjust','clipPathUnits']);
@@ -334,7 +369,7 @@ code{font-family:ui-monospace,Consolas,monospace;background:#f3f3f3;border-radiu
         case 'link': return `<span class="link">${inline()}</span>`;
         case 'cite': return (Array.isArray(p.items) ? p.items : []).slice(0, 1).map(i => `<span class="cite">${escapeHtml(i.label)}${p.items.length > 1 ? ` +${p.items.length - 1}` : ''}</span>`).join('');
         case 'writing-block': return `<pre class="codeblk">${escapeHtml(String(p.value ?? '').trim())}</pre>`;
-        case 'math': return p.block ? `<div class="math math-block">${escapeHtml(p.value ?? '')}</div>` : `<span class="math">${escapeHtml(p.value ?? '')}${inline()}</span>`;
+        case 'math': return p.block ? `<div class="math math-block">${texHtml(p.value ?? '')}</div>` : `<span class="math">${texHtml(p.value ?? '')}${inline()}</span>`;
         case 'title': return `<div class="${textClasses(p, 'title')}"${textStyle(p)}>${inline()}</div>`;
         case 'text': return ctx.inline || p.inline ? `<span class="${textClasses(p, 't')}"${textStyle(p)}>${inline()}</span>` : `<p class="${textClasses(p, 't')}"${textStyle(p)}>${inline()}</p>`;
         case 'caption': return ctx.inline ? `<span class="caption">${inline()}</span>` : `<p class="caption"${textStyle(p)}>${inline()}</p>`;

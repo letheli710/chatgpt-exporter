@@ -81,3 +81,17 @@ test('panel end to end: generated image, plot and sandbox CSV land in the ZIP',a
   assert.ok(requested.some(p=>p.includes(`interpreter/download?message_id=${code.messageId}&sandbox_path=%2Fmnt%2Fdata%2Fcaffeine.csv`)));
   dom.window.close();
 });
+test('card formulas render as readable math, not LaTeX source; known icons are drawn',()=>{
+  const html=render.toHtml(segs('ee029808').find(s=>s.kind==='card').tree);
+  assert.match(html,/C\(t\)=C<sub>0<\/sub>·\(1\/2\)<sup>t\/5<\/sup>/);assert.doesNotMatch(html,/\\cdot|\^\{/);
+  assert.match(html,/<span class="icon c-secondary">☕<\/span>/);assert.match(html,/<span class="icon">◷<\/span>/);
+  const m=v=>render.toHtml({type:'math',props:{value:v},children:[]});
+  assert.match(m('\\frac{a+1}{2}\\times\\mathrm{kWh} \\le x_{i}^2'),/<sup>a\+1<\/sup>⁄<sub>2<\/sub>×kWh ≤ x<sub>i<\/sub><sup>2<\/sup>/);
+  assert.match(m('a<b & \\alpha'),/a&lt;b &amp; α/);
+});
+test('downloaded files without a content type are named by their header',async()=>{
+  const png=new Uint8Array([0x89,0x50,0x4e,0x47,13,10,26,10,0,0,0,13]);
+  const fetch=async path=>path==='/api/auth/session'?{ok:true,json:async()=>({accessToken:'t'})}:path.startsWith('/backend-api/')?{ok:true,status:200,json:async()=>({download_url:'https://files.example/x'})}:{ok:true,status:200,headers:{get:()=>null},blob:async()=>new Blob([png])};
+  const [file]=await api.downloadFiles({ids:['file_plot1'],conversationId:'c',fetch});
+  assert.equal(file.path,'assets/file_plot1.png');
+});

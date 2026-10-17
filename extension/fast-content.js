@@ -1,5 +1,5 @@
 (() => {
-  const version='0.8.7';
+  const version='0.8.8';
   if(globalThis.__fastTextPanel?.dataset.version===version){globalThis.__fastTextPanel.hidden=!globalThis.__fastTextPanel.hidden;return;}
   globalThis.__fastTextPanel?.remove();
   // Reloading the extension resets its isolated world but can leave the old

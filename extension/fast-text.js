@@ -222,6 +222,17 @@
     return {...records(unique),title,pages,source:'paginated-conversation',raw:{pages:rawPages}};
   }
   const extensionOf = type => ({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif','image/svg+xml':'svg'})[String(type || '').split(';')[0].trim()] || 'bin';
+  // Some file URLs answer without a content type (e.g. code-interpreter plots).
+  async function sniffImage(blob) {
+    try {
+      const b = new Uint8Array(await blob.slice(0, 12).arrayBuffer()), ascii = (from, to) => String.fromCharCode(...b.slice(from, to));
+      if (b[0] === 0x89 && ascii(1, 4) === 'PNG') return 'png';
+      if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'jpg';
+      if (ascii(0, 4) === 'GIF8') return 'gif';
+      if (ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP') return 'webp';
+    } catch {}
+    return 'bin';
+  }
   async function pool(items, limit, worker) {
     const results = new Array(items.length);let next = 0;
     await Promise.all(Array.from({length:Math.min(limit,items.length)}, async () => {
@@ -253,7 +264,9 @@
         const file = await request(url,{credentials:sameOrigin ? 'include' : 'omit',signal});
         if (!file.ok) throw Error(`下载 HTTP ${file.status}`);
         const blob = await file.blob();
-        return {fileId, blob, path:`assets/${fileId}.${extensionOf(blob.type || file.headers?.get?.('content-type'))}`};
+        let ext = extensionOf(blob.type || file.headers?.get?.('content-type'));
+        if (ext === 'bin') ext = await sniffImage(blob);
+        return {fileId, blob, path:`assets/${fileId}.${ext}`};
       } catch (e) {
         if (e?.name === 'AbortError') throw e;
         return {fileId, error:e.message};
