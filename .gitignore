@@ -9,3 +9,5 @@ releases/
 .env
 .env.*
 *.log
+archive/
+Output/
