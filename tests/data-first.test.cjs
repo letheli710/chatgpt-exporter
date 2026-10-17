@@ -29,29 +29,27 @@ test('files download in parallel, falls back to the legacy route, and reports fa
   assert.match(result.find(r=>r.fileId==='file-bad').error,/403/);
   assert.ok(calls.filter(c=>c.path.startsWith('https://')).every(c=>c.options.credentials==='omit'&&!c.options.headers));
 });
-test('default ZIP is data-first: no visual enrichment, original images, ui JSON, raw debug export',async()=>{
+test('ZIP is data-first: original images, ui JSON, raw debug export',async()=>{
   const dom=new JSDOM('<div data-message-id="b">source</div>',{url:'https://chatgpt.com/c/chat',runScripts:'outside-only'}),w=dom.window;
-  const files=[],downloads=[];let enrichCalls=0;const read=b=>new Promise(r=>{const f=new w.FileReader();f.onload=()=>r(f.result);f.readAsText(b);});
+  const files=[],downloads=[];const read=b=>new Promise(r=>{const f=new w.FileReader();f.onload=()=>r(f.result);f.readAsText(b);});
   w.fetch=async path=>{
     if(path==='/api/auth/session')return {ok:true,json:async()=>({accessToken:'t'})};
     if(path==='/backend-api/conversation/chat')return {ok:true,json:async()=>conversation()};
     if(path.startsWith('/backend-api/files/download/'))return {ok:true,json:async()=>({download_url:'/backend-api/estuary/content?id=file-ABC123'})};
     return {ok:true,blob:async()=>new w.Blob(['img'],{type:'image/png'})};};
-  w.ChatExportFastVisual={hasUI:()=>true,signature:()=>'s',enrich:async()=>{enrichCalls++;throw Error('page work in data-first mode');}};
   w.chrome={runtime:{sendMessage:async m=>{downloads.push(m);return {id:1};}}};w.URL.createObjectURL=b=>{downloads.blob=b;return 'blob:https://chatgpt.com/t';};w.URL.revokeObjectURL=()=>{};
   w.JSZip=class{file(name,data){files.push({name,data});}async generateAsync(){return new w.Blob(['zip']);}};
   w.eval(fs.readFileSync('extension/fast-text.js','utf8'));w.eval(fs.readFileSync('extension/fast-content.js','utf8'));const s=w.document.querySelector('[data-archive-owned]').shadowRoot;await idle(s);
-  assert.equal(s.getElementById('live').checked,false);
+  assert.equal(s.getElementById('live'),null);assert.equal(s.getElementById('pick'),null);
   s.getElementById('preview').click();await idle(s);assert.match(s.getElementById('output').value,/〔图片：下载 ZIP 可获取原图〕/);
   s.getElementById('archive').click();await idle(s);
-  assert.equal(enrichCalls,0,s.getElementById('status').textContent);
   const md=files.find(f=>f.name==='conversation.md').data;
   assert.match(md,/!\[图片\]\(assets\/file-ABC123\.png\)/);assert.match(md,/计算器 fallback[\s\S]*\[!chatgpt-ui\][\s\S]*ui\/msg-b\.json/);
   assert.ok(files.some(f=>f.name==='assets/file-ABC123.png'));assert.ok(files.some(f=>f.name==='assets/ui-b-1.png'));
   const uiJson=JSON.parse(await read(files.find(f=>f.name==='ui/msg-b.json').data));
   assert.equal(uiJson.dil.code,dil.code);assert.equal(uiJson.localAssets['https://cdn.example/p.png'],'assets/ui-b-1.png');
   const manifest=JSON.parse(files.find(f=>f.name==='manifest.json').data);assert.deepEqual(manifest.assets.map(a=>a.kind).sort(),['original-image','ui-data','ui-image']);
-  assert.deepEqual(manifest.options,{pageSupplement:false});assert.equal(typeof manifest.visibility.hiddenDuringExport,'boolean');
+  assert.equal(manifest.options,undefined);assert.equal(typeof manifest.visibility.hiddenDuringExport,'boolean');
   s.getElementById('raw').click();await idle(s);await new Promise(r=>setTimeout(r,20));
   assert.equal(downloads.at(-1).filename,`sample-swift-${require('../extension/manifest.json').version}.raw.json`);
   const raw=JSON.parse(await read(downloads.blob));assert.equal(raw.mapping.b.message.metadata.model_dil_v2.code,dil.code);assert.ok(!JSON.stringify(raw).includes('Bearer'));

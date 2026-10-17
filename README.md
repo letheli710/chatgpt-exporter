@@ -1,6 +1,6 @@
 # ChatGPT Exporter
 
-把 ChatGPT 对话导出为 Markdown 和本地资源包的 Chrome 扩展（Manifest V3），方便归档到 Obsidian 等笔记软件。当前版本 **0.8.13**。
+把 ChatGPT 对话导出为 Markdown 和本地资源包的 Chrome 扩展（Manifest V3），方便归档到 Obsidian 等笔记软件。当前版本 **0.8.14**。
 
 全程在浏览器本地运行，不调用任何 AI 服务，也不把对话上传到第三方。正文、原图和界面数据直接从 ChatGPT 的会话接口读取，不需要滚动页面或截图，长对话通常一秒内导出完，标签页在后台也能完成。
 
@@ -28,12 +28,11 @@
 - **预览文字**：先看导出的 Markdown。
 - **下载 Markdown**：只要正文。
 - **下载 ZIP（原图 + 界面数据）**：完整导出，推荐。
-- **从页面补充当前状态与截图**：旧版的页面截图路径，较慢，需保持标签页在前台，一般不需要勾选（计划移除）。
 
 ZIP 解压后：
 
 ```
-<对话标题>-swift-0.8.13/
+<对话标题>-swift-0.8.14/
 ├── conversation.md    正文
 ├── assets/            图片、卡片 PNG、AppBlock 预览图
 ├── files/             代码解释器生成的文件
@@ -57,6 +56,6 @@ npm test
 - `extension/`：扩展本体。改动扩展时，同步提升 `manifest.json`、`extension/fast-content.js` 和 `package.json` 中的版本号，`tests/version.test.cjs` 会检查三者一致。
 - `tests/`：测试。`tests/fixtures/` 是已检查过不含 token 的 Lab 测试对话数据；另有一部分测试读取本地私有样本（`archive/` 下，不提交），缺少时自动跳过。
 - `scripts/package.cjs`：`npm run package` 打包到 `releases/`。
-- `archive/`：本地归档（旧版本导出、研究记录、历史文档），已加入 `.gitignore`，不会推送。
+- `archive/`：本地归档（旧版本导出、研究记录、历史文档、0.6 时代的页面截图代码与测试），已加入 `.gitignore`，不会推送。
 
 请勿提交 HAR、cookie、Authorization 头、token、原始会话 JSON 或私人对话截图。
